@@ -2837,6 +2837,19 @@ const IMAGES = {
     file: 'Albrecht Dürer, The Four Horsemen, 1498, NGA 142352.jpg',
     caption: '알브레히트 뒤러, 《묵시록의 네 기사 (Die vier apokalyptischen Reiter)》 — 1498년, 목판화, 워싱턴 국립미술관. 계 6:1-8의 정복·전쟁·기근·죽음 — 1500년 종말 공포기 도상.',
   },
+  // ── 추가 작가 흉상·도상 (v26) ──
+  'homer-bust-boston': {
+    file: 'Roman portrait head of Homer (Boston MFA 04.13).jpg',
+    caption: '《호메로스 흉상 (Roman portrait head of Homer)》 — 로마 시대 (1-2세기) 대리석 복제, 기원전 2세기 헬레니즘 원본 추정. 보스턴 미술관(MFA) 소장 (acc. 04.13). 눈먼 노시인이라는 전승적 도상 — μῆνιν ἄειδε θεά를 시작하는 시인의 얼굴.',
+  },
+  'ingres-oedipus-sphinx': {
+    file: 'Jean-auguste-dominique ingres, edipo scioglie l\'enigma della sfinge, 1808, 01,1.jpg',
+    caption: '장-오귀스트-도미니크 앵그르, 《오이디푸스와 스핑크스 (Œdipe explique l\'énigme du sphinx)》 — 1808 (1827 개작), 루브르 박물관 RF 218. 소포클레스 *Οἰδίπους Τύραννος* 의 핵심 모티프 — 인간 지성과 운명의 대결.',
+  },
+  'hippocrates-bust': {
+    file: 'Ippocrate, replica del I sec da orig. greco del 150 ac ca. 6131.JPG',
+    caption: '《히포크라테스 흉상 (Ritratto di Ippocrate)》 — 로마 시대 (1세기) 대리석 복제, 기원전 150년경 헬레니즘 원본. 나폴리 국립고고학박물관 (inv. 6131). 의학의 아버지 — *Ἐπιδημίαι* 의 임상 관찰 정신.',
+  },
 };
 
 // 작품 ID → 이미지 ID 매핑 (모든 매핑이 검증된 파일을 가리킴)
@@ -2885,6 +2898,15 @@ const WORK_IMAGE = {
   'nt-jude':               'sinaiticus-folio',
   // ── 묵시록 ──
   'nt-revelation':         'durer-four-horsemen',         // 계 6:1-8 네 기사
+  // ── 추가 매핑 (v26) — 호메로스 흉상으로 *Ἰλιάς* 6/9/22/24권 시각 통일 ──
+  'homer-iliad-6':         'homer-bust-boston',           // 헥토르와 안드로마케 — 가족·이별
+  'homer-iliad-9':         'homer-bust-boston',           // 사절단 — 외교·설득
+  'homer-iliad-22':        'homer-bust-boston',           // 헥토르의 죽음
+  'homer-iliad-24':        'homer-bust-boston',           // 프리아모스와 아킬레우스 — 화해
+  // ── 소포클레스 ── 오이디푸스 왕
+  'sophocles-oedipus':     'ingres-oedipus-sphinx',       // 스핑크스의 수수께끼
+  // ── 히포크라테스 ── 의학의 아버지
+  'hippocrates-epidemics': 'hippocrates-bust',            // 임상 관찰의 시조
 };
 
 // 작품 ID → SVG 폴백 (네트워크 실패 시 표시)
@@ -2922,6 +2944,13 @@ function svgFallback(workId){
     'nt-1john':              '📜',  'nt-2john':          '📜',
     'nt-3john':              '📜',  'nt-jude':           '📜',
     'nt-revelation':         '🐴',  // 묵시록의 네 기사
+    // ── 추가 작품 (v26) ──
+    'homer-iliad-6':         '👨‍👩‍👦',  // 헥토르와 안드로마케 (가족)
+    'homer-iliad-9':         '🤝',  // 사절단 (외교)
+    'homer-iliad-22':        '⚔️',  // 헥토르의 죽음 (결투)
+    'homer-iliad-24':        '🕊️',  // 프리아모스와 아킬레우스 (화해)
+    'sophocles-oedipus':     '🦁',  // 스핑크스 (사자몸·인면)
+    'hippocrates-epidemics': '⚕️',  // 의학의 상징
   }[workId] || '📜';
   // 적색상 도기 색조의 SVG 배경 (terracotta + black-glaze)
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 270" style="width:100%;height:100%;display:block">
@@ -3174,6 +3203,7 @@ let S = {
   displayName:'',        // 라이브 순위 표시 이름 (공개)
   userId:'',             // 익명 사용자 ID (생성)
   joinLeaderboard:false, // 순위 참여 의사 (명시적 동의)
+  speech:{rate:0.85, pitch:1.0, voiceName:''},  // 음성 합성 설정 (v24)
 };
 
 function todayStr(){ const d=new Date(); return d.toISOString().slice(0,10); }
@@ -3508,6 +3538,17 @@ function renderVocab(){
       </div>
     </button>
 
+    <button class="card" type="button" data-render="renderSpeechSettings" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--clay-d);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:var(--font-grk);font-size:20px;color:var(--clay-d);font-weight:600">Φωνή</div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">음성 합성 설정</div>
+          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">속도·음높이·음성 선택 · Web Speech API · 미리듣기</div>
+        </div>
+        <div style="font-size:22px;color:var(--terracotta)">→</div>
+      </div>
+    </button>
+
     <div class="card">
       <div style="font-size:12px;color:var(--clay-d);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;font-weight:600">출처</div>
       <div class="chips" id="chips-source">
@@ -3805,6 +3846,17 @@ function renderGrammar(){
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Κλίσις</div>
           <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">변형 드릴 (Inflection)</div>
           <div style="font-size:11px;color:var(--clay-d);margin-top:3px">명사·동사 변화형 ↔ 형태분석 라벨 4지선다 · TOPICS 검증 데이터</div>
+        </div>
+        <div style="font-size:22px;color:var(--terracotta)">→</div>
+      </div>
+    </button>
+
+    <button class="card" type="button" data-render="renderDialects" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%)">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Διάλεκτοι</div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">방언 비교 (Dialects)</div>
+          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">Attic · Ionic · Homeric · Doric/Aeolic · Koine 음운·형태 변이 · Smyth §214-275, Buck (1955)</div>
         </div>
         <div style="font-size:22px;color:var(--terracotta)">→</div>
       </div>
@@ -4177,6 +4229,275 @@ function getInflectionPool(){
   _inflectionPool = pool;
   return pool;
 }
+
+// ============================================================================
+// 방언 비교 (Διάλεκτοι) — Attic / Ionic / Homeric / Doric-Aeolic / Koine
+// 출처: Smyth §214-275, Buck (1955) Greek Dialects, Horrocks (2010)
+// 예문: 모두 Perseus DL CC BY-SA. 형태론적 사실은 저작권 보호 대상이 아님.
+// ============================================================================
+const DIALECT_TOPICS = [
+  {
+    id:'alpha-eta', cat:'phon',
+    grk:'τὸ ᾱ μακρὸν / τὸ η',
+    title:'장음 ᾱ → η (Attic-Ionic 변동)',
+    expl:'원시 그리스어 장음 *ā는 Ionic에서 모든 위치에서 η로, Attic에서는 ε·ι·ρ 다음에만 ᾱ를 유지하고 그 외 η로 변했다. Doric·Aeolic·West Greek은 원형 *ā를 모두 유지하였다. 이 분기는 BC 9-8세기경에 일어났으며, Attic-Ionic 방언군을 정의하는 가장 핵심적인 음운 변화이다.',
+    forms:[
+      {dialect:'doric',   label:'Doric',     word:'μᾱ́τηρ',  note:'장음 ᾱ 유지 — Pindar, Theocritus.'},
+      {dialect:'aeolic',  label:'Aeolic',    word:'μᾱ́τηρ',  note:'장음 ᾱ 유지 — Sappho, Alcaeus.'},
+      {dialect:'homeric', label:'Homeric',   word:'μήτηρ',  note:'Ionic 기반이므로 η.'},
+      {dialect:'ionic',   label:'Ionic',     word:'μήτηρ',  note:'예외 없이 η — Herodotus.'},
+      {dialect:'attic',   label:'Attic',     word:'μήτηρ',  note:'ε·ι·ρ 비후속이라 η. (cf. χώρᾱ는 ρ 후속이므로 ᾱ 유지)'},
+      {dialect:'koine',   label:'Koine',     word:'μήτηρ',  note:'Attic 계승.'},
+    ],
+    examples:[
+      {text:'ἁ μᾱ́τηρ μευ γαμεῖ', cite:'Theocr. Id. 3.1 (Doric)'},
+      {text:'τῇ μητρὶ τῇ ἐμῇ', cite:'Hdt. 1.45 (Ionic)'},
+    ],
+    source:'Smyth §30, §214; Buck §41; Horrocks §1.4.',
+  },
+  {
+    id:'tt-ss', cat:'phon',
+    grk:'-ττ- / -σσ-',
+    title:'자음군 -ττ- ↔ -σσ-',
+    expl:'원시 그리스어 *-ty-, *-khy-, *-ts-는 대부분 방언에서 -σσ-로 발전했으나, Attic과 Boeotian에서만 -ττ-로 굳어졌다. Attic-Ionic 분기가 일어난 후에도 발생한 비교적 후기의 변화로, 코이네는 Ionic·다른 방언의 영향으로 -σσ- 형을 일반화하였다. 신약 그리스어가 θάλασσα를 쓰는 이유이다.',
+    forms:[
+      {dialect:'attic',   label:'Attic',   word:'θάλαττα, πράττω, γλῶττα', note:'-ττ- 고유 — Plato, Demosthenes.'},
+      {dialect:'ionic',   label:'Ionic',   word:'θάλασσα, πρήσσω, γλῶσσα', note:'-σσ- (장음 a→η 함께).'},
+      {dialect:'homeric', label:'Homeric', word:'θάλασσα, γλῶσσα',         note:'-σσ- 우세.'},
+      {dialect:'doric',   label:'Doric',   word:'θάλασσα, γλῶσσα',         note:'-σσ-.'},
+      {dialect:'koine',   label:'Koine',   word:'θάλασσα, πράσσω/πράττω',  note:'-σσ- 일반화. NT는 θάλασσα 고정.'},
+    ],
+    examples:[
+      {text:'οὐ μέλει τῇ θαλάττῃ', cite:'Pl. Phd. 109b (Attic)'},
+      {text:'περὶ τὴν θάλασσαν', cite:'Hdt. 1.1 (Ionic)'},
+      {text:'παρὰ τὴν θάλασσαν τῆς Γαλιλαίας', cite:'Mat. 4:18 (Koine)'},
+    ],
+    source:'Smyth §78, §218; Buck §81-82.',
+  },
+  {
+    id:'article-toi', cat:'morph',
+    grk:'οἱ, αἱ / τοί, ταί',
+    title:'정관사 복수 주격: τοί/ταί 보존 (Doric/Homeric)',
+    expl:'정관사는 원래 지시대명사 *so/*sā/*tod에서 발달했으며, 복수 주격은 본디 τοί(남)/ταί(여) 형태였다. Attic-Ionic에서는 보충적 비교형 οἱ/αἱ로 대체되었고, Doric·Aeolic은 원형 τοί/ταί를 보존했다. Homeric은 시적 자유로 양쪽 모두 사용 — 운율의 필요에 따라.',
+    forms:[
+      {dialect:'attic',   label:'Attic',     word:'οἱ, αἱ',    note:'완전 보충 — 단수 ὁ/ἡ와 어간 불일치.'},
+      {dialect:'ionic',   label:'Ionic',     word:'οἱ, αἱ',    note:'Attic과 동일.'},
+      {dialect:'homeric', label:'Homeric',   word:'τοί / οἱ, ταί / αἱ', note:'두 형태 병용 — 운율 자유.'},
+      {dialect:'doric',   label:'Doric',     word:'τοί, ταί',  note:'원형 유지 — Pindar, Theocritus.'},
+      {dialect:'aeolic',  label:'Aeolic',    word:'τοί, ταί',  note:'원형 유지.'},
+      {dialect:'koine',   label:'Koine',     word:'οἱ, αἱ',    note:'Attic 계승.'},
+    ],
+    examples:[
+      {text:'τοὶ μὲν ἄρ\' εὐχόμενοι Διὶ', cite:'Il. 1.450 (Homeric, 복수형 τοί)'},
+      {text:'τοὶ δ\' ἄγαλμα Διός', cite:'Pind. O. 3.30 (Doric)'},
+    ],
+    source:'Smyth §215, §332; Buck §122.',
+  },
+  {
+    id:'gen-oio', cat:'morph',
+    grk:'-οιο / -οο / -ου',
+    title:'2변화 단수 속격: -οιο > -οο > -ου',
+    expl:'원시 그리스어 단수 속격은 *-osyo로, Mycenaean 선형 B에 -ojo로 보존되어 있다. Homeric은 -οιο와 단축형 -οο를 시적으로 모두 보존하며, Attic·Ionic에서 모음 융합으로 -ου로 굳어졌다. 이는 그리스어 음운 변화의 모범적 사례 — Mycenaean → Homeric → 고전기의 시간적 단축.',
+    forms:[
+      {dialect:'homeric', label:'Homeric', word:'θεοῖο, ἀνθρώποιο',  note:'2음절 어미 — Iliad 전반.'},
+      {dialect:'aeolic',  label:'Aeolic',  word:'θέω, ἀνθρώπω',      note:'-ω로 단축.'},
+      {dialect:'doric',   label:'Doric',   word:'θεῶ / θεοῦ',         note:'중간형.'},
+      {dialect:'ionic',   label:'Ionic',   word:'θεοῦ',               note:'단축 완료.'},
+      {dialect:'attic',   label:'Attic',   word:'θεοῦ',               note:'단축 완료 — 표준형.'},
+      {dialect:'koine',   label:'Koine',   word:'θεοῦ',               note:'Attic 계승.'},
+    ],
+    examples:[
+      {text:'βῆ δ\' ἀκέων παρὰ θῖνα πολυφλοίσβοιο θαλάσσης', cite:'Il. 1.34 (Homeric, -οιο)'},
+      {text:'ἀνδρὸς Ἀθηναίου', cite:'Pl. Ap. 17a (Attic)'},
+    ],
+    source:'Smyth §230; Buck §106; Horrocks §1.6.',
+  },
+  {
+    id:'dat-pl-oisi', cat:'morph',
+    grk:'-οισι / -ῃσι ↔ -οις / -αις',
+    title:'여격 복수: -οισι / -ῃσι → -οις / -αις',
+    expl:'2변화 남성·중성 여격 복수는 Homeric·Ionic에서 -οισι, 1변화 여성은 -ῃσι를 쓰며, Attic은 -οις, -αις로 단축하였다. 또한 Homeric·Aeolic은 3변화에서 -εσσι (예: πόδεσσι)를 사용하나 Attic은 -σι (ποσί). 이 단축은 Attic 산문의 간결성을 만든 핵심 요소이다.',
+    forms:[
+      {dialect:'homeric', label:'Homeric', word:'θεοῖσι, ἵπποισι, πόδεσσι', note:'장형 어미 — 운율 적응.'},
+      {dialect:'ionic',   label:'Ionic',   word:'θεοῖσι, θεῇσι',             note:'장형 어미.'},
+      {dialect:'aeolic',  label:'Aeolic',  word:'θεοῖσι, πόδεσσι',           note:'3변화 -εσσι 특히 활발.'},
+      {dialect:'doric',   label:'Doric',   word:'θεοῖς (후기) / θεοῖσι',    note:'시대에 따라 변동.'},
+      {dialect:'attic',   label:'Attic',   word:'θεοῖς, ποσί',               note:'단축형.'},
+      {dialect:'koine',   label:'Koine',   word:'θεοῖς',                     note:'Attic 계승.'},
+    ],
+    examples:[
+      {text:'οἷον ποτὶ Δαναοῖσι', cite:'Il. 11.367 (Homeric, -οισι)'},
+      {text:'τοῖς θεοῖς εὔχομαι', cite:'Pl. Phdr. 279c (Attic, -οις)'},
+    ],
+    source:'Smyth §216, §232; Buck §107-108.',
+  },
+  {
+    id:'pron-hmeis', cat:'morph',
+    grk:'ἡμεῖς / ἡμέες / ἄμμες',
+    title:'1인칭 복수 대명사: 방언별 형태',
+    expl:'1복 대명사는 어간 *ns-mes에서 발달했으며, 방언별로 매우 다르다. Homeric 시는 Aeolic적 ἄμμες를 자주 사용하는데, 이는 Iliad·Odyssey의 합성적 방언 성격을 보여주는 단서이다. Doric ἁμές는 거친 후두음(rough breathing)으로 시작하며, Koine는 Attic 형을 계승한다.',
+    forms:[
+      {dialect:'attic',   label:'Attic',   word:'ἡμεῖς · ἡμᾶς · ἡμῶν · ἡμῖν', note:'표준 — 단축 어미.'},
+      {dialect:'ionic',   label:'Ionic',   word:'ἡμέες · ἡμέας · ἡμέων · ἡμῖν', note:'어미 -ες 미단축.'},
+      {dialect:'homeric', label:'Homeric', word:'ἡμεῖς / ἄμμες · ἡμέας / ἄμμε · ἡμέων / ἄμμων · ἡμῖν / ἄμμι(ν)', note:'두 어간 병용 — Aeolic 영향.'},
+      {dialect:'aeolic',  label:'Aeolic',  word:'ἄμμες · ἄμμε · ἄμμων · ἄμμι(ν)', note:'순수 Aeolic 형 — Sappho.'},
+      {dialect:'doric',   label:'Doric',   word:'ἁμές · ἁμέ · ἁμέων · ἁμίν', note:'rough breathing — Pindar.'},
+      {dialect:'koine',   label:'Koine',   word:'ἡμεῖς · ἡμᾶς · ἡμῶν · ἡμῖν', note:'Attic 계승.'},
+    ],
+    examples:[
+      {text:'ἄμμες δ\' οὔ τι ποθόρμενοι', cite:'Theocr. Id. 15.6 (Aeolic-Doric)'},
+      {text:'ἡμεῖς δὲ μυθεόμεθα', cite:'Hdt. 1.5 (Ionic)'},
+    ],
+    source:'Smyth §325; Buck §119.',
+  },
+  {
+    id:'verb-ousi-onti', cat:'morph',
+    grk:'-ουσι / -οντι',
+    title:'3복 능동 현재 어미: -ουσι (Attic) ↔ -οντι (Doric)',
+    expl:'PIE *-onti가 Attic-Ionic에서 -ουσι(ν)로 변화한 것은 두 단계 음운 변화 결과이다: (1) 인접 모음 사이 ν 소실로 *-onsi, (2) -ονσι → -ουσι 보상 장음화. Doric은 원형 -οντι를 보존하여 Pindar 송시의 특징적 표지가 된다. 이는 학습자가 Doric 텍스트 식별의 핵심 단서로 사용할 수 있다.',
+    forms:[
+      {dialect:'attic',   label:'Attic',   word:'λέγουσι, φέρουσι', note:'표준 — 보상 장음화.'},
+      {dialect:'ionic',   label:'Ionic',   word:'λέγουσι, φέρουσι', note:'Attic과 동일.'},
+      {dialect:'homeric', label:'Homeric', word:'λέγουσι (후기) / λέγοντι (드물게)', note:'Ionic 기반이므로 보통 -ουσι.'},
+      {dialect:'doric',   label:'Doric',   word:'λέγοντι, φέροντι', note:'원형 보존 — Pindar 송시의 특징.'},
+      {dialect:'aeolic',  label:'Aeolic',  word:'λέγοισι, φέροισι', note:'중간형 — -οισι.'},
+      {dialect:'koine',   label:'Koine',   word:'λέγουσι(ν), φέρουσι(ν)', note:'Attic 계승.'},
+    ],
+    examples:[
+      {text:'πολλὰ μέλη πλέκοντι σοφοί', cite:'Pind. fr. 70b (Doric, -οντι)'},
+      {text:'πάντες ἄνθρωποι τοῦ εἰδέναι ὀρέγονται', cite:'Arist. Met. 980a (Attic)'},
+    ],
+    source:'Smyth §35d, §463; Buck §138.',
+  },
+  {
+    id:'inf-naai-menai', cat:'morph',
+    grk:'-ναι / -ειν / -μεν / -μεναι',
+    title:'부정사 어미의 방언 변이',
+    expl:'그리스어 부정사 어미는 방언별로 가장 다양한 영역 중 하나이다. Attic은 능동 -ειν (θεματικός) / -ναι (athematic)로 단순화했으나, Homeric은 -μεν, -μεναι, -ναι, -ειν 네 형태를 모두 보존하여 운율 적응을 자유롭게 하였다. Aeolic은 -μεν / -μεναι를 활발히 쓰며, Doric은 -εν / -μεν의 단축형을 선호한다.',
+    forms:[
+      {dialect:'attic',   label:'Attic',   word:'λέγειν, εἶναι, δοῦναι', note:'-ειν (themat.) / -ναι (athemat.).'},
+      {dialect:'homeric', label:'Homeric', word:'εἰπεῖν / εἰπέμεν / εἰπέμεναι, ἔμμεν(αι) / εἶναι', note:'4종 어미 — 운율 자유.'},
+      {dialect:'aeolic',  label:'Aeolic',  word:'εἴπην / ἔμμεναι',     note:'-μεν / -μεναι 우세.'},
+      {dialect:'doric',   label:'Doric',   word:'εἰπεῖν / εἰπέν / εἰπέμεν', note:'단축형 -εν / -μεν.'},
+      {dialect:'ionic',   label:'Ionic',   word:'εἰπεῖν, εἶναι',        note:'Attic과 거의 동일.'},
+      {dialect:'koine',   label:'Koine',   word:'εἰπεῖν, εἶναι, δοῦναι', note:'Attic 계승.'},
+    ],
+    examples:[
+      {text:'ἀλλά μοι εἰπὲ καὶ φράσον — ἢ καί τις ἐγείρειν;', cite:'Att. cf. Od. 24.474 (vs. Hom. ἐγειρέμεν)'},
+      {text:'οὐχ οἷόν τ\' ἔστιν μή οὐ φιλεῖν τοὺς φίλους', cite:'Pl. Ly. 215c (Attic, -εῖν)'},
+      {text:'πρὶν ἔμμεναι Νότοιο μένος', cite:'Sapph. (Aeolic, ἔμμεναι)'},
+    ],
+    source:'Smyth §469, §765; Buck §154-155.',
+  },
+];
+
+// 방언별 색상 (각 방언 형태 카드의 좌측 띠)
+const DIALECT_COLORS = {
+  attic:   '#C44536',
+  ionic:   '#9C3F2D',
+  homeric: '#7a2920',
+  aeolic:  '#5c4e3e',
+  doric:   '#8a7a6a',
+  koine:   '#b59070',
+};
+
+function renderDialects(){
+  let filterCat = 'all';
+  const draw = () => {
+    const topics = filterCat==='all' ? DIALECT_TOPICS : DIALECT_TOPICS.filter(t=>t.cat===filterCat);
+    view.innerHTML = `
+      <button class="btn btn-sm btn-o" onclick="setTab('grammar')">← 문법 목록</button>
+      <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Διάλεκτοι</span>방언 비교</h2>
+      <div class="view-sub">${DIALECT_TOPICS.length}개 토픽 · Smyth §214-275, Buck (1955), Horrocks (2010)</div>
+
+      <div class="card">
+        <div style="font-size:13px;line-height:1.7;color:var(--black-glaze-l)">
+          고전 그리스어는 BC 8세기부터 코이네까지 다섯 주요 방언군으로 분기·통합되어 왔다.
+          이 모듈은 학습자가 자주 마주치는 음운·형태론적 변이를 표 형식으로 비교하여,
+          텍스트의 방언적 표지를 식별하고 분류하는 능력을 기른다.
+        </div>
+        <div style="font-size:11px;color:var(--clay-d);margin-top:8px;font-style:italic;line-height:1.6">
+          ◇ <b>Attic</b>: 산문·연극 표준 (Plato, Sophocles)<br>
+          ◇ <b>Ionic</b>: 헤로도토스, 히포크라테스, 초기 철학자<br>
+          ◇ <b>Homeric</b>: Iliad·Odyssey의 합성적 시 방언 (Ionic 기반 + Aeolic 요소)<br>
+          ◇ <b>Doric/Aeolic</b>: 합창시·서정시 (Pindar, Sappho, Theocritus)<br>
+          ◇ <b>Koine</b>: 헬레니즘 공통어 (Polybius, 신약, Plutarch)
+        </div>
+      </div>
+
+      <div class="chips" id="dialect-cats">
+        ${[['all','전체'],['phon','음운 (Phonology)'],['morph','형태 (Morphology)']].map(([v,l])=>
+          `<button class="chip ${filterCat===v?'active':''}" data-v="${v}">${l}</button>`).join('')}
+      </div>
+
+      <div id="dialect-list" class="fade-in">
+        ${topics.map(t=>`
+          <button class="card" data-id="${t.id}" style="width:100%;text-align:left;cursor:pointer;border:1px solid var(--clay)">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+              <div style="flex:1">
+                <div style="font-family:var(--font-grk);font-size:19px;color:var(--terracotta-d);font-weight:600;line-height:1.2">${t.grk}</div>
+                <div style="font-size:13px;font-weight:600;color:var(--black-glaze);margin-top:4px">${t.title}</div>
+                <div style="font-size:11px;color:var(--clay-d);margin-top:4px;text-transform:uppercase;letter-spacing:.06em">${t.cat==='phon'?'음운':'형태'} · ${t.forms.length}개 방언</div>
+              </div>
+              <div style="font-size:18px;color:var(--terracotta);flex-shrink:0">→</div>
+            </div>
+          </button>
+        `).join('')}
+      </div>
+    `;
+    document.querySelectorAll('#dialect-cats .chip').forEach(c=>
+      c.addEventListener('click',()=>{ filterCat=c.dataset.v; draw(); }));
+    document.querySelectorAll('#dialect-list [data-id]').forEach(b=>
+      b.addEventListener('click',()=> renderDialectTopic(b.dataset.id)));
+  };
+  draw();
+}
+window.renderDialects = renderDialects;
+
+function renderDialectTopic(id){
+  const t = DIALECT_TOPICS.find(x=>x.id===id);
+  if(!t) return;
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="renderDialects()">← 방언 토픽 목록</button>
+    <h2 class="view-title fade-in" style="margin-top:10px">${t.title}</h2>
+    <div class="view-sub"><span class="grk">${t.grk}</span></div>
+
+    <div class="card">
+      <div style="line-height:1.75;font-size:14.5px;color:var(--black-glaze)">${t.expl}</div>
+    </div>
+
+    <h3 style="font-family:var(--font-display);font-size:15px;color:var(--terracotta-d);margin:18px 0 8px;text-transform:uppercase;letter-spacing:.08em">방언별 형태</h3>
+    <div class="card" style="padding:0">
+      ${t.forms.map((f,i)=>`
+        <div style="padding:12px 14px;border-bottom:${i<t.forms.length-1?'1px solid var(--clay)':'none'};border-left:3px solid ${DIALECT_COLORS[f.dialect]||'var(--clay)'}">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap">
+            <div style="font-size:11px;font-weight:700;color:var(--clay-d);text-transform:uppercase;letter-spacing:.08em;min-width:64px">${f.label}</div>
+            <div style="font-family:var(--font-grk);font-size:17px;color:var(--terracotta-d);font-weight:600;flex:1;text-align:right">${f.word}</div>
+          </div>
+          ${f.note?`<div style="font-size:12px;color:var(--clay-d);margin-top:6px;line-height:1.6">${f.note}</div>`:''}
+        </div>
+      `).join('')}
+    </div>
+
+    ${t.examples && t.examples.length ? `
+      <h3 style="font-family:var(--font-display);font-size:15px;color:var(--terracotta-d);margin:18px 0 8px;text-transform:uppercase;letter-spacing:.08em">예문</h3>
+      <div class="card" style="padding:0">
+        ${t.examples.map((ex,i)=>`
+          <div style="padding:12px 14px;border-bottom:${i<t.examples.length-1?'1px solid var(--clay)':'none'}">
+            <div class="grk" style="font-size:16px;line-height:1.6;color:var(--black-glaze)">${ex.text}</div>
+            <div style="font-size:11px;color:var(--clay-d);margin-top:6px;font-style:italic">— ${ex.cite}</div>
+          </div>
+        `).join('')}
+      </div>
+    ` : ''}
+
+    <div class="card" style="margin-top:14px;background:var(--ivory-d);border-left:3px solid var(--clay-d)">
+      <div style="font-size:11px;color:var(--clay-d);font-style:italic;line-height:1.6">📚 출처: ${t.source}</div>
+    </div>
+  `;
+}
+window.renderDialectTopic = renderDialectTopic;
+
 function renderInflection(){
   const pool = getInflectionPool();
   view.innerHTML = `
@@ -5999,39 +6320,221 @@ function estimateReadingMinutes(work){
 
 // ===== 음성 합성 (TTS) =====
 let _greekVoice = null;
+let _availableVoices = [];
 function _initVoice(){
   if(!('speechSynthesis' in window)) return;
   const pick = () => {
-    const voices = speechSynthesis.getVoices();
-    _greekVoice = voices.find(v => v.lang.startsWith('el')) ||
-                  voices.find(v => v.lang.toLowerCase().includes('greek')) || null;
+    _availableVoices = speechSynthesis.getVoices();
+    // 사용자가 명시 선택한 음성 우선, 없으면 자동 el-GR / Greek
+    const preferredName = (S && S.speech && S.speech.voiceName) ? S.speech.voiceName : '';
+    if(preferredName){
+      const v = _availableVoices.find(v => v.name === preferredName);
+      if(v){ _greekVoice = v; return; }
+    }
+    _greekVoice = _availableVoices.find(v => v.lang.startsWith('el')) ||
+                  _availableVoices.find(v => v.lang.toLowerCase().includes('greek')) || null;
   };
   pick();
-  if(!_greekVoice) speechSynthesis.onvoiceschanged = pick;
+  if(!_greekVoice || _availableVoices.length === 0){
+    speechSynthesis.onvoiceschanged = pick;
+  }
 }
 if(typeof window !== 'undefined'){ _initVoice(); }
 function speakGreek(text){
   if(!('speechSynthesis' in window) || !text) return false;
   const clean = text.replace(/^\d+\s+/gm, '').replace(/\[\d+[a-z]?\]/g, '');
   const u = new SpeechSynthesisUtterance(clean);
-  if(_greekVoice) u.voice = _greekVoice;
-  u.lang = 'el-GR'; u.rate = 0.85; u.pitch = 1.0;
+  // 사용자 음성 명시 선택 우선
+  const settings = (S && S.speech) ? S.speech : {rate:0.85, pitch:1.0, voiceName:''};
+  if(settings.voiceName){
+    const v = _availableVoices.find(v => v.name === settings.voiceName);
+    if(v) u.voice = v;
+    else if(_greekVoice) u.voice = _greekVoice;
+  } else if(_greekVoice) {
+    u.voice = _greekVoice;
+  }
+  u.lang = 'el-GR';
+  u.rate = (typeof settings.rate === 'number') ? settings.rate : 0.85;
+  u.pitch = (typeof settings.pitch === 'number') ? settings.pitch : 1.0;
   speechSynthesis.cancel();
   speechSynthesis.speak(u);
   return true;
 }
 function stopSpeech(){ if('speechSynthesis' in window) speechSynthesis.cancel(); }
 
-// ===== 즐겨찾기·북마크 =====
+// ===== 음성 합성 설정 화면 (v24) =====
+const _SPEECH_DEMO_TEXT = 'Ἐν ἀρχῇ ἦν ὁ λόγος, καὶ ὁ λόγος ἦν πρὸς τὸν θεόν.';
+function _ensureSpeechSettings(){
+  if(!S.speech) S.speech = {rate:0.85, pitch:1.0, voiceName:''};
+}
+function renderSpeechSettings(){
+  _ensureSpeechSettings();
+  // 최신 음성 목록 받기 (브라우저는 비동기로 로드)
+  if('speechSynthesis' in window){
+    _availableVoices = speechSynthesis.getVoices();
+  }
+  const supported = ('speechSynthesis' in window);
+  // 그리스어 음성 우선, 그 외 영어·라틴어 (학술 발음 대안), 그 후 나머지
+  const greekVoices = _availableVoices.filter(v => v.lang.startsWith('el') || v.lang.toLowerCase().includes('greek'));
+  const altVoices   = _availableVoices.filter(v =>
+    !greekVoices.includes(v) && (v.lang.startsWith('en') || v.lang.startsWith('la') || v.lang.startsWith('it')));
+  const otherVoices = _availableVoices.filter(v => !greekVoices.includes(v) && !altVoices.includes(v));
+
+  const optGrp = (label, list) => list.length === 0 ? '' :
+    `<optgroup label="${label}">${list.map(v =>
+      `<option value="${v.name.replace(/"/g,'&quot;')}"${S.speech.voiceName===v.name?' selected':''}>${v.name} (${v.lang})${v.default?' ★기본':''}</option>`
+    ).join('')}</optgroup>`;
+
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="setTab('vocab')">← 어휘</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Φωνή</span>음성 합성 설정</h2>
+    <div class="view-sub">${supported ? '브라우저 Web Speech API 사용' : '⚠ 이 브라우저는 음성 합성을 지원하지 않습니다'}</div>
+
+    ${!supported ? `
+    <div class="card warm">
+      <b>음성 합성 미지원</b><br>
+      iOS Safari·Chrome·Edge 최신 버전에서만 작동합니다. 다른 브라우저를 사용하시거나 OS를 업데이트해 주세요.
+    </div>` : `
+
+    <div class="card">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
+        <label style="font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em">속도 (rate)</label>
+        <span id="rate-val" style="font-family:var(--font-display);font-size:15px;color:var(--black-glaze);font-weight:600">${S.speech.rate.toFixed(2)}x</span>
+      </div>
+      <input type="range" id="rate-slider" min="0.5" max="1.5" step="0.05" value="${S.speech.rate}"
+             style="width:100%;accent-color:var(--terracotta)">
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--clay-d);margin-top:4px">
+        <span>0.5x 매우 느림</span><span>1.0x 정상</span><span>1.5x 빠름</span>
+      </div>
+      <div style="font-size:11px;color:var(--clay-d);margin-top:8px;font-style:italic;line-height:1.5">
+        기본 0.85x — 학습자에게 권장. 음절 식별 우선.
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
+        <label style="font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em">음높이 (pitch)</label>
+        <span id="pitch-val" style="font-family:var(--font-display);font-size:15px;color:var(--black-glaze);font-weight:600">${S.speech.pitch.toFixed(2)}</span>
+      </div>
+      <input type="range" id="pitch-slider" min="0.5" max="1.5" step="0.05" value="${S.speech.pitch}"
+             style="width:100%;accent-color:var(--terracotta)">
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--clay-d);margin-top:4px">
+        <span>0.5 낮음</span><span>1.0 정상</span><span>1.5 높음</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <label style="display:block;font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">음성 선택 (${_availableVoices.length}개 사용 가능)</label>
+      <select id="voice-select" style="width:100%;padding:8px 10px;border:1px solid var(--clay);border-radius:6px;background:var(--ivory);font-family:var(--font-grk);font-size:14px;color:var(--black-glaze)">
+        <option value=""${S.speech.voiceName===''?' selected':''}>자동 (Greek 음성 우선)</option>
+        ${optGrp('🇬🇷 그리스어 (권장)', greekVoices)}
+        ${optGrp('🌐 대체 (영어·이탈리아어·라틴어)', altVoices)}
+        ${optGrp('기타', otherVoices)}
+      </select>
+      <div style="font-size:11px;color:var(--clay-d);margin-top:8px;font-style:italic;line-height:1.5">
+        ${greekVoices.length === 0 ?
+          '⚠ 기기에 그리스어 음성이 설치되어 있지 않습니다. 설정 → 손쉬운 사용 → 콘텐츠 말하기 → 음성에서 추가 음성 다운로드할 수 있습니다 (iPad).' :
+          `✓ 그리스어 음성 ${greekVoices.length}개 발견.`}
+        ${_availableVoices.length === 0 ? '<br><b>아직 음성 목록이 로드 중입니다. 잠시 후 새로고침 해 보세요.</b>' : ''}
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">미리듣기</div>
+      <div class="grk" style="font-size:15px;line-height:1.7;color:var(--black-glaze);background:var(--ivory-d);padding:10px 12px;border-radius:6px;margin-bottom:10px">
+        ${_SPEECH_DEMO_TEXT}
+        <div style="font-size:11px;color:var(--clay-d);margin-top:4px;font-style:italic">— John 1:1 (Koine)</div>
+      </div>
+      <button class="btn" id="speech-test-btn" style="width:100%">🔊 듣기</button>
+    </div>
+
+    <div class="card" style="background:var(--ivory-d);border-left:3px solid var(--clay-d)">
+      <div style="font-size:11px;color:var(--clay-d);line-height:1.7;font-style:italic">
+        ◇ <b>음성 시스템 한계</b>: 현대 그리스어 발음 (Modern Greek)을 사용합니다.
+        고전 발음 (Erasmian, Restored Attic) 음성은 현 시점 브라우저 TTS에 없으며,
+        학술적 정확성을 위해서는 강의 녹음 또는 ScorpioMartianus 등 학자 발음을 권장합니다.<br>
+        ◇ 설정은 기기에 로컬 저장되며 외부 전송되지 않습니다.
+      </div>
+    </div>
+    `}
+  `;
+
+  if(supported){
+    const rateSlider = document.getElementById('rate-slider');
+    const rateVal = document.getElementById('rate-val');
+    const pitchSlider = document.getElementById('pitch-slider');
+    const pitchVal = document.getElementById('pitch-val');
+    const voiceSelect = document.getElementById('voice-select');
+    const testBtn = document.getElementById('speech-test-btn');
+
+    rateSlider.addEventListener('input', () => {
+      S.speech.rate = parseFloat(rateSlider.value);
+      rateVal.textContent = S.speech.rate.toFixed(2) + 'x';
+    });
+    rateSlider.addEventListener('change', () => { saveState(); });
+
+    pitchSlider.addEventListener('input', () => {
+      S.speech.pitch = parseFloat(pitchSlider.value);
+      pitchVal.textContent = S.speech.pitch.toFixed(2);
+    });
+    pitchSlider.addEventListener('change', () => { saveState(); });
+
+    voiceSelect.addEventListener('change', () => {
+      S.speech.voiceName = voiceSelect.value;
+      _initVoice();   // 새 선택 즉시 반영
+      saveState();
+    });
+
+    testBtn.addEventListener('click', () => {
+      stopSpeech();
+      const ok = speakGreek(_SPEECH_DEMO_TEXT);
+      if(!ok) testBtn.textContent = '⚠ 음성 합성 실패';
+    });
+
+    // 음성 목록이 비동기 로드 — 잠시 후 다시 그리기
+    if(_availableVoices.length === 0 && 'speechSynthesis' in window){
+      speechSynthesis.onvoiceschanged = () => {
+        _availableVoices = speechSynthesis.getVoices();
+        if(view.querySelector('#voice-select')) renderSpeechSettings();
+      };
+    }
+  }
+}
+window.renderSpeechSettings = renderSpeechSettings;
+
+// ===== 즐겨찾기·북마크 (v25 다태그 + 메모 + 검색 + 필터) =====
+const BOOKMARK_TAGS = ['중요', '어려움', '다시 읽기', '문법 예시', '어휘 발굴', '시구 인용', '번역 연습'];
+
 function _ensureBookmarks(){ if(!S.bookmarks) S.bookmarks = {}; }
+
+// 기존 단일 tag(문자열) → 다태그 tags(배열) 자동 마이그레이션
+function _migrateBookmark(b){
+  if(b && !b.tags){
+    b.tags = b.tag ? [b.tag] : ['중요'];
+    if(b.note === undefined) b.note = '';
+  }
+  return b;
+}
+
 function bookmarkKey(workId, secN){ return `${workId}::${secN}`; }
-function toggleBookmark(workId, secN, tag){
+
+function toggleBookmark(workId, secN, tags, note){
   _ensureBookmarks();
   const k = bookmarkKey(workId, secN);
   if(S.bookmarks[k]){
     delete S.bookmarks[k]; saveState(); return false;
   } else {
-    S.bookmarks[k] = {workId, secN, tag: tag || '중요', ts: Date.now()};
+    let tagsArr;
+    if(Array.isArray(tags)) tagsArr = tags.length ? tags : ['중요'];
+    else if(typeof tags === 'string' && tags) tagsArr = [tags];
+    else tagsArr = ['중요'];
+    S.bookmarks[k] = {
+      workId, secN,
+      tags: tagsArr,
+      tag: tagsArr[0],   // 호환성 위해 첫 태그를 단일 tag 필드에도 보존
+      note: note || '',
+      ts: Date.now()
+    };
     saveState(); return true;
   }
 }
@@ -6039,39 +6542,162 @@ function isBookmarked(workId, secN){
   _ensureBookmarks();
   return !!S.bookmarks[bookmarkKey(workId, secN)];
 }
+
+// 악센트 제거 (검색용)
+function _strip(s){
+  if(!s) return '';
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+let _bookmarkFilter = { q: '', tag: 'all', sort: 'recent' };
+
 function renderBookmarks(){
   _ensureBookmarks();
-  const items = Object.values(S.bookmarks).sort((a,b) => b.ts - a.ts);
+  // 마이그레이션 + 수집
+  const all = Object.values(S.bookmarks).map(_migrateBookmark);
+
+  // 사용 중인 태그 집계
+  const tagCounts = {};
+  for(const b of all){
+    const tags = (b.tags && b.tags.length) ? b.tags : ['중요'];
+    for(const t of tags){ tagCounts[t] = (tagCounts[t] || 0) + 1; }
+  }
+  const usedTags = Object.keys(tagCounts).sort((a,b) => tagCounts[b] - tagCounts[a]);
+
+  // 필터링
+  const q = _strip(_bookmarkFilter.q);
+  const fTag = _bookmarkFilter.tag;
+  let items = all.filter(b => {
+    if(fTag !== 'all'){
+      const tags = b.tags || (b.tag ? [b.tag] : []);
+      if(!tags.includes(fTag)) return false;
+    }
+    if(q){
+      const w = WORKS.find(x => x.id === b.workId);
+      if(!w) return false;
+      const sec = w.sections.find(s => s.n === b.secN);
+      if(!sec) return false;
+      const haystack = [
+        w.author, w.authorKo, w.work, w.workKo, sec.label,
+        sec.text || '', b.note || '',
+        (b.tags || []).join(' ')
+      ].join(' ');
+      if(!_strip(haystack).includes(q)) return false;
+    }
+    return true;
+  });
+
+  // 정렬
+  if(_bookmarkFilter.sort === 'recent'){
+    items.sort((a,b) => b.ts - a.ts);
+  } else if(_bookmarkFilter.sort === 'work'){
+    items.sort((a,b) => {
+      if(a.workId !== b.workId) return a.workId.localeCompare(b.workId);
+      return a.secN - b.secN;
+    });
+  } else if(_bookmarkFilter.sort === 'tag'){
+    items.sort((a,b) => {
+      const at = (a.tags && a.tags[0]) || a.tag || '';
+      const bt = (b.tags && b.tags[0]) || b.tag || '';
+      if(at !== bt) return at.localeCompare(bt);
+      return b.ts - a.ts;
+    });
+  }
+
   view.innerHTML = `
     <button class="btn btn-sm btn-o" onclick="setTab('read')">← 원문</button>
     <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Σημαντικά</span>내 북마크</h2>
-    <div class="view-sub">${items.length}개 즐겨찾기 섹션</div>
-    ${items.length === 0 ? `
+    <div class="view-sub">${all.length}개 즐겨찾기 · 표시 ${items.length}개</div>
+
+    ${all.length === 0 ? `
       <div class="card"><div style="font-size:13px;color:var(--clay-d);line-height:1.7">
         섹션 화면에서 ☆ 버튼을 누르면 즐겨찾기에 추가됩니다.<br>
         중요한 구절·다시 읽을 부분·어려운 섹션을 모아 빠르게 돌아오세요.
-      </div></div>` : items.map(b => {
-        const w = WORKS.find(x => x.id === b.workId);
-        if(!w) return '';
-        const secIdx = w.sections.findIndex(s => s.n === b.secN);
-        if(secIdx < 0) return '';
-        const sec = w.sections[secIdx];
-        const preview = (sec.text || '').replace(/^\d+\s+/, '').slice(0, 80);
-        const date = new Date(b.ts).toLocaleDateString('ko-KR');
-        return `<div class="card" style="border-left:3px solid var(--terracotta);cursor:pointer" data-wid="${b.workId}" data-sec="${secIdx}">
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
-            <div style="flex:1;min-width:0">
-              <div style="font-size:11px;color:var(--clay-d)">${w.authorKo} · ${w.workKo} · ${sec.label}</div>
-              <div style="font-family:var(--font-grk);font-size:14px;color:var(--black-glaze);margin-top:6px;line-height:1.5">${preview}…</div>
-              <div style="font-size:10.5px;color:var(--clay-d);margin-top:6px">📅 ${date}</div>
-            </div>
-            <button class="btn btn-sm btn-o" data-rm="${bookmarkKey(b.workId, b.secN)}" style="flex-shrink:0;font-size:11px">제거</button>
+      </div></div>
+    ` : `
+      <div class="card">
+        <div style="position:relative">
+          <input id="bm-search" class="input" type="search"
+                 placeholder="🔍 본문·작품·저자·태그·메모에서 검색 (악센트 무시)"
+                 value="${_bookmarkFilter.q.replace(/"/g,'&quot;')}"
+                 style="width:100%;padding:9px 12px;font-size:13.5px">
+        </div>
+
+        ${usedTags.length > 0 ? `
+        <div style="margin-top:10px">
+          <div style="font-size:11px;color:var(--clay-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">태그</div>
+          <div class="chips" id="bm-tag-chips">
+            <button class="chip ${_bookmarkFilter.tag==='all'?'active':''}" data-tag="all">전체 (${all.length})</button>
+            ${usedTags.map(t => `<button class="chip ${_bookmarkFilter.tag===t?'active':''}" data-tag="${t.replace(/"/g,'&quot;')}">${t} (${tagCounts[t]})</button>`).join('')}
           </div>
-        </div>`;
-      }).join('')}
+        </div>` : ''}
+
+        <div style="margin-top:10px">
+          <div style="font-size:11px;color:var(--clay-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">정렬</div>
+          <div class="chips" id="bm-sort-chips">
+            ${[['recent','최신순'],['work','작품순'],['tag','태그순']].map(([v,l]) =>
+              `<button class="chip ${_bookmarkFilter.sort===v?'active':''}" data-sort="${v}">${l}</button>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <div id="bm-list">
+        ${items.length === 0 ? `
+          <div class="card"><div style="text-align:center;color:var(--clay-d);font-size:13px;padding:14px">조건에 맞는 북마크가 없습니다.</div></div>
+        ` : items.map(b => {
+          const w = WORKS.find(x => x.id === b.workId);
+          if(!w) return '';
+          const secIdx = w.sections.findIndex(s => s.n === b.secN);
+          if(secIdx < 0) return '';
+          const sec = w.sections[secIdx];
+          const preview = (sec.text || '').replace(/^\d+\s+/, '').slice(0, 90);
+          const date = new Date(b.ts).toLocaleDateString('ko-KR');
+          const tags = (b.tags && b.tags.length) ? b.tags : [b.tag || '중요'];
+          const k = bookmarkKey(b.workId, b.secN);
+          return `<div class="card" style="border-left:3px solid var(--terracotta);cursor:pointer;padding:12px 14px" data-wid="${b.workId}" data-sec="${secIdx}">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+              <div style="flex:1;min-width:0">
+                <div style="font-size:11px;color:var(--clay-d)">${w.authorKo} · ${w.workKo} · ${sec.label}</div>
+                <div style="font-family:var(--font-grk);font-size:14px;color:var(--black-glaze);margin-top:6px;line-height:1.5">${preview}…</div>
+                ${b.note ? `<div style="font-size:12.5px;color:var(--terracotta-d);margin-top:8px;padding:6px 8px;background:var(--ivory-d);border-radius:4px;border-left:2px solid var(--terracotta);line-height:1.5">📝 ${b.note.replace(/</g,'&lt;')}</div>` : ''}
+                <div style="display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap">
+                  ${tags.map(t => `<span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:2px 7px;border-radius:9px;letter-spacing:.02em">${t}</span>`).join('')}
+                  <span style="font-size:10px;color:var(--clay-d);margin-left:auto">📅 ${date}</span>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+                <button class="btn btn-sm btn-o" data-edit="${k}" style="font-size:11px;padding:5px 9px">편집</button>
+                <button class="btn btn-sm btn-o" data-rm="${k}" style="font-size:11px;padding:5px 9px">제거</button>
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    `}
   `;
+
+  // 이벤트 바인딩
+  const searchInput = document.getElementById('bm-search');
+  if(searchInput){
+    let timer = null;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        _bookmarkFilter.q = searchInput.value;
+        renderBookmarks();
+        // 다시 그린 후 input에 포커스 복원
+        const inp = document.getElementById('bm-search');
+        if(inp){ inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+      }, 220);
+    });
+  }
+  document.querySelectorAll('#bm-tag-chips .chip').forEach(c =>
+    c.addEventListener('click', () => { _bookmarkFilter.tag = c.dataset.tag; renderBookmarks(); }));
+  document.querySelectorAll('#bm-sort-chips .chip').forEach(c =>
+    c.addEventListener('click', () => { _bookmarkFilter.sort = c.dataset.sort; renderBookmarks(); }));
+
   view.querySelectorAll('[data-wid]').forEach(el => el.addEventListener('click', (e) => {
-    if(e.target.closest('[data-rm]')) return;
+    if(e.target.closest('[data-rm]') || e.target.closest('[data-edit]')) return;
     window._renderWorkSection(el.dataset.wid, parseInt(el.dataset.sec, 10));
   }));
   view.querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', (e) => {
@@ -6080,7 +6706,101 @@ function renderBookmarks(){
     saveState();
     renderBookmarks();
   }));
+  view.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', (e) => {
+    e.stopPropagation();
+    editBookmark(b.dataset.edit);
+  }));
 }
+window.renderBookmarks = renderBookmarks;
+
+// 북마크 편집 모달 — 태그 다중 선택 + 메모
+function editBookmark(key){
+  _ensureBookmarks();
+  const b = S.bookmarks[key];
+  if(!b) return;
+  _migrateBookmark(b);
+  const w = WORKS.find(x => x.id === b.workId);
+  if(!w) return;
+  const sec = w.sections.find(s => s.n === b.secN);
+  if(!sec) return;
+
+  // 사용 가능한 태그 = 표준 + 기존 사용자 정의 태그 (현 북마크 포함)
+  const customFromAll = new Set();
+  for(const x of Object.values(S.bookmarks)){
+    const tags = x.tags || (x.tag ? [x.tag] : []);
+    for(const t of tags){ if(!BOOKMARK_TAGS.includes(t)) customFromAll.add(t); }
+  }
+  const allTags = [...BOOKMARK_TAGS, ...customFromAll];
+  const checked = new Set(b.tags || (b.tag ? [b.tag] : []));
+
+  const modal = document.getElementById('modal');
+  const modalBg = document.getElementById('modal-bg');
+  modal.innerHTML = `
+    <button class="modal-close" onclick="_closeModal()" aria-label="닫기">×</button>
+    <div style="padding:18px 20px">
+      <div style="font-family:var(--font-display);font-size:17px;color:var(--terracotta-d);font-weight:600;margin-bottom:4px">북마크 편집</div>
+      <div style="font-size:11px;color:var(--clay-d);margin-bottom:14px">${w.authorKo} · ${w.workKo} · ${sec.label}</div>
+
+      <div style="font-size:12px;color:var(--clay-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">태그 (다중 선택)</div>
+      <div id="edit-tag-chips" class="chips" style="margin-bottom:8px">
+        ${allTags.map(t => `<button class="chip ${checked.has(t)?'active':''}" data-t="${t.replace(/"/g,'&quot;')}">${t}</button>`).join('')}
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:14px">
+        <input id="edit-new-tag" class="input" type="text" placeholder="새 태그 추가" style="flex:1;padding:7px 10px;font-size:12.5px">
+        <button class="btn btn-sm btn-o" id="edit-add-tag" style="font-size:12px">추가</button>
+      </div>
+
+      <div style="font-size:12px;color:var(--clay-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">메모</div>
+      <textarea id="edit-note" class="input"
+                placeholder="이 구절에 대한 메모 (번역·분석·암기 단서)"
+                style="width:100%;min-height:88px;padding:10px 12px;font-size:13.5px;line-height:1.55;resize:vertical">${(b.note||'').replace(/</g,'&lt;')}</textarea>
+
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn" id="edit-save" style="flex:1">저장</button>
+        <button class="btn btn-o" onclick="_closeModal()">취소</button>
+      </div>
+    </div>
+  `;
+  modalBg.classList.add('show');
+
+  // 태그 chip 토글
+  modal.querySelectorAll('#edit-tag-chips .chip').forEach(c => {
+    c.addEventListener('click', () => c.classList.toggle('active'));
+  });
+  // 새 태그 추가
+  const addBtn = document.getElementById('edit-add-tag');
+  const newInput = document.getElementById('edit-new-tag');
+  const addNewTag = () => {
+    const v = newInput.value.trim();
+    if(!v) return;
+    if(v.length > 20){ toast('태그가 너무 깁니다 (최대 20자)'); return; }
+    const chips = modal.querySelector('#edit-tag-chips');
+    if(chips && !chips.querySelector(`[data-t="${v.replace(/"/g,'&quot;')}"]`)){
+      const btn = document.createElement('button');
+      btn.className = 'chip active';
+      btn.setAttribute('data-t', v);
+      btn.textContent = v;
+      btn.addEventListener('click', () => btn.classList.toggle('active'));
+      chips.appendChild(btn);
+    }
+    newInput.value = '';
+    newInput.focus();
+  };
+  addBtn.addEventListener('click', addNewTag);
+  newInput.addEventListener('keypress', e => { if(e.key === 'Enter'){ e.preventDefault(); addNewTag(); } });
+
+  // 저장
+  document.getElementById('edit-save').addEventListener('click', () => {
+    const selected = Array.from(modal.querySelectorAll('#edit-tag-chips .chip.active')).map(c => c.dataset.t);
+    b.tags = selected.length ? selected : ['중요'];
+    b.tag = b.tags[0];   // 호환
+    b.note = document.getElementById('edit-note').value.trim();
+    saveState();
+    _closeModal();
+    renderBookmarks();
+  });
+}
+window.editBookmark = editBookmark;
 
 // ===== SRS — 간격 반복 학습 (SM-2) =====
 function _ensureSRS(){ if(!S.srs) S.srs = {}; }
@@ -6150,7 +6870,195 @@ function renderSRS(){
         '<div class="card" style="text-align:center;padding:24px"><div style="font-family:var(--font-display);font-size:18px;color:var(--terracotta-d);font-weight:600">오늘 복습 완료 ✓</div><div style="font-size:12px;color:var(--clay-d);margin-top:6px">내일 다시 오세요.</div></div>' :
         '<button class="btn" onclick="startSRSSession()" style="width:100%">시작 (' + stats.dueToday + '개) →</button>'}
     </div>
+    ${stats.learned > 0 ? `<button class="btn btn-o" onclick="renderSRSStats()" style="width:100%;margin-top:10px">📊 학습 통계 보기 →</button>` : ''}
   `;
+}
+window.renderSRS = renderSRS;
+
+// ===== SRS 통계 시각화 (인라인 SVG, 외부 의존성 없음) =====
+// 막대 그래프 헬퍼 — 좌측 라벨 + 우측 막대 + 값 표시
+function _svgBars(data, opts){
+  opts = opts || {};
+  const h = opts.height || 24;             // 막대 한 줄 높이
+  const labelW = opts.labelW || 70;         // 좌측 라벨 너비
+  const valueW = opts.valueW || 36;         // 우측 값 표시 너비
+  const gap = 4;
+  const max = opts.max || Math.max(1, ...data.map(d => d.value));
+  const totalH = data.length * (h + gap);
+  const color = opts.color || 'var(--terracotta)';
+  const labelColor = opts.labelColor || 'var(--clay-d)';
+  return `<svg viewBox="0 0 320 ${totalH}" width="100%" style="display:block">
+    ${data.map((d, i) => {
+      const y = i * (h + gap);
+      const barMaxW = 320 - labelW - valueW - 8;
+      const bw = max === 0 ? 0 : Math.max(2, (d.value / max) * barMaxW);
+      const hl = d.highlight ? ';font-weight:700;fill:var(--terracotta-d)' : '';
+      return `
+        <text x="${labelW - 4}" y="${y + h/2 + 4}" font-size="11" text-anchor="end" style="fill:${labelColor}${hl}">${d.label}</text>
+        <rect x="${labelW}" y="${y + 4}" width="${barMaxW}" height="${h - 8}" fill="var(--ivory-d)" rx="2"/>
+        ${d.value > 0 ? `<rect x="${labelW}" y="${y + 4}" width="${bw}" height="${h - 8}" fill="${d.color || color}" rx="2"/>` : ''}
+        <text x="${labelW + barMaxW + 4}" y="${y + h/2 + 4}" font-size="11" style="fill:var(--black-glaze);font-weight:600">${d.value || 0}</text>
+      `;
+    }).join('')}
+  </svg>`;
+}
+
+function renderSRSStats(){
+  _ensureSRS();
+  const cards = Object.values(S.srs || {});
+  const today = _srsToday();
+  const DAY = 24 * 60 * 60 * 1000;
+
+  // 1) 향후 14일 Due 분포
+  const dueBuckets = {};
+  for(let i = 0; i < 14; i++) dueBuckets[i] = 0;
+  let overdue = 0;
+  for(const c of cards){
+    if(typeof c.due !== 'number') continue;
+    const days = Math.floor((c.due - today) / DAY);
+    if(days < 0) overdue++;
+    else if(days < 14) dueBuckets[days]++;
+  }
+  const todayLabel = new Date(today);
+  const dueData = [];
+  if(overdue > 0) dueData.push({label:'⚠ 연체', value: overdue, color:'var(--terracotta-d)', highlight: true});
+  for(let i = 0; i < 14; i++){
+    const d = new Date(today + i * DAY);
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const dow = ['일','월','화','수','목','금','토'][d.getDay()];
+    const lbl = i === 0 ? `오늘 (${mm}/${dd})` : `${mm}/${dd} ${dow}`;
+    dueData.push({label: lbl, value: dueBuckets[i], highlight: i === 0});
+  }
+
+  // 2) 지난 7일 학습량 (lastReview 기준)
+  const reviewBuckets = {};
+  for(let i = 6; i >= 0; i--) reviewBuckets[i] = 0;   // i = 며칠 전
+  for(const c of cards){
+    if(!c.lastReview) continue;
+    const daysAgo = Math.floor((today - _srsDayStart(c.lastReview)) / DAY);
+    if(daysAgo >= 0 && daysAgo < 7) reviewBuckets[daysAgo]++;
+  }
+  const reviewData = [];
+  for(let i = 6; i >= 0; i--){
+    const d = new Date(today - i * DAY);
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const dow = ['일','월','화','수','목','금','토'][d.getDay()];
+    const lbl = i === 0 ? `오늘` : (i === 1 ? `어제` : `${mm}/${dd} ${dow}`);
+    reviewData.push({label: lbl, value: reviewBuckets[i]});
+  }
+
+  // 3) EF (난이도) 분포 — 1.3-1.7 / 1.7-2.0 / 2.0-2.3 / 2.3-2.5 / 2.5+
+  const efBuckets = {hard:0, med1:0, med2:0, easy1:0, easy2:0};
+  for(const c of cards){
+    const ef = c.ef || 2.5;
+    if(ef < 1.7) efBuckets.hard++;
+    else if(ef < 2.0) efBuckets.med1++;
+    else if(ef < 2.3) efBuckets.med2++;
+    else if(ef < 2.5) efBuckets.easy1++;
+    else efBuckets.easy2++;
+  }
+  const efData = [
+    {label:'1.3–1.7 매우 어려움', value: efBuckets.hard,  color:'#7a2920'},
+    {label:'1.7–2.0 어려움',      value: efBuckets.med1,  color:'#9C3F2D'},
+    {label:'2.0–2.3 보통',        value: efBuckets.med2,  color:'#C44536'},
+    {label:'2.3–2.5 쉬움',        value: efBuckets.easy1, color:'#b59070'},
+    {label:'2.5+ 매우 쉬움',      value: efBuckets.easy2, color:'#8a7a6a'},
+  ];
+
+  // 4) 반복 횟수 분포
+  const repsBuckets = {r0:0, r1:0, r2:0, r3:0, r4plus:0};
+  for(const c of cards){
+    const r = c.reps || 0;
+    if(r === 0) repsBuckets.r0++;
+    else if(r === 1) repsBuckets.r1++;
+    else if(r === 2) repsBuckets.r2++;
+    else if(r === 3) repsBuckets.r3++;
+    else repsBuckets.r4plus++;
+  }
+  const repsData = [
+    {label:'0회 (lapse)',  value: repsBuckets.r0},
+    {label:'1회',          value: repsBuckets.r1},
+    {label:'2회',          value: repsBuckets.r2},
+    {label:'3회',          value: repsBuckets.r3},
+    {label:'4회+ 숙달',    value: repsBuckets.r4plus, color:'#5a9c5a'},
+  ];
+
+  // 누적 통계
+  const totalLearned = cards.length;
+  const totalReps = cards.reduce((s, c) => s + (c.reps || 0), 0);
+  const totalLapses = cards.reduce((s, c) => s + (c.lapses || 0), 0);
+  const mastered = repsBuckets.r4plus;
+  const lapseRate = (totalReps + totalLapses) > 0 ? Math.round(100 * totalLapses / (totalReps + totalLapses)) : 0;
+
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="renderSRS()">← SRS</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Στατιστική</span>학습 통계</h2>
+    <div class="view-sub">${totalLearned}개 카드 학습 중 · 누적 ${totalReps}회 성공 · ${totalLapses}회 lapse</div>
+
+    <div class="card">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center">
+        <div>
+          <div style="font-family:var(--font-display);font-size:22px;color:var(--terracotta-d);font-weight:600">${mastered}</div>
+          <div style="font-size:10px;color:var(--clay-d)">숙달 (4회+)</div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-display);font-size:22px;color:var(--terracotta-d);font-weight:600">${overdue}</div>
+          <div style="font-size:10px;color:var(--clay-d)">연체</div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-display);font-size:22px;color:var(--terracotta-d);font-weight:600">${lapseRate}%</div>
+          <div style="font-size:10px;color:var(--clay-d)">실수율</div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="font-family:var(--font-display);font-size:14px;color:var(--terracotta-d);margin:18px 0 6px;text-transform:uppercase;letter-spacing:.08em">향후 14일 복습 일정</h3>
+    <div class="card">
+      ${dueData.length > 0 ? _svgBars(dueData, {height: 22}) : '<div style="font-size:12px;color:var(--clay-d);text-align:center;padding:14px">예정된 복습이 없습니다.</div>'}
+      <div style="font-size:11px;color:var(--clay-d);margin-top:8px;font-style:italic;line-height:1.5">
+        각 날짜의 막대 길이는 그 날 복습 대기 중인 카드 수입니다. 연체 카드는 지금 풀면 일정이 정상화됩니다.
+      </div>
+    </div>
+
+    <h3 style="font-family:var(--font-display);font-size:14px;color:var(--terracotta-d);margin:18px 0 6px;text-transform:uppercase;letter-spacing:.08em">최근 7일 학습량</h3>
+    <div class="card">
+      ${_svgBars(reviewData, {height: 22, color:'#9C3F2D'})}
+      <div style="font-size:11px;color:var(--clay-d);margin-top:8px;font-style:italic;line-height:1.5">
+        각 날짜에 복습한 카드 수 (마지막 평가 기준). 매일 일정량씩 꾸준히 보는 것이 SRS의 정수입니다.
+      </div>
+    </div>
+
+    <h3 style="font-family:var(--font-display);font-size:14px;color:var(--terracotta-d);margin:18px 0 6px;text-transform:uppercase;letter-spacing:.08em">난이도 (EF) 분포</h3>
+    <div class="card">
+      ${_svgBars(efData, {height: 22, labelW: 130})}
+      <div style="font-size:11px;color:var(--clay-d);margin-top:8px;font-style:italic;line-height:1.5">
+        EF(Ease Factor) ≈ 다음 간격 배수. 1.3 = 최대 난이도(쉽게 잊음), 2.5 = SM-2 기본값, 2.5+ = 자주 맞춤.
+      </div>
+    </div>
+
+    <h3 style="font-family:var(--font-display);font-size:14px;color:var(--terracotta-d);margin:18px 0 6px;text-transform:uppercase;letter-spacing:.08em">연속 정답 횟수</h3>
+    <div class="card">
+      ${_svgBars(repsData, {height: 22})}
+      <div style="font-size:11px;color:var(--clay-d);margin-top:8px;font-style:italic;line-height:1.5">
+        연속으로 "보통" 이상 평가받은 횟수. lapse(실수) 시 0으로 초기화됩니다.
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px;background:var(--ivory-d);border-left:3px solid var(--clay-d)">
+      <div style="font-size:11px;color:var(--clay-d);font-style:italic;line-height:1.6">
+        📊 SM-2 알고리즘 (Wozniak 1985, SuperMemo 2). 모든 데이터는 기기에 로컬 저장되며 외부 전송되지 않습니다.
+      </div>
+    </div>
+  `;
+}
+window.renderSRSStats = renderSRSStats;
+
+// 보조: timestamp → 그 날의 00:00 timestamp
+function _srsDayStart(ts){
+  const d = new Date(ts);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 }
 function startSRSSession(){
   _srsQueue = srsDueCards().sort(() => Math.random() - 0.5).slice(0, 20);
