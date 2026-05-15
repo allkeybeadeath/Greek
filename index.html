@@ -3007,6 +3007,54 @@ function imageURL(imgId, width){
 (function(){
 'use strict';
 
+// ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
+// 접근성: 스크린 리더(VoiceOver·NVDA·TalkBack)가 그리스어 텍스트를 한국어 음성으로
+// 잘못 읽는 문제 해결. .grk 클래스가 있는 요소에는 lang="grc"를 무조건 부여하고,
+// --font-grk inline 스타일이 적용된 요소는 내용이 그리스어 위주일 때만 부여(혼합
+// 텍스트 오태깅 방지). 동적 삽입은 MutationObserver로 자동 처리.
+//
+// 주의: HTML lang 속성은 시각 발음 식별(grc) — Web Speech의 utterance.lang('el-GR')
+// 과는 독립된 축. 둘 다 v32에서 정상 동작.
+(function _setupGreekLang(){
+  const GRK_RX = /[\u0370-\u03FF\u1F00-\u1FFF]/;                     // 그리스 + 확장
+  const CJK_RX = /[\uAC00-\uD7AF\u3040-\u30FF\u4E00-\u9FFF]/;        // 한·일·중
+  const LAT_RX = /[A-Za-z]{4,}/;                                      // 라틴 단어급
+
+  function isMostlyGreek(text){
+    if(!text) return false;
+    const t = text.trim();
+    if(!t || CJK_RX.test(t) || LAT_RX.test(t)) return false;
+    return GRK_RX.test(t);
+  }
+  function applyOne(el){
+    if(!el || el.nodeType !== 1 || el.hasAttribute('lang')) return;
+    if(el.classList && el.classList.contains('grk')){
+      el.setAttribute('lang', 'grc');
+      return;
+    }
+    const style = el.getAttribute && el.getAttribute('style');
+    if(style && style.indexOf('--font-grk') !== -1 && isMostlyGreek(el.textContent)){
+      el.setAttribute('lang', 'grc');
+    }
+  }
+  function applyIn(root){
+    if(!root || root.nodeType !== 1) return;
+    applyOne(root);
+    if(root.querySelectorAll){
+      root.querySelectorAll('.grk:not([lang]), [style*="--font-grk"]:not([lang])').forEach(applyOne);
+    }
+  }
+  // 초기 스윕 — 정적 HTML
+  applyIn(document.body);
+  // 동적 삽입 감지 — view·modal·toast 모두 포괄
+  if(typeof MutationObserver !== 'undefined'){
+    const mo = new MutationObserver((muts) => {
+      for(const m of muts){ m.addedNodes.forEach(n => applyIn(n)); }
+    });
+    mo.observe(document.body, {childList: true, subtree: true});
+  }
+})();
+
 // ─── Firebase 라이브 순위 설정 (선택) ─────────────────────────────────────────
 // PWA·자체 호스팅 환경에서 사용자 간 라이브 순위를 작동시키려면 Firebase Realtime
 // Database 무료 프로젝트를 만들어 URL을 아래에 넣으세요. 비워두면 localStorage
@@ -3818,7 +3866,7 @@ function renderVocab(){
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Ἀγών</div>
           <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">멀티 배틀 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:6px;margin-left:4px;vertical-align:middle">β</span></div>
-          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">실시간 어휘 경기 · 2~6명 · Firebase RTDB · Phase 1</div>
+          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">실시간 어휘 경기 · 2~6명 · 속도 점수 · SSE 실시간 동기</div>
         </div>
         <div style="font-size:22px;color:var(--terracotta)">→</div>
       </div>
@@ -6383,7 +6431,7 @@ function openLookup(encWord){
         <div style="font-size:11px;color:var(--clay-d);font-style:italic">AGDT v2.1 · 37,154 키 · 한 번만 받습니다</div>
       </div>
     `;
-    modalBg.classList.add('open');
+    modalBg.classList.add('show');   // v32 fix: 이전 버전 'open'은 CSS에 정의되지 않아 로딩 모달이 표시되지 않던 버그
     ensureMorph()
       .then(() => openLookup(encWord))   // 로드 완료 시 다시 호출 (이제 가드 통과)
       .catch(err => {
@@ -6401,7 +6449,8 @@ function openLookup(encWord){
   }
   // 형태분석 룩업 시도
   const analyses = (typeof MORPH_LOOKUP !== 'undefined') ? MORPH_LOOKUP[w] : null;
-  const accentBlock = accentInfoBlock(w);
+  // v32: 원문 단어 룩업 모달에서 악센트 분류 블록 제거 (단어 자체에 표기되어 있음).
+  // accentInfoBlock 함수와 classifyAccent는 그대로 유지 — 악센트 학습 화면에서 사용.
   const syntaxBlock = syntaxHintBlock(analyses);
   const perseusURL = `https://www.perseus.tufts.edu/hopper/morph?l=${encWord}&la=greek`;
   const logeionURL = `https://logeion.uchicago.edu/${encWord}`;
@@ -6416,7 +6465,6 @@ function openLookup(encWord){
       : (hasAuto ? '혼합 분석 (수동 + 자동)' : 'AGDT 수동 분석 · ' + analyses.length + '가지 가능성');
     body = `
       <div style="font-family:var(--font-grk);font-size:28px;color:var(--terracotta-d);font-weight:600;line-height:1.2;margin-bottom:8px">${w}</div>
-      ${accentBlock}
       ${syntaxBlock}
       <div style="font-size:11px;color:var(--clay-d);margin-bottom:10px">${sourceLabel}</div>
       ${analyses.map((a,i)=>`
@@ -6436,7 +6484,6 @@ function openLookup(encWord){
   } else {
     body = `
       <div style="font-family:var(--font-grk);font-size:28px;color:var(--terracotta-d);font-weight:600;line-height:1.2;margin-bottom:8px">${w}</div>
-      ${accentBlock}
       <div style="font-size:12px;color:var(--clay-d);margin-bottom:14px;line-height:1.5">이 작품은 AGDT 검증 분석이 등록되지 않았습니다.<br>외부 사전에서 형태·의미를 확인하세요.</div>
       <div class="btn-row" style="flex-wrap:wrap">
         <a class="btn btn-sm" href="${perseusURL}" target="_blank" rel="noopener">Perseus Morpheus ↗</a>
@@ -7027,10 +7074,14 @@ window.renderSpeechSettings = renderSpeechSettings;
 // 디자인: Firebase RTDB polling (~2s) — Phase 4에서 SSE로 업그레이드 예정
 // 데이터: battles/{roomCode}/{meta,players,questions}
 // 상태:   lobby → playing → finished
+//
+// v31: SSE (Server-Sent Events) 업그레이드 — Firebase REST의 ?accept=text/event-stream
+// 엔드포인트로 push 받음. 실패 시 polling으로 자동 fallback.
 
-const BATTLE_POLL_MS = 2000;        // polling 간격
+const BATTLE_POLL_MS = 2000;        // polling 간격 (SSE 실패 시 fallback)
 const BATTLE_CODE_LEN = 6;          // 방 코드 길이
-let _battleState = null;            // {roomCode, role:'host'|'guest', pollTimer}
+const BATTLE_SSE_TIMEOUT_MS = 8000; // SSE 연결 8초 무응답 시 fallback
+let _battleState = null;            // {roomCode, role, pollTimer, sseSrc, sseMode, onUpdate}
 
 function _battleGenCode(){
   // 혼동되는 문자 제외 (0/O, 1/I/L) — 학습자가 입력 쉽게
@@ -7043,10 +7094,20 @@ function _battleGenCode(){
 }
 
 function _battleStopPoll(){
-  if(_battleState && _battleState.pollTimer){
+  if(!_battleState) return;
+  if(_battleState.pollTimer){
     clearInterval(_battleState.pollTimer);
     _battleState.pollTimer = null;
   }
+  if(_battleState.sseSrc){
+    try { _battleState.sseSrc.close(); } catch(e){}
+    _battleState.sseSrc = null;
+  }
+  if(_battleState.sseTimeoutId){
+    clearTimeout(_battleState.sseTimeoutId);
+    _battleState.sseTimeoutId = null;
+  }
+  _battleState.sseMode = null;
 }
 
 function _battleCleanup(){
@@ -7062,6 +7123,145 @@ async function _battleFetchRoom(code){
     return JSON.parse(r.value);
   } catch(e){
     return null;
+  }
+}
+
+// SSE 구독: Firebase RTDB의 EventSource 엔드포인트로 실시간 push 받음
+// 성공 시 onUpdate(room)을 변경마다 호출. 실패 시 false 반환 → polling으로 폴백.
+function _battleSubscribeSSE(code, onUpdate){
+  if(!_battleState) return false;
+  if(typeof EventSource === 'undefined') return false;
+  if(!FIREBASE_URL) return false;
+
+  const base = FIREBASE_URL.replace(/\/$/, '');
+  const url = `${base}/battles/${code}.json?accept=text/event-stream`;
+  let es;
+  try {
+    es = new EventSource(url);
+  } catch(e){
+    return false;
+  }
+
+  let opened = false;
+  let cached = null;          // 마지막으로 전달한 room (멱등성)
+
+  // 연결 타임아웃: 8초 내 open 없으면 fallback
+  const timeoutId = setTimeout(() => {
+    if(!opened){
+      try { es.close(); } catch(e){}
+      if(_battleState && _battleState.sseSrc === es){
+        _battleState.sseSrc = null;
+        _battleStartPolling(code, onUpdate);
+      }
+    }
+  }, BATTLE_SSE_TIMEOUT_MS);
+
+  es.onopen = () => {
+    opened = true;
+  };
+
+  // Firebase는 'put' (전체 교체)과 'patch' (부분 갱신) 이벤트를 보냄
+  // 우리 구조는 항상 PUT으로 전체 저장하므로 put이 주력
+  const handle = (data) => {
+    try {
+      const parsed = JSON.parse(data);
+      if(!parsed) return;
+      const { path, data: payload } = parsed;
+      if(path === '/' || path === ''){
+        // 전체 객체 교체 (또는 초기 fetch)
+        if(payload === null){
+          onUpdate(null);   // 방 삭제됨
+          cached = null;
+        } else {
+          cached = payload;
+          onUpdate(payload);
+        }
+      } else if(cached){
+        // 부분 갱신: cached에 path 따라 패치
+        const keys = path.replace(/^\//, '').split('/');
+        let cursor = cached;
+        for(let i = 0; i < keys.length - 1; i++){
+          if(cursor[keys[i]] === undefined) cursor[keys[i]] = {};
+          cursor = cursor[keys[i]];
+        }
+        if(payload === null){
+          delete cursor[keys[keys.length - 1]];
+        } else {
+          cursor[keys[keys.length - 1]] = payload;
+        }
+        onUpdate(cached);
+      } else {
+        // cached 없는데 부분 갱신만 옴 — fetch로 보강
+        _battleFetchRoom(code).then(r => {
+          cached = r;
+          onUpdate(r);
+        });
+      }
+    } catch(e){
+      // 파싱 실패 시 무시 — 다음 이벤트가 정상이면 진행
+    }
+  };
+
+  es.addEventListener('put',   (e) => handle(e.data));
+  es.addEventListener('patch', (e) => handle(e.data));
+  // keep-alive 이벤트는 무시. cancel/auth_revoked는 연결 종료 신호.
+  es.addEventListener('cancel', () => {
+    try { es.close(); } catch(e){}
+    if(_battleState && _battleState.sseSrc === es){
+      _battleState.sseSrc = null;
+      _battleStartPolling(code, onUpdate);
+    }
+  });
+  es.addEventListener('auth_revoked', () => {
+    try { es.close(); } catch(e){}
+  });
+
+  es.onerror = () => {
+    // 연결 끊김 — 자동 재시도는 브라우저가 함. 그러나 우리는 폴링으로 폴백.
+    // 단, 일시적 끊김(브라우저 자동 재연결)에는 너무 빠르게 폴백하지 않음
+    // → onopen 후에 에러가 반복되면 그때 폴백
+    if(opened && _battleState && _battleState.sseSrc === es){
+      // 한 번 더 기회를 주고 (브라우저 재연결), 5초 후에도 안 오면 폴백
+      setTimeout(() => {
+        if(es.readyState === 2 /* CLOSED */ &&
+           _battleState && _battleState.sseSrc === es){
+          _battleState.sseSrc = null;
+          _battleStartPolling(code, onUpdate);
+        }
+      }, 5000);
+    }
+  };
+
+  _battleState.sseSrc = es;
+  _battleState.sseMode = 'sse';
+  _battleState.sseTimeoutId = timeoutId;
+  return true;
+}
+
+// polling 시작 — SSE 실패 시 자동 호출되거나, SSE 시도 후 fallback으로
+function _battleStartPolling(code, onUpdate){
+  if(!_battleState) return;
+  _battleState.sseMode = 'poll';
+  if(_battleState.pollTimer) clearInterval(_battleState.pollTimer);
+  // 즉시 한 번 fetch
+  _battleFetchRoom(code).then(onUpdate);
+  _battleState.pollTimer = setInterval(async () => {
+    const r = await _battleFetchRoom(code);
+    onUpdate(r);
+  }, BATTLE_POLL_MS);
+}
+
+// 통합 구독자: SSE 시도 → 실패 시 polling 자동 폴백
+// 기존 setInterval 호출부를 이걸로 대체
+function _battleSubscribe(code, onUpdate){
+  if(!_battleState) return;
+  _battleState.onUpdate = onUpdate;
+  // 즉시 한 번 fetch (SSE open 전 빈 화면 방지)
+  _battleFetchRoom(code).then(r => { if(r !== null) onUpdate(r); });
+  // SSE 시도
+  const sseOk = _battleSubscribeSSE(code, onUpdate);
+  if(!sseOk){
+    _battleStartPolling(code, onUpdate);
   }
 }
 
@@ -7309,6 +7509,10 @@ async function renderBattleLobby(){
         <div style="font-family:var(--font-display);font-size:38px;color:var(--terracotta-d);font-weight:600;letter-spacing:.25em">${code}</div>
         <div style="font-size:11px;color:var(--clay-d);margin-top:8px;font-style:italic">친구에게 이 코드를 공유하세요</div>
         <button class="btn btn-sm btn-o" id="battle-copy" style="margin-top:8px">📋 코드 복사</button>
+        <div style="font-size:9.5px;color:var(--clay-d);margin-top:10px;font-style:italic;letter-spacing:.03em">
+          ${_battleState && _battleState.sseMode === 'sse' ? '⚡ 실시간 push 연결' :
+            (_battleState && _battleState.sseMode === 'poll' ? '🔄 폴링 (2초)' : '⌛ 연결 중...')}
+        </div>
       </div>
 
       <div class="card">
@@ -7375,16 +7579,9 @@ async function renderBattleLobby(){
     }
   };
 
-  // 첫 fetch 즉시 그리기
-  const room = await _battleFetchRoom(code);
-  draw(room);
-
-  // 2초 polling 시작
+  // 첫 fetch 즉시 그리기 + 실시간 구독 (SSE → 실패 시 polling)
   _battleStopPoll();
-  _battleState.pollTimer = setInterval(async () => {
-    const r = await _battleFetchRoom(code);
-    draw(r);
-  }, BATTLE_POLL_MS);
+  _battleSubscribe(code, draw);
 }
 window.renderBattleLobby = renderBattleLobby;
 
@@ -7472,8 +7669,9 @@ async function renderBattleGame(code, room){
       return;
     }
     _battleGameLocal = {
-      code, idx: 0, score: 0, answeredThisQ: false,
-      startedAt: Date.now(), questions, finished: false,
+      code, idx: 0, score: 0, correctCount: 0, answeredThisQ: false,
+      startedAt: Date.now(), qStartedAt: 0,
+      questions, answered: [], finished: false,
     };
   }
   const local = _battleGameLocal;
@@ -7519,6 +7717,7 @@ async function renderBattleGame(code, room){
     <button class="btn btn-sm btn-o" onclick="_battleForfeit()" style="margin-top:6px;color:var(--bad);border-color:var(--bad)">포기하고 나가기</button>
   `;
   local.answeredThisQ = false;
+  local.qStartedAt = Date.now();   // v32: 속도 점수 계산용
   view.querySelectorAll('[data-i]').forEach(btn => {
     btn.addEventListener('click', () => _battleAnswer(parseInt(btn.dataset.i, 10)));
   });
@@ -7528,11 +7727,11 @@ async function renderBattleGame(code, room){
 function _battleScoreboardHTML(players){
   // players: [[uid, {name, score, currentQ, ready, ...}], ...]
   const myId = S.userId;
-  return `<div style="display:grid;grid-template-columns:repeat(${Math.min(players.length, 3)}, 1fr);gap:6px">
+  return `<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(76px, 1fr));gap:6px">
     ${players.map(([uid, p]) => {
       const mine = uid === myId;
       return `<div style="text-align:center;padding:8px 6px;background:${mine?'var(--terracotta)':'var(--black-glaze)'};color:var(--ivory-w);border-radius:8px">
-        <div style="font-size:10px;opacity:.85;text-transform:uppercase;letter-spacing:.06em">${(p.name||'').slice(0,12)}${mine?' (나)':''}</div>
+        <div style="font-size:10px;opacity:.85;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(p.name||'').slice(0,12)}${mine?' (나)':''}</div>
         <div style="font-family:var(--font-display);font-size:20px;font-weight:600;margin-top:2px">${p.score||0}</div>
         <div style="font-size:10px;opacity:.85;margin-top:2px">${p.currentQ||0}/${BATTLE_N_Q}${p.finished?' ✓':''}</div>
       </div>`;
@@ -7565,7 +7764,25 @@ async function _battleAnswer(chosenIdx){
   _battleStopQTimer();
   const q = local.questions[local.idx];
   const correct = chosenIdx === q.correctIdx;
-  if(correct) local.score++;
+  // v32: 속도 점수 — 정답 시 기본 10 + 남은 시간(초) 보너스 (최대 22).
+  // 오답·시간초과는 0. 총점은 최대 220 (BATTLE_N_Q=10 기준).
+  const elapsedMs = Date.now() - (local.qStartedAt || Date.now());
+  const remainSec = Math.max(0, BATTLE_Q_TIMER_SEC - elapsedMs / 1000);
+  let points = 0;
+  if(correct){
+    local.correctCount = (local.correctCount || 0) + 1;
+    points = 10 + Math.ceil(remainSec);
+    local.score += points;
+  }
+  // v32: 답변 기록 — 결과 화면 리뷰·오답함 자동 추가에 사용
+  local.answered = local.answered || [];
+  local.answered.push({
+    q: q.g,
+    correctAnswer: q.options[q.correctIdx],
+    chosen: chosenIdx >= 0 ? q.options[chosenIdx] : null,
+    correct, points,
+    elapsedMs: Math.round(elapsedMs),
+  });
   // 시각 피드백
   view.querySelectorAll('[data-i]').forEach(b => {
     b.disabled = true;
@@ -7578,6 +7795,14 @@ async function _battleAnswer(chosenIdx){
       b.style.opacity = '0.45';
     }
   });
+  // 점수 표시 (정답 시 +N 잠깐 강조)
+  if(correct){
+    const timerEl = document.getElementById('bat-qtimer');
+    if(timerEl){
+      timerEl.textContent = '+' + points;
+      timerEl.style.color = 'var(--terracotta-d)';
+    }
+  }
   local.idx++;
   // 자기 진척 push (다음 polling에 다른 사람도 봄)
   await _battleSubmitProgress(local.code, local, local.idx >= BATTLE_N_Q);
@@ -7599,6 +7824,7 @@ async function _battleSubmitProgress(code, local, finished){
     name: S.displayName || '익명',
     joinedAt: Date.now(),
     score: local.score,
+    correctCount: local.correctCount || 0,   // v32: 점수와 별도로 정답 수 동기화
     currentQ: local.idx,
     ready: true,
     finished: !!finished,
@@ -7650,7 +7876,11 @@ window._battleForfeit = _battleForfeit;
 function renderBattleResult(code, room){
   _battleStopQTimer();
   const players = Object.entries(room.players || {}).map(([uid, p]) => ({
-    uid, name: p.name || '익명', score: p.score || 0, finished: !!p.finished,
+    uid, name: p.name || '익명',
+    score: p.score || 0,
+    // v32: correctCount는 별도 필드. 하위 호환 — 구버전 데이터(score=정답수)는 score 폴백.
+    correctCount: typeof p.correctCount === 'number' ? p.correctCount : (p.score || 0),
+    finished: !!p.finished,
   }));
   players.sort((a, b) => b.score - a.score);
   const me = players.find(p => p.uid === S.userId);
@@ -7658,13 +7888,25 @@ function renderBattleResult(code, room){
   // XP 보상: 1위 30 / 2위 18 / 3위 12 / 그 외 5
   const xpMap = { 1:30, 2:18, 3:12 };
   const xpGain = xpMap[myRank] || 5;
+  // v32: 결과 화면이 여러 번 렌더될 수 있으므로 answered를 먼저 캡처
+  const myAnswered = (_battleGameLocal && Array.isArray(_battleGameLocal.answered))
+    ? _battleGameLocal.answered.slice() : [];
+  const myWrong = myAnswered.filter(a => !a.correct);
   if(typeof S !== 'undefined' && typeof saveState === 'function' && _battleGameLocal && !_battleGameLocal.xpAwarded){
     S.xp = (S.xp || 0) + xpGain;
     _battleGameLocal.xpAwarded = true;
-    // 배틀 히스토리에 결과 기록 (v30)
+    // v32: 틀린 문제를 오답함에 자동 적립 — 다음 어휘 세션 SRS 가중치에 반영됨
+    if(S.wrongRoom && Array.isArray(myAnswered)){
+      for(const a of myAnswered){
+        if(!a.correct && a.q && !S.wrongRoom[a.q]){
+          S.wrongRoom[a.q] = {lemma: a.q, ko: a.correctAnswer, ts: Date.now(), src: 'battle'};
+        }
+      }
+    }
+    // 배틀 히스토리에 결과 기록 (v30, v32에서 correctCount 분리)
     _recordBattleResult({
       score: me ? me.score : 0,
-      correctCount: me ? me.score : 0,   // 시드 기반 — 점수 = 정답 수
+      correctCount: me ? me.correctCount : 0,
       totalQ: BATTLE_N_Q,
       rank: myRank,
       totalPlayers: players.length,
@@ -7679,8 +7921,9 @@ function renderBattleResult(code, room){
 
     <div class="card" style="text-align:center;padding:26px 16px">
       <div style="font-size:54px;line-height:1">${rankIco}</div>
-      <div style="font-family:var(--font-display);font-size:26px;color:${rankColor};font-weight:600;margin-top:4px">${myRank}위 · ${me ? me.score : 0}/${BATTLE_N_Q}</div>
-      <div style="font-size:12px;color:var(--clay-d);margin-top:10px">XP +${xpGain} 적립</div>
+      <div style="font-family:var(--font-display);font-size:26px;color:${rankColor};font-weight:600;margin-top:4px">${myRank}위</div>
+      <div style="font-size:13px;color:var(--clay-d);margin-top:8px">정답 <b style="color:var(--black-glaze)">${me ? me.correctCount : 0}/${BATTLE_N_Q}</b> · 점수 <b style="color:var(--terracotta-d)">${me ? me.score : 0}</b></div>
+      <div style="font-size:12px;color:var(--clay-d);margin-top:8px">XP +${xpGain} 적립</div>
     </div>
 
     <div class="card">
@@ -7691,13 +7934,42 @@ function renderBattleResult(code, room){
             <div style="font-family:var(--font-display);font-size:18px;color:${i===0?'var(--terracotta-d)':'var(--clay-d)'};font-weight:600;min-width:24px">${i+1}</div>
             <div>
               <div style="font-family:var(--font-display);font-size:15px;color:var(--black-glaze);font-weight:600">${p.name.replace(/</g,'&lt;').slice(0,20)}${p.uid===S.userId?' (나)':''}</div>
-              ${!p.finished ? '<div style="font-size:10px;color:var(--bad);margin-top:2px">미완료</div>' : ''}
+              <div style="font-size:11px;color:var(--clay-d);margin-top:2px">정답 ${p.correctCount}/${BATTLE_N_Q}${!p.finished ? ' · <span style="color:var(--bad)">미완료</span>' : ''}</div>
             </div>
           </div>
           <div style="font-family:var(--font-display);font-size:22px;color:var(--terracotta-d);font-weight:600">${p.score}</div>
         </div>
       `).join('')}
     </div>
+
+    ${myWrong.length > 0 ? `
+      <div class="card">
+        <div style="font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">틀린 문제 ${myWrong.length}개 복습</div>
+        ${myWrong.map(a => `
+          <div style="padding:10px 12px;border:1px solid var(--clay);border-radius:6px;background:var(--ivory-d);margin-bottom:8px">
+            <div style="font-family:var(--font-grk);font-size:22px;color:var(--terracotta-d);font-weight:600;letter-spacing:.02em" lang="grc">${(a.q || '').replace(/</g,'&lt;')}</div>
+            <div style="display:flex;align-items:baseline;gap:8px;margin-top:6px">
+              <span style="font-size:11px;color:var(--clay-d);font-weight:600;min-width:30px;letter-spacing:.04em">정답</span>
+              <span style="font-size:13px;color:var(--terracotta-d);font-weight:600">${(a.correctAnswer || '').replace(/</g,'&lt;')}</span>
+            </div>
+            ${a.chosen !== null ? `
+              <div style="display:flex;align-items:baseline;gap:8px;margin-top:3px">
+                <span style="font-size:11px;color:var(--clay-d);font-weight:600;min-width:30px;letter-spacing:.04em">선택</span>
+                <span style="font-size:13px;color:var(--black-glaze-l);text-decoration:line-through;opacity:.7">${(a.chosen || '').replace(/</g,'&lt;')}</span>
+              </div>
+            ` : `
+              <div style="font-size:11px;color:var(--bad);margin-top:3px;font-style:italic">⏱ 시간 초과</div>
+            `}
+          </div>
+        `).join('')}
+        <div style="font-size:11px;color:var(--clay-d);font-style:italic;text-align:center;margin-top:8px;line-height:1.5">이 단어들은 오답함에 자동 적립됐습니다.<br>다음 어휘 세션에서 우선 출제됩니다.</div>
+      </div>
+    ` : (myAnswered.length > 0 ? `
+      <div class="card" style="text-align:center;padding:18px">
+        <div style="font-size:36px">🎯</div>
+        <div style="font-family:var(--font-display);font-size:15px;color:var(--terracotta-d);font-weight:600;margin-top:6px">전 문제 정답</div>
+      </div>
+    ` : '')}
 
     <div style="display:flex;gap:8px;margin-top:14px">
       <button class="btn" onclick="renderBattle()" style="flex:1">새 배틀 →</button>
