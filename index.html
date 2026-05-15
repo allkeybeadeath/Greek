@@ -3007,6 +3007,11 @@ function imageURL(imgId, width){
 (function(){
 'use strict';
 
+// 앱 버전 — sw.js CACHE_VERSION과 동기화 유지. 홈 화면 푸터에 표시되어
+// 사용자가 자신이 어느 버전을 사용 중인지 확인 가능 (캐시 갱신 진단용).
+const APP_VERSION = 'v37';
+window.__paideiaVersion = APP_VERSION;
+
 // ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
 // 접근성: 스크린 리더(VoiceOver·NVDA·TalkBack)가 그리스어 텍스트를 한국어 음성으로
 // 잘못 읽는 문제 해결. .grk 클래스가 있는 요소에는 lang="grc"를 무조건 부여하고,
@@ -3762,6 +3767,10 @@ function renderHome(){
     <div class="card">
       <b style="font-size:13px;color:var(--clay-d);letter-spacing:.04em;text-transform:uppercase">오늘의 빠른 복습</b>
       <div style="margin-top:8px" id="quick-review-slot"></div>
+    </div>
+
+    <div style="text-align:center;font-size:10px;color:var(--clay-d);margin-top:18px;opacity:.55;letter-spacing:.03em">
+      <span class="grk" style="font-style:italic">Ἑλληνικὴ Παιδεία</span> · ${APP_VERSION}
     </div>
   `;
   view.querySelectorAll('[data-go]').forEach(el=>{
@@ -6961,6 +6970,20 @@ const PRON_DIALECTS = {
   koine:   {label:'Koine · 코이네',      psilosis:false},
 };
 
+// Polytonic → Monotonic 변환 (v37) — 현대 헬라어 음성(el-GR)이 polytonic
+// 결합 부호(smooth ̓, rough ̔, circumflex ͂, iota subscript ͅ)를 인식 못 해
+// letter-name spell-out("alpha, lambda, ...")으로 발화하는 버그 회피.
+// 처리: circumflex·grave → acute(현대 tonos), smooth/rough/iota_subscript 제거.
+// 보존: diaeresis(¨ U+0308)는 현대 헬라어도 사용하므로 그대로.
+function _polytonicToMonotonic(text){
+  if(!text) return text;
+  return text.normalize('NFD')
+    .replace(/\u0300/g, '\u0301')      // grave → acute
+    .replace(/\u0342/g, '\u0301')      // circumflex(̑) → acute
+    .replace(/[\u0313\u0314\u0345]/g, '')   // smooth, rough, iota_subscript 제거
+    .normalize('NFC');
+}
+
 // 그리스어 본문 → Erasmian / Restored 라틴 음역
 function greekToLatin(text, system, dialect){
   if(!text) return '';
@@ -7282,11 +7305,14 @@ function speakGreek(text, overrideDialect){
   }
   let utterText, fallbackNote = null;
   if(voice){
-    utterText = sysCfg.transliterate ? greekToLatin(clean, system, dialect) : clean;
+    // 음역 시스템이면 Latin, 아니면 그리스 텍스트를 (el 음성용) monotonize
+    utterText = sysCfg.transliterate
+      ? greekToLatin(clean, system, dialect)
+      : _polytonicToMonotonic(clean);
   } else if(sysCfg.transliterate){
     voice = _pickVoiceFor('el');
     if(voice){
-      utterText = clean;
+      utterText = _polytonicToMonotonic(clean);   // el 음성에는 monotonic 그리스
       fallbackNote = '이탈리아어 음성이 없어 현대 그리스어 발음으로 폴백되었습니다. 설정 → 손쉬운 사용에서 이탈리아어 음성 추가 시 Erasmian/Restored 발화 가능. (또는 eSpeak NG 시스템 사용 — 기기 무관 일관 음성)';
     }
   } else {
