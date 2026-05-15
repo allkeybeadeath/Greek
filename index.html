@@ -3009,7 +3009,7 @@ function imageURL(imgId, width){
 
 // 앱 버전 — sw.js CACHE_VERSION과 동기화 유지. 홈 화면 푸터에 표시되어
 // 사용자가 자신이 어느 버전을 사용 중인지 확인 가능 (캐시 갱신 진단용).
-const APP_VERSION = 'v37';
+const APP_VERSION = 'v38';
 window.__paideiaVersion = APP_VERSION;
 
 // ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
@@ -6970,6 +6970,52 @@ const PRON_DIALECTS = {
   koine:   {label:'Koine · 코이네',      psilosis:false},
 };
 
+// 아포스트로피 정규화 (v38) — Unicode 변형들을 ASCII로 통일하여 elision 맵 매칭
+// U+2019 right single quote (현대 문서 빈출), U+1FBD Greek koronis (Greek 정자법),
+// U+02BC modifier apostrophe (음운 표기) → U+0027 ASCII apostrophe.
+function _normalizeApostrophes(text){
+  return text ? text.replace(/[\u2019\u1FBD\u02BC]/g, "'") : text;
+}
+
+// Elision 복원 (v38) — 한국 iPad의 monotonic el 음성이 bare 자음(δ', τ', κατ' 등)을
+// letter name("δέλτα", "ταυ")으로 발화하는 문제 회피. 가장 흔한 elision 형태들을
+// 본래 형태로 복원하여 음성에 전달. *_normalizeApostrophes 후에 호출할 것*.
+// 출처: Smyth §70-76, LSJ s.v., Buck §85.
+const _ELISION_RESTORE = {
+  // 소문자
+  "δ'":"δέ", "τ'":"τε", "γ'":"γε", "ῥ'":"ῥα",
+  "ἀλλ'":"ἀλλά", "οὐδ'":"οὐδέ", "μηδ'":"μηδέ",
+  "ἐπ'":"ἐπί", "ἀπ'":"ἀπό", "ὑπ'":"ὑπό", "κατ'":"κατά",
+  "παρ'":"παρά", "μετ'":"μετά", "ἀντ'":"ἀντί", "δι'":"διά",
+  // rough breathing 동화형 (φ θ — π τ가 rough 앞에서)
+  "ἐφ'":"ἐπί", "καθ'":"κατά", "μεθ'":"μετά", "ἀνθ'":"ἀντί",
+  "οὐχ":"οὐκ",   // οὐκ before rough → οὐχ. 음운상 동일.
+  // 흔한 부사·접속사
+  "ἔτ'":"ἔτι", "ποτ'":"ποτε", "τότ'":"τότε", "ὁπότ'":"ὁπότε",
+  "πρόσθ'":"πρόσθε", "ἔμπροσθ'":"ἔμπροσθε",
+  // 문장 첫 단어 대문자
+  "Δ'":"Δέ", "Τ'":"Τε", "Γ'":"Γε",
+  "Ἀλλ'":"Ἀλλά", "Οὐδ'":"Οὐδέ", "Μηδ'":"Μηδέ",
+  "Ἐπ'":"Ἐπί", "Ἀπ'":"Ἀπό", "Ὑπ'":"Ὑπό", "Κατ'":"Κατά",
+  "Παρ'":"Παρά", "Μετ'":"Μετά", "Ἀντ'":"Ἀντί", "Δι'":"Διά",
+  "Ἐφ'":"Ἐπί", "Καθ'":"Κατά", "Μεθ'":"Μετά", "Ἀνθ'":"Ἀντί",
+};
+function _restoreElisions(text){
+  if(!text || text.indexOf("'") < 0) return text;
+  let out = text;
+  // 길이순(긴 것 우선)으로 정렬해야 ἀλλ'를 δ'보다 먼저 매치 — 부분 매치 방지
+  const keys = Object.keys(_ELISION_RESTORE).sort((a,b) => b.length - a.length);
+  for(const from of keys){
+    if(out.indexOf(from) < 0) continue;
+    const to = _ELISION_RESTORE[from];
+    // 단어 경계 (그리스 문자가 앞/뒤에 없을 때만) — 정규식으로 비-그리스 lookbehind/lookahead
+    const escaped = from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const rx = new RegExp('(^|[^\u0370-\u03FF\u1F00-\u1FFF])' + escaped + '(?![\u0370-\u03FF\u1F00-\u1FFF])', 'g');
+    out = out.replace(rx, (m, pre) => pre + to);
+  }
+  return out;
+}
+
 // Polytonic → Monotonic 변환 (v37) — 현대 헬라어 음성(el-GR)이 polytonic
 // 결합 부호(smooth ̓, rough ̔, circumflex ͂, iota subscript ͅ)를 인식 못 해
 // letter-name spell-out("alpha, lambda, ...")으로 발화하는 버그 회피.
@@ -6991,6 +7037,8 @@ function greekToLatin(text, system, dialect){
   if(!sysCfg.transliterate) return text;
   const D = PRON_DIALECTS[dialect] || PRON_DIALECTS.default;
   const isRestored = sysCfg.transliterate === 'restored';
+  // 아포스트로피 정규화 — 토큰화 정규식이 ASCII '만 인식하므로
+  text = _normalizeApostrophes(text);
   // 단어 단위 처리 (rough breathing은 단어 첫 모음 앞에만 'h' 부여)
   const tokens = text.split(/(\s+|[\.,;··:?!"'·()\[\]\—\-]+)/);
   return tokens.map(tok => {
@@ -6999,9 +7047,43 @@ function greekToLatin(text, system, dialect){
   }).join('');
 }
 
+// 모음 디그래프 매핑 (v38) — Allen Vox Graeca / Erasmian 관용
+// 디그래프를 글자별로 처리하면 Restored ου = [uː]가 'oi'(υ→i)로 잘못 표기되어
+// "οὗ → hoi"처럼 의미 망가지는 발음이 나옴. 디그래프 단위로 매핑하여 해결.
+// diaeresis(¨)가 둘째 모음에 있으면 두 모음 분리 의도 — 디그래프 적용 안 함.
+function _greekDigraph(c1, c2, isRestored){
+  const k = (c1 + c2).toLowerCase();
+  if(isRestored){
+    // W.S. Allen, Vox Graeca §1.10 — classical Attic (5–4c BCE)
+    if(k === 'ου') return 'u';     // [uː]
+    if(k === 'ει') return 'ei';    // [eː] in classical; spelled 'ei' for Italian voice
+    if(k === 'αι') return 'ai';    // [ai̯]
+    if(k === 'οι') return 'oi';    // [oi̯]
+    if(k === 'αυ') return 'au';    // [au̯]
+    if(k === 'ευ') return 'eu';    // [eu̯]
+    if(k === 'ηυ') return 'èu';    // [ɛːu̯] (rare)
+    if(k === 'υι') return 'ii';    // [yi̯] approximated (Italian no /y/)
+    if(k === 'ωυ') return 'òu';    // Ionic
+    return null;
+  }
+  // Erasmian 관용
+  if(k === 'ου') return 'u';
+  if(k === 'ει') return 'ei';
+  if(k === 'αι') return 'ai';
+  if(k === 'οι') return 'oi';
+  if(k === 'αυ') return 'au';
+  if(k === 'ευ') return 'eu';
+  if(k === 'ηυ') return 'eu';
+  if(k === 'υι') return 'ui';
+  if(k === 'ωυ') return 'ou';
+  return null;
+}
+
 function _greekWordToLatin(word, isRestored, D){
   const nfd = word.normalize('NFD');
   const ROUGH = '\u0314';
+  const DIAER = '\u0308';
+  const VOWEL_RX = /[αεηιουωΑΕΗΙΟΥΩ]/;
   // 한 문자 + 결합부호 그룹화
   const groups = [];
   for(const c of nfd){
@@ -7014,7 +7096,7 @@ function _greekWordToLatin(word, isRestored, D){
   // 초성 모음군 전체에서 rough breathing 검사 (υἱός 등: 두 번째 모음에 rough가 있을 수 있음)
   let leadingEnd = -1;
   for(let i = 0; i < groups.length; i++){
-    if(/[αεηιουωΑΕΗΙΟΥΩ]/.test(groups[i].base)){ leadingEnd = i; }
+    if(VOWEL_RX.test(groups[i].base)){ leadingEnd = i; }
     else break;
   }
   let hasRoughInit = false;
@@ -7027,23 +7109,40 @@ function _greekWordToLatin(word, isRestored, D){
   }
   let out = '';
   let firstVowelDone = false;
-  for(let i = 0; i < groups.length; i++){
+  let i = 0;
+  while(i < groups.length){
     const g = groups[i];
-    const nx = groups[i+1] ? groups[i+1].base : '';
-    let latin = _greekCharToLatin(g.base, nx, isRestored);
-    if(latin == null){ out += g.base; continue; }
+    const nxG = groups[i+1];
+    const nx = nxG ? nxG.base : '';
+    let latin = null;
+    let consumed = 1;
+    // 디그래프 매칭 (인접 두 모음, 둘째에 diaeresis 없음)
+    if(VOWEL_RX.test(g.base) && nx && VOWEL_RX.test(nx) && !nxG.marks.has(DIAER)){
+      const dg = _greekDigraph(g.base, nx, isRestored);
+      if(dg !== null){
+        latin = dg;
+        consumed = 2;
+        if(/[Α-Ω]/.test(g.base)){
+          latin = latin.charAt(0).toUpperCase() + latin.slice(1);
+        }
+      }
+    }
+    if(latin === null){
+      latin = _greekCharToLatin(g.base, nx, isRestored);
+    }
+    if(latin == null){ out += g.base; i += consumed; continue; }
     const isVowel = /^[aeiouyàèìòù]/i.test(latin);
     if(isVowel && !firstVowelDone){
       if(hasRoughInit && !D.psilosis){
-        // 대문자 단어면 'H' + 첫 모음 소문자 (Hellenikē 관용표기)
         if(initIsUpper){ out += 'H'; latin = latin.toLowerCase(); }
         else out += 'h';
       }
       firstVowelDone = true;
     }
     out += latin;
+    i += consumed;
   }
-  // 후처리: ου = [u]
+  // 안전망 — 디그래프 매핑이 잡지 못한 'ou'(드물게 형태소 경계 등) 후처리
   out = out.replace(/ou/g, 'u').replace(/OU/g, 'U');
   return out;
 }
@@ -7304,15 +7403,16 @@ function speakGreek(text, overrideDialect){
     voice = _pickVoiceFor('es') || _pickVoiceFor('en');
   }
   let utterText, fallbackNote = null;
+  // el 음성 안전 변환 — 아포스트로피 정규화 → elision 복원 → polytonic→monotonic
+  const _prepGreekForEl = (s) => _polytonicToMonotonic(_restoreElisions(_normalizeApostrophes(s)));
   if(voice){
-    // 음역 시스템이면 Latin, 아니면 그리스 텍스트를 (el 음성용) monotonize
     utterText = sysCfg.transliterate
       ? greekToLatin(clean, system, dialect)
-      : _polytonicToMonotonic(clean);
+      : _prepGreekForEl(clean);
   } else if(sysCfg.transliterate){
     voice = _pickVoiceFor('el');
     if(voice){
-      utterText = _polytonicToMonotonic(clean);   // el 음성에는 monotonic 그리스
+      utterText = _prepGreekForEl(clean);
       fallbackNote = '이탈리아어 음성이 없어 현대 그리스어 발음으로 폴백되었습니다. 설정 → 손쉬운 사용에서 이탈리아어 음성 추가 시 Erasmian/Restored 발화 가능. (또는 eSpeak NG 시스템 사용 — 기기 무관 일관 음성)';
     }
   } else {
