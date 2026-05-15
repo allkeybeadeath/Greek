@@ -3009,7 +3009,7 @@ function imageURL(imgId, width){
 
 // 앱 버전 — sw.js CACHE_VERSION과 동기화 유지. 홈 화면 푸터에 표시되어
 // 사용자가 자신이 어느 버전을 사용 중인지 확인 가능 (캐시 갱신 진단용).
-const APP_VERSION = 'v38';
+const APP_VERSION = 'v39';
 window.__paideiaVersion = APP_VERSION;
 
 // ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
@@ -6930,33 +6930,33 @@ function estimateReadingMinutes(work){
 // 학술적 엄밀함이 필요하면 ScorpioMartianus 등의 학자 녹음을 권장.
 
 const PRON_SYSTEMS = {
+  espeak_grc: {
+    label: 'eSpeak NG · 기기 무관 (권장)',
+    desc: 'PWA 내장 합성 · 모든 기기 동일 음 · OS 음성 의존 없음 · 첫 사용 시 ~3MB · 로봇 음질',
+    voiceLang: 'grc',
+    transliterate: null,   // espeak grc가 그리스 글자를 직접 처리
+    engine: 'espeak',
+  },
   modern: {
-    label: '현대 그리스어',
-    desc: '브라우저 기본 — 현대 헬라어 음운 (β=v, η=i, υ=i, αι=e 등)',
+    label: '현대 그리스어 (OS 음성)',
+    desc: '기기의 el-GR 음성 — 자연 음질이나 polytonic·단음절에서 letter-name 위험',
     voiceLang: 'el',
     transliterate: null,
     engine: 'webspeech',
   },
   erasmian: {
-    label: '에라스무스식',
+    label: '에라스무스식 (이탈리아어 음성)',
     desc: '르네상스 유럽 학계 관용 — φ=ph, β=b, η=e, υ=u, αι=ai',
     voiceLang: 'it',
     transliterate: 'erasmian',
     engine: 'webspeech',
   },
   restored: {
-    label: '복원 아티카식',
+    label: '복원 아티카식 (이탈리아어 음성)',
     desc: 'W.S. Allen Vox Graeca (1987) · 5–4c BCE — η=ɛː, υ=y, ω=ɔː',
     voiceLang: 'it',
     transliterate: 'restored',
     engine: 'webspeech',
-  },
-  espeak_grc: {
-    label: 'eSpeak NG · 기기 무관 일관',
-    desc: 'PWA 내장 WASM 합성 · grc 음운 · 모든 기기 동일 음 · 로봇 음질 · 첫 사용 시 ~3MB 로드',
-    voiceLang: 'grc',
-    transliterate: null,   // espeak grc가 그리스 글자를 직접 처리
-    engine: 'espeak',
   },
 };
 
@@ -7216,7 +7216,21 @@ function _initVoice(){
     speechSynthesis.onvoiceschanged = pick;
   }
 }
-if(typeof window !== 'undefined'){ _initVoice(); }
+if(typeof window !== 'undefined'){
+  _initVoice();
+  // v39: espeak_grc 사용자의 첫 클릭 latency 제거 — 백그라운드 프리로드
+  // S와 _ensureSpeechSettings는 setTimeout 후 IIFE 종료 시점에 모두 정의됨
+  setTimeout(() => {
+    try {
+      if(typeof S !== 'undefined' && typeof _ensureSpeechSettings === 'function'){
+        _ensureSpeechSettings();
+        if(S.speech && S.speech.system === 'espeak_grc'){
+          _ensureEspeak({silent: true}).catch(() => { /* 사용자가 클릭하면 명시적 로드 재시도 */ });
+        }
+      }
+    } catch(_){}
+  }, 2000);
+}
 
 // ===== eSpeak NG WASM 엔진 통합 (v36) =====
 // PWA 내장 합성 — 기기 무관 동일 음성. 첫 사용 시 ~3MB lazy load.
@@ -7284,10 +7298,12 @@ _EspeakPushAudioNode.prototype._process = function(evt){
   }
 };
 
-function _ensureEspeak(){
+function _ensureEspeak(opts){
+  opts = opts || {};
+  const showToasts = !opts.silent;
   if(_espeak) return Promise.resolve(_espeak);
   if(_espeakLoadPromise) return _espeakLoadPromise;
-  if(typeof toast === 'function') toast('eSpeak 엔진 로드 중… (~3MB · 첫 사용 시 1회)');
+  if(showToasts && typeof toast === 'function') toast('eSpeak 엔진 로드 중… (~3MB · 첫 사용 시 1회)');
   _espeakLoadPromise = (async () => {
     // 1. 로더 스크립트 동적 삽입 (window.eSpeakNG 정의)
     if(typeof window.eSpeakNG === 'undefined'){
@@ -7313,13 +7329,13 @@ function _ensureEspeak(){
     // 3. 음성을 grc(Ancient Greek)로 설정
     await new Promise(res => inst.set_voice('grc', () => res()));
     _espeak = inst;
-    if(typeof toast === 'function') toast('✓ eSpeak 엔진 준비 완료');
+    if(showToasts && typeof toast === 'function') toast('✓ eSpeak 엔진 준비 완료');
     return inst;
   })();
   _espeakLoadPromise.catch(err => {
     _espeakLoadPromise = null;
     console.error('[eSpeak load]', err);
-    if(typeof toast === 'function') toast('eSpeak 로드 실패 — ' + (err.message || '재시도해주세요'), 'warn');
+    if(showToasts && typeof toast === 'function') toast('eSpeak 로드 실패 — ' + (err.message || '재시도해주세요'), 'warn');
   });
   return _espeakLoadPromise;
 }
@@ -7465,7 +7481,10 @@ function _ensureSpeechSettings(){
   if(typeof S.speech.rate !== 'number')  S.speech.rate  = 0.85;
   if(typeof S.speech.pitch !== 'number') S.speech.pitch = 1.0;
   if(typeof S.speech.voiceName !== 'string') S.speech.voiceName = '';
-  if(!S.speech.system)  S.speech.system  = 'modern';
+  // v39: 기본 시스템을 eSpeak NG로 변경. OS 음성의 변덕 — polytonic letter-name,
+  // 짧은 단어 spelling 등 — 영향을 받지 않고 모든 기기에서 일관된 출력 제공.
+  // 기존 사용자(S.speech.system이 이미 설정됨)는 자신의 설정 유지.
+  if(!S.speech.system)  S.speech.system  = 'espeak_grc';
   if(!S.speech.dialect) S.speech.dialect = 'default';
 }
 function renderSpeechSettings(){
@@ -7499,6 +7518,19 @@ function renderSpeechSettings(){
       <b>음성 합성 미지원</b><br>
       iOS Safari·Chrome·Edge 최신 버전에서만 작동합니다. 다른 브라우저를 사용하시거나 OS를 업데이트해 주세요.
     </div>` : `
+
+    ${sys !== 'espeak_grc' ? `
+    <div class="card" style="background:linear-gradient(135deg, #fdf4ef 0%, #fbeae0 100%);border-left:3px solid var(--terracotta);padding:12px 14px">
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px">
+        <span style="font-size:16px">💡</span>
+        <b style="color:var(--terracotta-d);font-size:13px">발음 문제 발생 시 — eSpeak NG 권장</b>
+      </div>
+      <div style="font-size:11.5px;color:var(--clay-d);line-height:1.6">
+        OS 음성(현대 그리스어·이탈리아어)이 polytonic 결합 부호, 짧은 단음절 단어(<span class="grk" lang="grc">οὗ</span>, <span class="grk" lang="grc">ὁ</span>), elision 잔여 자음을 letter-name으로 발화하는 사례가 보고됩니다.
+        이는 기기·OS·음성 엔진에 따라 발생 양상이 다른 OS 측 문제로, 코드 레벨 우회에 한계가 있습니다. 일관된 학습 환경을 위해
+        <b>eSpeak NG 시스템</b>(하단 첫 번째 카드)을 선택하세요 — 모든 기기에서 동일한 합성 음성을 사용합니다.
+      </div>
+    </div>` : ''}
 
     <div class="card">
       <div style="font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">발음 시스템</div>
@@ -7570,10 +7602,10 @@ function renderSpeechSettings(){
         <div style="font-size:11px;color:var(--clay-d);margin-top:4px;font-style:italic">— John 1:1 (Koine)</div>
       </div>
       <div style="display:grid;grid-template-columns:1fr;gap:6px">
-        <button class="btn btn-o btn-sm" data-demo="modern" style="text-align:left">🔊 현대 <span style="font-family:var(--font-grk);opacity:.7">— En arkhí ín o lóghos…</span></button>
+        <button class="btn btn-o btn-sm" data-demo="espeak_grc" style="text-align:left">🔊 eSpeak NG <span style="font-family:var(--font-grk);opacity:.7">— 기기 무관 일관 (권장 · 첫 클릭 시 ~3MB)</span></button>
+        <button class="btn btn-o btn-sm" data-demo="modern" style="text-align:left">🔊 현대 (OS) <span style="font-family:var(--font-grk);opacity:.7">— En arkhí ín o lóghos…</span></button>
         <button class="btn btn-o btn-sm" data-demo="erasmian" style="text-align:left">🔊 Erasmian <span style="font-family:var(--font-grk);opacity:.7">— En arkhē̂ ēn ho lógos…</span></button>
         <button class="btn btn-o btn-sm" data-demo="restored" style="text-align:left">🔊 Restored <span style="font-family:var(--font-grk);opacity:.7">— En arkhɛ̂ːi ɛ̂ːn ho lógos…</span></button>
-        <button class="btn btn-o btn-sm" data-demo="espeak_grc" style="text-align:left">🔊 eSpeak NG <span style="font-family:var(--font-grk);opacity:.7">— 기기 무관 일관 (첫 클릭 시 ~3MB 로드)</span></button>
       </div>
     </div>
 
