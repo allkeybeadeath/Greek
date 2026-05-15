@@ -2744,6 +2744,35 @@ const IMAGES = {
     file: 'Allard Pierson Museum Hoplite 7775.jpg',
     caption: '호플리테스 도상 — 알라르 피르송 박물관. 청동 무구 일습을 갖춘 시민병의 전형적 모습.',
   },
+  // ── 신약성경 (NT): 서양 회화 명작 + 4세기 사본 ─────────────────────
+  'caravaggio-matthew-calling': {
+    file: 'Caravaggio - La vocazione di San Matteo.jpg',
+    caption: '카라바조, 《성 마태의 소명 (Vocazione di San Matteo)》 — 1599–1600, 산 루이지 데이 프란체시 성당 콘타렐리 예배당, 로마. 마 9:9의 ἠκολούθησεν αὐτῷ 순간을 명암법으로 포착.',
+  },
+  'rembrandt-storm-galilee': {
+    file: 'Rembrandt Christ in the Storm on the Lake of Galilee.jpg',
+    caption: '렘브란트, 《갈릴리 호수의 폭풍 속 그리스도 (Christ in the Storm on the Sea of Galilee)》 — 1633년, 렘브란트의 유일한 바다 풍경. 막 4:35-41의 σιώπα πεφίμωσο. 1990년 보스턴 가드너 미술관에서 도난되어 행방불명.',
+  },
+  'rembrandt-prodigal-son': {
+    file: 'Rembrandt - The Return of the Prodigal Son - WGA19133.jpg',
+    caption: '렘브란트, 《돌아온 탕자 (De terugkeer van de verloren zoon)》 — c. 1668, 에르미타주 박물관, 상트페테르부르크. 화가 만년의 영적 유언. 눅 15:11-32 비유의 절정 — 아버지의 자비.',
+  },
+  'leonardo-last-supper': {
+    file: 'Leonardo da Vinci (1452-1519) - The Last Supper (1495-1498).jpg',
+    caption: '레오나르도 다 빈치, 《최후의 만찬 (Il Cenacolo)》 — 1495–1498, 산타 마리아 델레 그라치에 수도원, 밀라노. 요 13:21 “εἷς ἐξ ὑμῶν παραδώσει με” 발설 직후의 동요.',
+  },
+  'caravaggio-paul-damascus': {
+    file: 'Caravaggio-The Conversion on the Way to Damascus.jpg',
+    caption: '카라바조, 《다마스쿠스 도상의 회심 (Conversione di San Paolo)》 — 1601년, 산타 마리아 델 포폴로 케라시 예배당, 로마. 행 9:3-4 “Σαοὺλ Σαοὺλ τί με διώκεις” 의 빛.',
+  },
+  'sinaiticus-folio': {
+    file: 'Codex Sinaiticus Matthew 1,1-2,5.JPG',
+    caption: '코덱스 시나이티쿠스 (Codex Sinaiticus, א/01) — 4세기 양피지 사본, 시나이산 성 카타리나 수도원 출토. 그리스어 안시알(uncial) 서체로 기록된 현존 최고(最古)의 거의 완전한 그리스어 신약성경 사본.',
+  },
+  'durer-four-horsemen': {
+    file: 'Albrecht Dürer, The Four Horsemen, 1498, NGA 142352.jpg',
+    caption: '알브레히트 뒤러, 《묵시록의 네 기사 (Die vier apokalyptischen Reiter)》 — 1498년, 목판화, 워싱턴 국립미술관. 계 6:1-8의 정복·전쟁·기근·죽음 — 1500년 종말 공포기 도상.',
+  },
 };
 
 // 작품 ID → 이미지 ID 매핑 (모든 매핑이 검증된 파일을 가리킴)
@@ -2760,7 +2789,38 @@ const WORK_IMAGE = {
   'xenophon-anabasis-1':   'allard-hoplite',
   'plutarch-themistocles': 'hoplite-amphora',
   'herodotus-1':           'hoplite-amphora',        // 페르시아 전쟁 주제
-  'nt-john':               'oinokles-lekythos',
+  // ── 4 복음서 ── 각 복음서 주요 장면 회화
+  'nt-matthew':            'caravaggio-matthew-calling',  // 마 9:9 마태의 소명
+  'nt-mark':               'rembrandt-storm-galilee',     // 막 4:35-41 폭풍
+  'nt-luke':               'rembrandt-prodigal-son',      // 눅 15 탕자 비유
+  'nt-john':               'leonardo-last-supper',        // 요 13 최후의 만찬
+  // ── 사도행전 ── 바울 회심
+  'nt-acts':               'caravaggio-paul-damascus',    // 행 9 다마스쿠스 도상
+  // ── 바울 서신 (시각 통일: 사도 바울의 회심 도상) ──
+  'nt-romans':             'caravaggio-paul-damascus',
+  'nt-1corinthians':       'caravaggio-paul-damascus',
+  'nt-2corinthians':       'caravaggio-paul-damascus',
+  'nt-galatians':          'caravaggio-paul-damascus',
+  'nt-ephesians':          'caravaggio-paul-damascus',
+  'nt-philippians':        'caravaggio-paul-damascus',
+  'nt-colossians':         'caravaggio-paul-damascus',
+  'nt-1thessalonians':     'caravaggio-paul-damascus',
+  'nt-2thessalonians':     'caravaggio-paul-damascus',
+  'nt-1timothy':           'caravaggio-paul-damascus',
+  'nt-2timothy':           'caravaggio-paul-damascus',
+  'nt-titus':              'caravaggio-paul-damascus',
+  'nt-philemon':           'caravaggio-paul-damascus',
+  // ── 공동 서신 (시각 통일: 4세기 사본 페이지) ──
+  'nt-hebrews':            'sinaiticus-folio',
+  'nt-james':              'sinaiticus-folio',
+  'nt-1peter':             'sinaiticus-folio',
+  'nt-2peter':             'sinaiticus-folio',
+  'nt-1john':              'sinaiticus-folio',
+  'nt-2john':              'sinaiticus-folio',
+  'nt-3john':              'sinaiticus-folio',
+  'nt-jude':               'sinaiticus-folio',
+  // ── 묵시록 ──
+  'nt-revelation':         'durer-four-horsemen',         // 계 6:1-8 네 기사
 };
 
 // 작품 ID → SVG 폴백 (네트워크 실패 시 표시)
@@ -2782,7 +2842,22 @@ function svgFallback(workId){
     'xenophon-anabasis-1':   '🐎',  // 아나바시스
     'plutarch-themistocles': '🏺',  // 테미스토클레스
     'herodotus-1':           '📜',  // 역사
-    'nt-john':               '✝️',  // 요한복음
+    // ── 신약성경 ──
+    'nt-matthew':            '✝️',  'nt-mark':       '✝️',
+    'nt-luke':               '✝️',  'nt-john':       '✝️',
+    'nt-acts':               '🕊️',  // 사도행전 (성령 강림)
+    'nt-romans':             '✉️',  'nt-1corinthians':   '✉️',
+    'nt-2corinthians':       '✉️',  'nt-galatians':      '✉️',
+    'nt-ephesians':          '✉️',  'nt-philippians':    '✉️',
+    'nt-colossians':         '✉️',  'nt-1thessalonians': '✉️',
+    'nt-2thessalonians':     '✉️',  'nt-1timothy':       '✉️',
+    'nt-2timothy':           '✉️',  'nt-titus':          '✉️',
+    'nt-philemon':           '✉️',
+    'nt-hebrews':            '📜',  'nt-james':          '📜',
+    'nt-1peter':             '📜',  'nt-2peter':         '📜',
+    'nt-1john':              '📜',  'nt-2john':          '📜',
+    'nt-3john':              '📜',  'nt-jude':           '📜',
+    'nt-revelation':         '🐴',  // 묵시록의 네 기사
   }[workId] || '📜';
   // 적색상 도기 색조의 SVG 배경 (terracotta + black-glaze)
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 270" style="width:100%;height:100%;display:block">
@@ -4747,7 +4822,8 @@ function renderSearch(initialQuery){
   if(initialQuery) doSearch();
 }
 
-
+// ===== 문법 토픽 상세 화면 =====
+function renderTopic(id){
   const t = TOPICS.find(x=>x.id===id);
   if(!t) return;
   const p = t.paradigm;
@@ -4775,9 +4851,27 @@ function renderSearch(initialQuery){
 
     <div class="btn-row" style="margin:12px 0">
       <button class="btn" onclick="startGrammarDrill('${t.id}')">형태 식별 드릴 →</button>
+      ${t.items && t.items.length>=2 ? '' : ''}
+      <button class="btn btn-o" onclick="markTopicStudied('${t.id}')">${S.topicsStudied.includes(t.id)?'✓ 학습 완료':'학습 완료로 표시'}</button>
     </div>
   `;
 }
+window.renderTopic = renderTopic;
+function markTopicStudied(id){
+  if(!S.topicsStudied.includes(id)){
+    S.topicsStudied.push(id);
+    addXP(5, '문법 주제 학습');
+    saveState();
+    toast('학습 완료로 표시되었습니다.');
+  } else {
+    // 이미 완료된 경우 해제 (취소 기능)
+    S.topicsStudied = S.topicsStudied.filter(x=>x!==id);
+    saveState();
+    toast('학습 완료를 해제했습니다.');
+  }
+  renderTopic(id);
+}
+window.markTopicStudied = markTopicStudied;
 window.startGrammarDrill = startGrammarDrill;
 let grammarSession = null;
 function startGrammarDrill(id){
