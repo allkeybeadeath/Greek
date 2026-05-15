@@ -5,7 +5,7 @@
    - CRITICAL_SHELL: install 시 즉시 캐시 (≈150 KB) — 첫 SW 활성 빠름
    - DATA_BUNDLE:    install 후 백그라운드 비동기 캐시 (≈1.3 MB gzip)
                      → install 실패 위험 감소, 첫 SW 활성 즉시
-   - espeak/*.js, espeak/*.data: lazy — 사용자가 eSpeak NG 시스템을 처음
+   - espeakng.*.js, espeakng.worker.data: lazy — 사용자가 eSpeak NG 시스템을 처음
                      선택했을 때만 받아옴. 같은 origin 요청이므로 일반 fetch
                      intercept가 자동으로 캐시한다 (v36).
    - Wikimedia 이미지: cache-first (이미지는 거의 안 변함, 한국→Wikimedia
@@ -14,7 +14,7 @@
    
    새 버전 배포 시 CACHE_VERSION만 올리면 됩니다.
    ============================================================================ */
-const CACHE_VERSION = 'v39';
+const CACHE_VERSION = 'v40';
 const CACHE_NAME    = `paideia-${CACHE_VERSION}`;
 const IMG_CACHE     = `paideia-img-${CACHE_VERSION}`;
 

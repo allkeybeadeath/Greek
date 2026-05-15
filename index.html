@@ -3009,7 +3009,7 @@ function imageURL(imgId, width){
 
 // 앱 버전 — sw.js CACHE_VERSION과 동기화 유지. 홈 화면 푸터에 표시되어
 // 사용자가 자신이 어느 버전을 사용 중인지 확인 가능 (캐시 갱신 진단용).
-const APP_VERSION = 'v39';
+const APP_VERSION = 'v40';
 window.__paideiaVersion = APP_VERSION;
 
 // ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
@@ -7309,7 +7309,7 @@ function _ensureEspeak(opts){
     if(typeof window.eSpeakNG === 'undefined'){
       await new Promise((res, rej) => {
         const s = document.createElement('script');
-        s.src = './espeak/espeakng.min.js';
+        s.src = './espeakng.min.js';
         s.onload = res;
         s.onerror = () => rej(new Error('espeakng.min.js 로드 실패'));
         document.head.appendChild(s);
@@ -7321,7 +7321,7 @@ function _ensureEspeak(opts){
     // 2. Worker 인스턴스 (worker.data는 worker.js와 같은 경로에서 자동 로드)
     const inst = await new Promise((res, rej) => {
       const tm = setTimeout(() => rej(new Error('eSpeak Worker 로드 타임아웃 (60초)')), 60000);
-      const t = new window.eSpeakNG('./espeak/espeakng.worker.js', () => {
+      const t = new window.eSpeakNG('./espeakng.worker.js', () => {
         clearTimeout(tm);
         res(t);
       });
