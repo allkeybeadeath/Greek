@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Παιδεία 캐시 초기화</title>
+<style>
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
+       background:#F4E8D8;color:#2a241e;padding:40px 24px;line-height:1.6}
+  .wrap{max-width:480px;margin:0 auto}
+  h1{font-size:22px;color:#9C3F2D;margin:0 0 8px}
+  .grk{font-family:Georgia,serif;font-style:italic}
+  .sub{font-size:13px;color:#8a7a6a;margin-bottom:24px}
+  .step{padding:10px 14px;margin:8px 0;border-radius:8px;
+        background:#fff;border:1px solid #d9ccba;font-size:14px}
+  .ok{border-left:4px solid #5a9c5a;background:#f0f9f0}
+  .err{border-left:4px solid #c44536;background:#fbf0ee}
+  .pending{border-left:4px solid #d9ccba;opacity:.6}
+  .done{margin-top:24px;padding:14px;border-radius:8px;
+        background:#9C3F2D;color:#fff;text-align:center;font-weight:600}
+  .manual{margin-top:32px;padding:14px;border:1px dashed #c44536;
+          border-radius:8px;font-size:12px;color:#5c4e3e}
+  code{background:#ecdfca;padding:2px 6px;border-radius:3px;font-size:11px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1><span class="grk">Παιδεία</span> 캐시 초기화</h1>
+  <p class="sub">Service Worker · 모든 캐시 · 데이터 폐기</p>
+
+  <div id="log">
+    <div class="step pending" id="s1">1. Service Worker 등록 해제…</div>
+    <div class="step pending" id="s2">2. 캐시 저장소 폐기…</div>
+    <div class="step pending" id="s3">3. IndexedDB · localStorage 폐기…</div>
+  </div>
+
+  <div id="done" class="done" style="display:none">
+    완료. 5초 후 메인 앱으로 이동합니다.<br>
+    <span style="font-size:12px;font-weight:400;opacity:.85">이동 안 되면 직접 <a href="./index.html" style="color:#fff;text-decoration:underline">메인으로 이동</a></span>
+  </div>
+
+  <div class="manual">
+    <b>그래도 안 되면 (수동 정리):</b><br><br>
+    1. <b>Safari 강제 종료</b>: 홈 화면에서 위로 쓸어올려 Safari 카드를 위로 밀어 종료<br>
+    2. <b>설정 앱 → Safari → 고급 → 웹사이트 데이터</b> → <code>imdogyeong1488-byte.github.io</code> 검색 → 삭제<br>
+    3. PWA를 홈 화면에 추가했다면 그 아이콘도 삭제 후 다시 추가<br>
+    4. 브라우저 닫고 다시 열어 <code>./index.html</code> 접속
+  </div>
+</div>
+
+<script>
+(async function(){
+  const setStatus = (id, ok, msg) => {
+    const el = document.getElementById(id);
+    el.className = 'step ' + (ok ? 'ok' : 'err');
+    el.textContent = (ok ? '✓ ' : '✗ ') + msg;
+  };
+
+  // 1. Service Worker 모두 등록 해제
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const r of regs) await r.unregister();
+      setStatus('s1', true, 'Service Worker ' + regs.length + '개 해제');
+    } else {
+      setStatus('s1', true, '브라우저가 Service Worker 미지원 — 건너뜀');
+    }
+  } catch (e) {
+    setStatus('s1', false, 'SW 해제 실패: ' + e.message);
+  }
+
+  // 2. Cache Storage 모두 폐기
+  try {
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      for (const k of keys) await caches.delete(k);
+      setStatus('s2', true, '캐시 ' + keys.length + '개 폐기');
+    } else {
+      setStatus('s2', true, 'Cache Storage 미지원 — 건너뜀');
+    }
+  } catch (e) {
+    setStatus('s2', false, '캐시 폐기 실패: ' + e.message);
+  }
+
+  // 3. IndexedDB + localStorage + sessionStorage 폐기
+  try {
+    if (window.indexedDB && indexedDB.databases) {
+      const dbs = await indexedDB.databases();
+      for (const db of dbs) { try { indexedDB.deleteDatabase(db.name); } catch(e){} }
+    }
+    try { localStorage.clear(); } catch(e){}
+    try { sessionStorage.clear(); } catch(e){}
+    setStatus('s3', true, 'IndexedDB · localStorage · sessionStorage 폐기');
+  } catch (e) {
+    setStatus('s3', false, '저장소 폐기 실패: ' + e.message);
+  }
+
+  // 완료 → 5초 후 메인으로
+  document.getElementById('done').style.display = 'block';
+  setTimeout(() => { location.replace('./index.html?fresh=' + Date.now()); }, 5000);
+})();
+</script>
+</body>
+</html>

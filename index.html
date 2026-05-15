@@ -5,6 +5,40 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Ἑλληνικὴ Παιδεία — 고전 그리스어 학습</title>
 
+<!-- ===== 진단: 전역 오류 캐치 (가장 일찍 등록) ===== -->
+<script>
+window.__paideiaErrors = [];
+function __paideiaShowError(label, detail){
+  window.__paideiaErrors.push({label, detail, t: Date.now()});
+  // splash가 아직 안 그려졌으면 다음 틱에 재시도
+  const sp = document.getElementById('splash-stage');
+  if(!sp){ setTimeout(() => __paideiaShowError(label, detail), 50); return; }
+  sp.style.color = '#c44536';
+  sp.style.fontWeight = '600';
+  sp.style.textAlign = 'left';
+  sp.style.maxWidth = '92vw';
+  sp.style.margin = '0 auto';
+  sp.innerHTML = '<div style="font-size:13px;margin-bottom:6px">❌ ' + label + '</div>' +
+                 '<div style="font-size:11px;font-weight:400;color:#5c4e3e;font-family:Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-all;background:#fbf0ee;padding:8px 10px;border-radius:6px;border:1px solid #e8b5ab">' +
+                 (detail || '(추가 정보 없음)') +
+                 '</div>' +
+                 '<div style="font-size:10px;font-weight:400;margin-top:8px;color:#8a7a6a">이 화면을 캡처해서 보고해 주세요. reset.html 적용도 시도해 보세요.</div>';
+}
+window.addEventListener('error', e => {
+  const msg = (e.message || 'unknown error') +
+              (e.filename ? ' @ ' + e.filename.replace(/.*\//, '') + ':' + (e.lineno||'?') + ':' + (e.colno||'?') : '');
+  __paideiaShowError('JavaScript 오류', msg);
+});
+window.addEventListener('unhandledrejection', e => {
+  let msg = 'Promise 거부';
+  if(e.reason){
+    if(e.reason.message) msg = e.reason.message + (e.reason.stack ? '\n\n' + e.reason.stack.split('\n').slice(0,3).join('\n') : '');
+    else msg = String(e.reason);
+  }
+  __paideiaShowError('비동기 오류', msg);
+});
+</script>
+
 <!-- ===== PWA ===== -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a1612">
@@ -19,6 +53,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
+
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -5955,19 +5990,34 @@ async function loadLeaderboard(){
 
 // ─── 초기화 ──────────────────────────────────────────────────────────────────
 async function init(){
-  const saved = await load();
-  if(saved){
-    // 기존 키를 모두 보존하며 병합 (새 필드는 기본값 유지)
-    Object.assign(S, saved);
+  const sp = document.getElementById('splash-stage');
+  const stage = (msg) => { if(sp) sp.textContent = msg; };
+  try {
+    stage('상태 로드 중…');
+    const saved = await load();
+    if(saved){
+      Object.assign(S, saved);
+    }
+    stage('사용자 ID 확인 중…');
+    if(!S.userId){
+      S.userId = 'u' + Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
+    }
+    stage('연속 출석 갱신 중…');
+    updateStreak();
+    saveState();
+    stage('배너 그리는 중…');
+    refreshBanner();
+    stage('홈 화면 렌더 중…');
+    setTab('home');
+  } catch(e) {
+    if(typeof __paideiaShowError === 'function'){
+      __paideiaShowError('init() 단계 실패',
+        (e.message || String(e)) +
+        (e.stack ? '\n\n' + e.stack.split('\n').slice(0,4).join('\n') : ''));
+    } else {
+      throw e;
+    }
   }
-  // 익명 ID 생성 (한 번만)
-  if(!S.userId){
-    S.userId = 'u' + Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
-  }
-  updateStreak();
-  saveState();
-  refreshBanner();
-  setTab('home');
 }
 // ===== 읽기 시간 추정 =====
 // 학습자 그리스어 읽기 속도: 약 40 단어/분 (느린 정독). 산문은 5/분 빠름.
