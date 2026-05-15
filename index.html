@@ -5270,6 +5270,17 @@ async function init(){
   refreshBanner();
   setTab('home');
 }
+// ===== 인라인 onclick에서 호출되는 함수들을 글로벌 노출 =====
+// (engine.js는 IIFE이므로 명시적 export 없이는 onclick에서 ReferenceError 발생)
+window.renderAccent        = renderAccent;
+window.startAccentQuiz     = startAccentQuiz;
+window.renderInflection    = renderInflection;
+window.startInflectionDrill = startInflectionDrill;
+window.renderCloze         = renderCloze;
+window.startCloze          = startCloze;
+window.renderConversation  = renderConversation;
+window.renderScenario      = renderScenario;
+
 init();
 
 })();
