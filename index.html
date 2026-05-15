@@ -280,6 +280,18 @@ textarea.input{font-family:var(--font-ko);font-size:14px;line-height:1.5;min-hei
 .passage .w.pos-ptcp  { color: #4d3a70; }   /* 분사: 어두운 보라 */
 .passage .w.pos-inf   { color: #3a5a3d; }   /* 부정사: 어두운 녹색 */
 .passage .w:hover{background:var(--terracotta-l);color:var(--ivory-w)}
+/* 색상 끄기 토글 (v29): OCT/Loeb 같은 학술 표준 무채색 본문 */
+.no-color-words .passage .w,
+.no-color-words .passage .w.pos-noun,
+.no-color-words .passage .w.pos-verb,
+.no-color-words .passage .w.pos-adj,
+.no-color-words .passage .w.pos-art,
+.no-color-words .passage .w.pos-prep,
+.no-color-words .passage .w.pos-adv,
+.no-color-words .passage .w.pos-conj,
+.no-color-words .passage .w.pos-pron,
+.no-color-words .passage .w.pos-ptcp,
+.no-color-words .passage .w.pos-inf { color: var(--black-glaze); }
 .passage .pn{display:inline-block;width:34px;color:var(--clay-d);font-family:var(--font-display);font-style:italic;font-size:14px;user-select:none}
 .cite-line{font-family:var(--font-display);font-style:italic;color:var(--clay-d);font-size:13px;margin-bottom:6px;letter-spacing:.02em}
 
@@ -3132,7 +3144,9 @@ if(BACKEND){
 
 async function load(){
   try{
-    const r = await STORAGE.get(KEY);
+    const meta = await getProfileMeta();
+    _currentProfileId = meta.currentId;
+    const r = await STORAGE.get(_profileKey(meta.currentId));
     if(r && r.value) return JSON.parse(r.value);
   }catch(e){/* 키 없음 등 */}
   return null;
@@ -3140,10 +3154,251 @@ async function load(){
 async function persist(state){
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async()=>{
-    try{ await STORAGE.set(KEY, JSON.stringify(state)); }
+    try{
+      let pid = _currentProfileId;
+      if(!pid){
+        const meta = await getProfileMeta();
+        pid = meta.currentId;
+        _currentProfileId = pid;
+      }
+      await STORAGE.set(_profileKey(pid), JSON.stringify(state));
+    }
     catch(e){ console.warn('persist failed', e); }
   }, 500);
 }
+
+// ===== 다중 사용자 프로필 (v28) =====
+// CIM Lab 같은 공유 환경 대비: 한 기기에 여러 학습자가 독립된 학습 상태를 유지
+const PROFILE_META_KEY = 'paideia-profile-meta';
+let _currentProfileId = null;
+let _profileMetaCache = null;   // 동기 접근용 (load 후 채워짐)
+function _profileKey(id){ return 'paideia-state-' + id; }
+function _newProfileId(){
+  return 'p_' + Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
+}
+
+async function getProfileMeta(){
+  // 1) 메타 있으면 그것 사용
+  try {
+    const r = await STORAGE.get(PROFILE_META_KEY);
+    if(r && r.value){
+      const m = JSON.parse(r.value);
+      if(m && Array.isArray(m.profiles) && m.profiles.length > 0 && m.currentId){
+        _profileMetaCache = m;
+        return m;
+      }
+    }
+  } catch(e){}
+  // 2) 메타 없음 — 기존 단일 프로필 키(KEY)에서 마이그레이션
+  let migratedState = null;
+  try {
+    const r = await STORAGE.get(KEY);
+    if(r && r.value) migratedState = JSON.parse(r.value);
+  } catch(e){}
+  const defaultId = 'p_default';
+  const meta = {
+    currentId: defaultId,
+    profiles: [{
+      id: defaultId,
+      name: migratedState ? '기본' : '기본',
+      createdAt: Date.now(),
+      lastUsed: Date.now(),
+    }],
+    schemaVersion: 1,
+  };
+  if(migratedState){
+    try { await STORAGE.set(_profileKey(defaultId), JSON.stringify(migratedState)); }
+    catch(e){ console.warn('migrate failed', e); }
+    // 기존 KEY는 fallback 안전망으로 그대로 둠
+  }
+  try { await STORAGE.set(PROFILE_META_KEY, JSON.stringify(meta)); }
+  catch(e){ console.warn('meta save failed', e); }
+  _profileMetaCache = meta;
+  return meta;
+}
+async function setProfileMeta(meta){
+  try { await STORAGE.set(PROFILE_META_KEY, JSON.stringify(meta)); }
+  catch(e){ console.warn('meta save failed', e); }
+  _profileMetaCache = meta;
+}
+
+async function switchProfile(id){
+  const meta = await getProfileMeta();
+  if(!meta.profiles.find(p => p.id === id)) return false;
+  // 현재 상태 즉시 저장 (debounce 우회)
+  clearTimeout(saveTimer);
+  try {
+    const oldId = meta.currentId;
+    await STORAGE.set(_profileKey(oldId), JSON.stringify(S));
+  } catch(e){ console.warn('save before switch failed', e); }
+  meta.currentId = id;
+  const p = meta.profiles.find(p => p.id === id);
+  if(p) p.lastUsed = Date.now();
+  await setProfileMeta(meta);
+  // 페이지 새로고침으로 모든 캐시·DOM 완전 리셋 (가장 안전)
+  location.reload();
+  return true;
+}
+window.switchProfile = switchProfile;
+
+async function createProfile(name){
+  const meta = await getProfileMeta();
+  const cleanName = (name || '').trim() || '새 사용자';
+  if(cleanName.length > 30) return null;
+  // 중복 이름 방지: 같은 이름 있으면 (2), (3) 자동 부여
+  let finalName = cleanName;
+  let suffix = 2;
+  while(meta.profiles.find(p => p.name === finalName)){
+    finalName = cleanName + ' (' + suffix + ')';
+    suffix++;
+  }
+  const id = _newProfileId();
+  meta.profiles.push({
+    id, name: finalName,
+    createdAt: Date.now(),
+    lastUsed: 0,
+  });
+  await setProfileMeta(meta);
+  return id;
+}
+window.createProfile = createProfile;
+
+async function renameProfile(id, newName){
+  const meta = await getProfileMeta();
+  const p = meta.profiles.find(p => p.id === id);
+  if(!p) return false;
+  const cleanName = (newName || '').trim();
+  if(!cleanName || cleanName.length > 30) return false;
+  if(meta.profiles.find(x => x.id !== id && x.name === cleanName)) return false;
+  p.name = cleanName;
+  await setProfileMeta(meta);
+  return true;
+}
+window.renameProfile = renameProfile;
+
+async function deleteProfile(id){
+  const meta = await getProfileMeta();
+  if(meta.profiles.length <= 1) return false;
+  meta.profiles = meta.profiles.filter(p => p.id !== id);
+  let switched = false;
+  if(meta.currentId === id){
+    meta.currentId = meta.profiles[0].id;
+    switched = true;
+  }
+  await setProfileMeta(meta);
+  try { await STORAGE.del(_profileKey(id)); } catch(e){}
+  if(switched){ location.reload(); }
+  return true;
+}
+window.deleteProfile = deleteProfile;
+
+// 동기 헬퍼: 현재 프로필 이름 반환 (캐시 사용, 없으면 '?')
+function getCurrentProfileName(){
+  if(!_profileMetaCache) return '?';
+  const p = _profileMetaCache.profiles.find(p => p.id === _profileMetaCache.currentId);
+  return p ? p.name : '?';
+}
+window.getCurrentProfileName = getCurrentProfileName;
+
+async function renderProfiles(){
+  const meta = await getProfileMeta();
+  const profiles = [...meta.profiles].sort((a,b) => {
+    if(a.id === meta.currentId) return -1;
+    if(b.id === meta.currentId) return 1;
+    return (b.lastUsed || b.createdAt) - (a.lastUsed || a.createdAt);
+  });
+  const fmtDate = ts => ts ? new Date(ts).toLocaleDateString('ko-KR', {year:'numeric',month:'short',day:'numeric'}) : '아직 없음';
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="setTab('home')">← 홈</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Χρῆσται</span>사용자 프로필</h2>
+    <div class="view-sub">${profiles.length}개 프로필 · 한 기기에서 여러 학습자가 독립된 학습 상태를 유지</div>
+
+    <div class="card" style="background:var(--ivory-d);border-left:3px solid var(--clay-d)">
+      <div style="font-size:12px;color:var(--clay-d);line-height:1.7">
+        ◇ 각 프로필은 <b>고유한 XP·SRS·북마크·메모·연속 학습일</b>을 가집니다.<br>
+        ◇ CIM Lab처럼 한 iPad·계정을 여러 사람이 쓰는 환경에서 학습 데이터를 분리할 때 사용하세요.<br>
+        ◇ 프로필 전환 시 페이지가 새로고침됩니다. 데이터는 기기에 로컬 저장되며 외부 전송되지 않습니다.
+      </div>
+    </div>
+
+    <h3 style="font-family:var(--font-display);font-size:14px;color:var(--terracotta-d);margin:18px 0 6px;text-transform:uppercase;letter-spacing:.08em">프로필 목록</h3>
+    ${profiles.map(p => {
+      const isCurrent = p.id === meta.currentId;
+      const nameEsc = (p.name || '').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+      return `<div class="card" style="border-left:3px solid ${isCurrent?'var(--terracotta)':'var(--clay)'};padding:14px;margin-bottom:8px${isCurrent?';background:var(--ivory-d)':''}">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              <span style="font-family:var(--font-display);font-size:17px;color:var(--black-glaze);font-weight:600">👤 ${nameEsc}</span>
+              ${isCurrent ? '<span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:2px 8px;border-radius:9px;letter-spacing:.04em;font-weight:600">현재</span>' : ''}
+            </div>
+            <div style="font-size:11px;color:var(--clay-d);margin-top:6px;line-height:1.5">
+              생성: ${fmtDate(p.createdAt)}${p.lastUsed ? ` · 마지막 사용: ${fmtDate(p.lastUsed)}` : ''}
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+            ${!isCurrent ? `<button class="btn btn-sm" data-switch="${p.id}" style="font-size:11px;padding:5px 10px">전환</button>` : ''}
+            <button class="btn btn-sm btn-o" data-rename="${p.id}" style="font-size:11px;padding:5px 10px">이름 변경</button>
+            ${profiles.length > 1 ? `<button class="btn btn-sm btn-o" data-delete="${p.id}" style="font-size:11px;padding:5px 10px;color:var(--terracotta-d)">삭제</button>` : ''}
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+
+    <h3 style="font-family:var(--font-display);font-size:14px;color:var(--terracotta-d);margin:18px 0 6px;text-transform:uppercase;letter-spacing:.08em">새 프로필 추가</h3>
+    <div class="card">
+      <div style="font-size:12px;color:var(--clay-d);margin-bottom:8px;line-height:1.5">
+        새 사용자 이름을 입력하면 빈 학습 상태로 시작합니다.
+      </div>
+      <div style="display:flex;gap:6px">
+        <input id="new-profile-name" class="input" type="text"
+               placeholder="예: 김도경, 이채린, ..." maxlength="30"
+               style="flex:1;padding:8px 11px;font-size:13.5px">
+        <button class="btn" id="new-profile-add" style="font-size:13px">추가</button>
+      </div>
+    </div>
+  `;
+
+  view.querySelectorAll('[data-switch]').forEach(b => b.addEventListener('click', async () => {
+    if(confirm('프로필을 전환합니다. 현재 학습 상태는 자동 저장되고, 페이지가 새로고침됩니다.')){
+      await switchProfile(b.dataset.switch);
+    }
+  }));
+
+  view.querySelectorAll('[data-rename]').forEach(b => b.addEventListener('click', async () => {
+    const id = b.dataset.rename;
+    const cur = meta.profiles.find(p => p.id === id);
+    const newName = prompt('새 이름 (최대 30자):', cur ? cur.name : '');
+    if(newName === null) return;   // 취소
+    const ok = await renameProfile(id, newName);
+    if(!ok){ alert('이름이 비어있거나 중복되거나 30자를 초과했습니다.'); return; }
+    renderProfiles();
+  }));
+
+  view.querySelectorAll('[data-delete]').forEach(b => b.addEventListener('click', async () => {
+    const id = b.dataset.delete;
+    const cur = meta.profiles.find(p => p.id === id);
+    if(!cur) return;
+    if(!confirm(`프로필 "${cur.name}"을(를) 삭제하시겠습니까? 이 프로필의 모든 학습 데이터(XP·SRS·북마크·메모)가 영구히 사라집니다. 이 동작은 되돌릴 수 없습니다.`)) return;
+    const ok = await deleteProfile(id);
+    if(!ok){ alert('삭제 실패 — 마지막 프로필은 삭제할 수 없습니다.'); return; }
+    renderProfiles();
+  }));
+
+  const newInput = document.getElementById('new-profile-name');
+  const addBtn = document.getElementById('new-profile-add');
+  const doAdd = async () => {
+    const name = (newInput.value || '').trim();
+    if(!name){ newInput.focus(); return; }
+    const id = await createProfile(name);
+    if(!id){ alert('생성 실패 — 이름이 너무 길거나(30자 초과) 비어있습니다.'); return; }
+    newInput.value = '';
+    renderProfiles();
+  };
+  addBtn.addEventListener('click', doAdd);
+  newInput.addEventListener('keypress', e => { if(e.key === 'Enter'){ e.preventDefault(); doAdd(); } });
+}
+window.renderProfiles = renderProfiles;
 
 // ─── 게임화 상수 ─────────────────────────────────────────────────────────────
 const LEVELS = [
@@ -3204,6 +3459,7 @@ let S = {
   userId:'',             // 익명 사용자 ID (생성)
   joinLeaderboard:false, // 순위 참여 의사 (명시적 동의)
   speech:{rate:0.85, pitch:1.0, voiceName:''},  // 음성 합성 설정 (v24)
+  readColorize: true,                            // 원문 품사별 색칠 (v29) — true: 활성, false: 흑색 단일색
 };
 
 function todayStr(){ const d=new Date(); return d.toISOString().slice(0,10); }
@@ -3420,9 +3676,17 @@ function renderHome(){
   const q = DAILY_QUOTES[new Date().getDate() % DAILY_QUOTES.length];
   const wrongN = Object.keys(S.wrongRoom).length;
   const lvl = LEVELS[levelOf(S.xp)];
+  const profileName = getCurrentProfileName();
+  const profileCount = _profileMetaCache ? _profileMetaCache.profiles.length : 1;
   view.innerHTML = `
     <h2 class="view-title fade-in"><span class="grk">Ἑστία</span>화롯가</h2>
     <div class="view-sub">오늘도 잘 오셨습니다 — 현재 <b>${lvl.grk}</b> (${lvl.ko})</div>
+
+    <div style="display:flex;align-items:center;justify-content:flex-end;margin:-4px 0 8px">
+      <button class="btn btn-sm btn-o" onclick="renderProfiles()" style="font-size:11px;padding:4px 10px">
+        👤 ${(profileName||'').replace(/</g,'&lt;')}${profileCount>1?` · ${profileCount}명`:''} →
+      </button>
+    </div>
 
     <div class="quote-card fade-in">
       <div class="grk">"${q.grk}"</div>
@@ -3544,6 +3808,17 @@ function renderVocab(){
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--clay-d);font-weight:600">Φωνή</div>
           <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">음성 합성 설정</div>
           <div style="font-size:11px;color:var(--clay-d);margin-top:3px">속도·음높이·음성 선택 · Web Speech API · 미리듣기</div>
+        </div>
+        <div style="font-size:22px;color:var(--terracotta)">→</div>
+      </div>
+    </button>
+
+    <button class="card" type="button" data-render="renderBattle" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Ἀγών</div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">멀티 배틀 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:6px;margin-left:4px;vertical-align:middle">β</span></div>
+          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">실시간 어휘 경기 · 2~6명 · Firebase RTDB · Phase 1</div>
         </div>
         <div style="font-size:22px;color:var(--terracotta)">→</div>
       </div>
@@ -4444,6 +4719,16 @@ function renderDialects(){
           </button>
         `).join('')}
       </div>
+
+      <div class="card" style="border-left:3px solid var(--clay-d);margin-top:14px">
+        <div style="font-family:var(--font-display);font-size:14px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">방언 식별 퀴즈</div>
+        <div style="font-size:12.5px;color:var(--clay-d);line-height:1.6;margin-bottom:10px">
+          예문을 보고 어느 방언인지 맞히세요. 위 토픽들을 학습한 뒤 도전하면 식별력이 빠르게 늘어납니다.
+        </div>
+        <div id="dialect-quiz-host">
+          <button class="btn" onclick="startDialectQuiz()" style="width:100%">시작 (10문제) →</button>
+        </div>
+      </div>
     `;
     document.querySelectorAll('#dialect-cats .chip').forEach(c=>
       c.addEventListener('click',()=>{ filterCat=c.dataset.v; draw(); }));
@@ -4497,6 +4782,131 @@ function renderDialectTopic(id){
   `;
 }
 window.renderDialectTopic = renderDialectTopic;
+
+// ===== 방언 식별 퀴즈 (v27) =====
+// cite에서 방언 추출 — "(Doric)", "(Homeric, ...)" 등
+function _inferDialect(cite){
+  if(!cite) return null;
+  const m = cite.match(/\(([^)]*)\)/);
+  if(!m) return null;
+  const tag = m[1].toLowerCase();
+  // 복합 표기 우선순위: 첫 명시된 방언 채택
+  // ("Aeolic-Doric" → aeolic; "Homeric, ..." → homeric)
+  const order = ['attic', 'ionic', 'homeric', 'aeolic', 'doric', 'koine'];
+  for(const d of order){
+    if(tag.includes(d)) return d;
+  }
+  return null;
+}
+
+const _DIALECT_LABEL = {
+  attic:   'Attic · 아테네식',
+  ionic:   'Ionic · 이오니아식',
+  homeric: 'Homeric · 호메로스식',
+  aeolic:  'Aeolic · 아이올리스식',
+  doric:   'Doric · 도리스식',
+  koine:   'Koine · 코이네',
+};
+
+let _dialectQuizQuestions = null;
+function _buildDialectQuizPool(){
+  const pool = [];
+  for(const topic of DIALECT_TOPICS){
+    if(!topic.examples) continue;
+    for(const ex of topic.examples){
+      const d = _inferDialect(ex.cite);
+      if(d && _DIALECT_LABEL[d]){
+        pool.push({text: ex.text, cite: ex.cite, dialect: d, topicTitle: topic.title});
+      }
+    }
+  }
+  return pool;
+}
+
+function startDialectQuiz(){
+  const pool = _buildDialectQuizPool();
+  const usedDialects = [...new Set(pool.map(x => x.dialect))];
+  const host = document.getElementById('dialect-quiz-host');
+  if(!host) return;
+  if(pool.length < 4 || usedDialects.length < 4){
+    host.innerHTML = '<div style="color:var(--clay-d);font-size:13px;text-align:center;padding:14px">예문 데이터가 부족합니다.</div>';
+    return;
+  }
+  // 균형 있게 10문제 (가능한 dialect 풀이 적으면 그만큼)
+  const targetN = Math.min(10, pool.length);
+  const questions = [];
+  const usedKeys = new Set();
+  let attempts = 0;
+  while(questions.length < targetN && attempts < 200){
+    attempts++;
+    const q = pool[Math.floor(Math.random() * pool.length)];
+    const key = q.text;
+    if(usedKeys.has(key)) continue;
+    usedKeys.add(key);
+    // 오답: 정답 외 dialect 3개 (사용 dialect 중에서)
+    const distractors = usedDialects.filter(d => d !== q.dialect)
+                                     .sort(() => Math.random() - 0.5)
+                                     .slice(0, 3);
+    const options = [q.dialect, ...distractors].sort(() => Math.random() - 0.5);
+    questions.push({...q, options});
+  }
+  questions.sort(() => Math.random() - 0.5);
+  _dialectQuizQuestions = questions;
+  renderDialectQuiz(questions, 0, 0);
+}
+window.startDialectQuiz = startDialectQuiz;
+
+function renderDialectQuiz(questions, idx, score){
+  const host = document.getElementById('dialect-quiz-host');
+  if(!host) return;
+  const q = questions[idx];
+  if(!q){
+    const total = questions.length;
+    const pct = total > 0 ? Math.round(100 * score / total) : 0;
+    host.innerHTML = `
+      <div style="text-align:center;padding:14px 0">
+        <div style="font-family:var(--font-display);font-size:28px;color:var(--terracotta-d);font-weight:600">${score}/${total}</div>
+        <div style="font-size:13px;color:var(--clay-d);margin-top:4px">정답률 ${pct}%</div>
+        <div style="font-size:11px;color:var(--clay-d);margin-top:6px;font-style:italic">XP +${score * 2} 적립</div>
+        <button class="btn" style="margin-top:14px" onclick="startDialectQuiz()">다시 →</button>
+      </div>`;
+    if(typeof S !== 'undefined' && typeof saveState === 'function'){
+      S.xp = (S.xp || 0) + score * 2;
+      saveState();
+    }
+    return;
+  }
+  host.innerHTML = `
+    <div style="font-size:11px;color:var(--clay-d);margin-bottom:8px">문제 ${idx+1}/${questions.length} · 점수 ${score}</div>
+    <div style="background:var(--ivory-d);border-radius:8px;padding:14px 16px;margin-bottom:10px;border-left:3px solid var(--terracotta)">
+      <div class="grk" style="font-size:17px;line-height:1.65;color:var(--black-glaze)">${q.text}</div>
+      <div style="font-size:11px;color:var(--clay-d);margin-top:8px;font-style:italic">${q.cite.replace(/\s*\([^)]*\)\s*/, '').trim()} — <span style="color:var(--terracotta-d)">${q.topicTitle}</span></div>
+    </div>
+    <div style="font-size:12px;color:var(--clay-d);text-align:center;margin-bottom:10px">이 예문의 방언은?</div>
+    ${q.options.map(opt => `
+      <button class="btn btn-o" style="display:block;width:100%;margin:6px 0;text-align:left;font-size:13.5px" data-opt="${opt}">
+        ${_DIALECT_LABEL[opt]}
+      </button>`).join('')}
+  `;
+  host.querySelectorAll('[data-opt]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const chosen = btn.dataset.opt;
+      const correct = chosen === q.dialect;
+      host.querySelectorAll('[data-opt]').forEach(b => {
+        b.disabled = true;
+        if(b.dataset.opt === q.dialect){
+          b.style.background = 'var(--terracotta)';
+          b.style.color = '#fff';
+          b.style.borderColor = 'var(--terracotta-d)';
+        } else if(b === btn){
+          b.style.opacity = '0.45';
+        }
+      });
+      setTimeout(() => renderDialectQuiz(questions, idx + 1, score + (correct ? 1 : 0)), 1100);
+    });
+  });
+}
+window.renderDialectQuiz = renderDialectQuiz;
 
 function renderInflection(){
   const pool = getInflectionPool();
@@ -5588,13 +5998,14 @@ function renderWorkSection(workId, secIdx){
   const sec = w.sections[secIdx];
   if(!sec) return;
   const done = (S.sectionsDone[w.id]||[]).includes(sec.n);
+  const colorize = S.readColorize !== false;   // 기본 true (v29 토글)
   const lines = sec.text.split('\n').map(line=>{
     if(!line.trim()) return '<div style="height:6px"></div>';
     const words = line.split(/(\s+)/).map(tok=>{
       if(/^\s+$/.test(tok)) return tok;
       const clean = stripWord(tok);
       if(!clean) return tok;
-      const pc = posClassOf(clean);
+      const pc = colorize ? posClassOf(clean) : '';
       return `<span class="w${pc}" data-w="${encodeURIComponent(clean)}">${tok}</span>`;
     }).join('');
     return `<div>${words}</div>`;
@@ -5622,6 +6033,7 @@ function renderWorkSection(workId, secIdx){
         ${secIdx<w.sections.length-1?`<button class="btn btn-sm btn-o" onclick="window._renderWorkSection('${workId}',${secIdx+1})">다음 →</button>`:''}
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-o" id="toggle-color" title="${colorize?'색깔 끄기':'색깔 켜기'}">${colorize?'🎨':'⚫'}</button>
         ${('speechSynthesis' in window)?`<button class="btn btn-sm btn-o" id="speak-sec" title="발음 듣기">🔊</button>`:''}
         <button class="btn btn-sm ${isBookmarked(workId,sec.n)?'':'btn-o'}" id="bookmark-sec" title="즐겨찾기">${isBookmarked(workId,sec.n)?'★':'☆'}</button>
         <button class="btn btn-sm" id="save-sec-memo">저장</button>
@@ -5630,6 +6042,12 @@ function renderWorkSection(workId, secIdx){
     </div>
   `;
   view.querySelectorAll('.w').forEach(el=> el.addEventListener('click', ()=> openLookup(el.dataset.w)));
+  document.getElementById('toggle-color').addEventListener('click', () => {
+    S.readColorize = !colorize;
+    saveState();
+    renderWorkSection(workId, secIdx);
+    toast(S.readColorize ? '품사별 색칠 켜짐' : '품사별 색칠 꺼짐');
+  });
   document.getElementById('save-sec-memo').addEventListener('click', ()=>{
     if(!S.workNotes[workId]) S.workNotes[workId] = {};
     S.workNotes[workId][sec.n] = document.getElementById('memo-sec').value;
@@ -6057,6 +6475,17 @@ function renderHall(){
 
     <div id="leaderboard-slot"><div class="card"><div style="text-align:center;color:var(--clay-d);font-size:13px">라이브 순위 불러오는 중…</div></div></div>
 
+    <button class="card" type="button" data-render="renderBattle" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%)">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Ἀγών</div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">⚔ 멀티 배틀 (2-6인)</div>
+          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">방 코드 공유 → 10문제 실시간 어휘 결투 · 승자 +30 XP</div>
+        </div>
+        <div style="font-size:22px;color:var(--terracotta)">→</div>
+      </div>
+    </button>
+
     <div class="card">
       <b style="font-size:13px;color:var(--clay-d);letter-spacing:.04em;text-transform:uppercase">등급 사다리</b>
       <div class="ladder">
@@ -6070,6 +6499,17 @@ function renderHall(){
         }).join('')}
       </div>
     </div>
+
+    <div class="card">
+      <b style="font-size:13px;color:var(--clay-d);letter-spacing:.04em;text-transform:uppercase">시대별 완독 진척</b>
+      <div style="margin-top:10px">${_renderEraStats()}</div>
+    </div>
+
+    ${(S.battleHistory && S.battleHistory.length > 0) ? `
+    <div class="card">
+      <b style="font-size:13px;color:var(--clay-d);letter-spacing:.04em;text-transform:uppercase">최근 배틀 (${S.battleHistory.length}/20)</b>
+      <div style="margin-top:8px">${_renderBattleHistory()}</div>
+    </div>` : ''}
 
     <div class="card">
       <b style="font-size:13px;color:var(--clay-d);letter-spacing:.04em;text-transform:uppercase">배지 (${S.badges.length}/${BADGES.length})</b>
@@ -6100,19 +6540,88 @@ function renderHall(){
       </div>
     </div>
 
-    <div class="btn-row" style="margin-top:12px">
-      <button class="btn btn-sm btn-o" id="export-data">진행 내보내기 (JSON)</button>
+    <div class="btn-row" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-o" id="export-data">📤 내보내기 (JSON)</button>
+      <button class="btn btn-sm btn-o" id="import-data">📥 가져오기 (JSON)</button>
       <button class="btn btn-sm btn-o" id="reset-data" style="color:var(--bad);border-color:var(--bad)">전체 초기화</button>
+    </div>
+    <input type="file" id="import-file" accept=".json,application/json" style="display:none">
+    <div style="font-size:11px;color:var(--clay-d);margin-top:8px;line-height:1.6;font-style:italic">
+      📋 CIM Lab 다중 사용자 안내: 각자 학습 후 <b>내보내기</b>로 JSON 백업을 보관하고,
+      다음 세션에서 <b>가져오기</b>로 복원하면 학습 진척이 분리됩니다.
+      라이브 순위 ID·표시 이름은 가져오기 시 현재 기기 값이 유지됩니다.
     </div>
   `;
   document.getElementById('export-data').addEventListener('click',()=>{
     const blob = new Blob([JSON.stringify(S, null, 2)], {type:'application/json'});
     const u = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = u; a.download = `hellenike-paideia-${todayStr()}.json`;
+    const safeName = (S.displayName || 'anonymous').replace(/[^\w가-힣ㄱ-ㅎㅏ-ㅣ-]/g, '_').slice(0, 24);
+    a.href = u; a.download = `paideia-${safeName}-${todayStr()}.json`;
     a.click();
     setTimeout(()=>URL.revokeObjectURL(u), 200);
     toast('JSON 파일 다운로드 완료');
+  });
+  document.getElementById('import-data').addEventListener('click', ()=>{
+    document.getElementById('import-file').click();
+  });
+  document.getElementById('import-file').addEventListener('change', async (e) => {
+    const f = e.target.files && e.target.files[0];
+    if(!f) return;
+    let data;
+    try {
+      const text = await f.text();
+      data = JSON.parse(text);
+    } catch(err){
+      toast('파일을 읽을 수 없습니다 (JSON 형식 오류)');
+      e.target.value = '';
+      return;
+    }
+    // 핵심 필드 validate
+    if(typeof data !== 'object' || data === null || typeof data.xp !== 'number'){
+      toast('Paideia 백업 파일이 아닙니다');
+      e.target.value = '';
+      return;
+    }
+    // 현재 vs 새 데이터 요약
+    const curStats = `XP ${S.xp || 0} · 완독 ${(S.worksFinished||[]).length}편 · 어휘 ${S.vocabCorrectCount||0} · 북마크 ${Object.keys(S.bookmarks||{}).length}`;
+    const newStats = `XP ${data.xp || 0} · 완독 ${(data.worksFinished||[]).length}편 · 어휘 ${data.vocabCorrectCount||0} · 북마크 ${Object.keys(data.bookmarks||{}).length}`;
+    if(!confirm(`기존 데이터를 새 데이터로 덮어씁니다.\n\n현재: ${curStats}\n새것:  ${newStats}\n\n진행할까요? (라이브 순위 ID·이름은 현재 기기 값 유지)`)){
+      e.target.value = '';
+      return;
+    }
+    // 현재 기기의 라이브 순위 정보 보존
+    const preservedUserId = S.userId;
+    const preservedDisplayName = S.displayName;
+    const preservedJoinLeaderboard = S.joinLeaderboard;
+    // 데이터 적용
+    S = data;
+    S.userId = preservedUserId || S.userId || ('u' + Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4));
+    S.displayName = preservedDisplayName || '';
+    S.joinLeaderboard = preservedJoinLeaderboard || false;
+    // 새 필드 (v24~v29)에 기본값 보장
+    if(!S.speech) S.speech = {rate:0.85, pitch:1.0, voiceName:''};
+    if(S.readColorize === undefined) S.readColorize = true;
+    if(!S.bookmarks) S.bookmarks = {};
+    if(!S.srs) S.srs = {};
+    if(!S.workNotes) S.workNotes = {};
+    if(!S.sectionsDone) S.sectionsDone = {};
+    if(!S.wrongRoom) S.wrongRoom = {};
+    if(!S.topicsStudied) S.topicsStudied = [];
+    if(!S.readDone) S.readDone = [];
+    if(!S.readNotes) S.readNotes = {};
+    if(!S.readAnalysis) S.readAnalysis = {};
+    if(!S.worksFinished) S.worksFinished = [];
+    if(!S.badges) S.badges = [];
+    try {
+      await saveState();
+      refreshBanner();
+      renderHall();
+      toast('가져오기 완료');
+    } catch(err){
+      toast('저장 실패 — 새로고침해 보세요');
+    }
+    e.target.value = '';
   });
   document.getElementById('reset-data').addEventListener('click', async()=>{
     if(!confirm('모든 진행 상황을 초기화합니다. 계속하시겠습니까?')) return;
@@ -6120,7 +6629,19 @@ function renderHall(){
     if(STORAGE.supportsShared && S.userId){
       try{ await STORAGE.delShared('lb:' + S.userId); }catch(e){}
     }
-    S = { xp:0, vocabSeen:0, vocabCorrectCount:0, vocabRight:0, vocabWrong:0, wrongRoom:{}, topicsStudied:[], grammarCorrectCount:0, readDone:[], readNotes:{}, readAnalysis:{}, sectionsDone:{}, worksFinished:[], workNotes:{}, badges:[], streak:0, lastDay:'', hadPerfect:false, analysisWritten:0, displayName:'', userId:'', joinLeaderboard:false };
+    // 초기화 — v29까지의 모든 필드 포함
+    S = {
+      xp:0, vocabSeen:0, vocabCorrectCount:0, vocabRight:0, vocabWrong:0,
+      wrongRoom:{}, topicsStudied:[], grammarCorrectCount:0,
+      readDone:[], readNotes:{}, readAnalysis:{},
+      sectionsDone:{}, worksFinished:[], workNotes:{},
+      badges:[], streak:0, lastDay:'', hadPerfect:false, analysisWritten:0,
+      displayName:'', userId:'', joinLeaderboard:false,
+      speech:{rate:0.85, pitch:1.0, voiceName:''},   // v24
+      readColorize: true,                              // v29
+      bookmarks:{},                                    // v25
+      srs:{}                                           // SRS (이미 사용 중)
+    };
     if(!S.userId) S.userId = 'u' + Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
     try{ await STORAGE.del(KEY); }catch(e){}
     refreshBanner();
@@ -6501,6 +7022,779 @@ function renderSpeechSettings(){
   }
 }
 window.renderSpeechSettings = renderSpeechSettings;
+
+// ===== 멀티 실시간 배틀 (Ἀγών) — Phase 1 인프라 (v29) =====
+// 디자인: Firebase RTDB polling (~2s) — Phase 4에서 SSE로 업그레이드 예정
+// 데이터: battles/{roomCode}/{meta,players,questions}
+// 상태:   lobby → playing → finished
+
+const BATTLE_POLL_MS = 2000;        // polling 간격
+const BATTLE_CODE_LEN = 6;          // 방 코드 길이
+let _battleState = null;            // {roomCode, role:'host'|'guest', pollTimer}
+
+function _battleGenCode(){
+  // 혼동되는 문자 제외 (0/O, 1/I/L) — 학습자가 입력 쉽게
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for(let i = 0; i < BATTLE_CODE_LEN; i++){
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return code;
+}
+
+function _battleStopPoll(){
+  if(_battleState && _battleState.pollTimer){
+    clearInterval(_battleState.pollTimer);
+    _battleState.pollTimer = null;
+  }
+}
+
+function _battleCleanup(){
+  _battleStopPoll();
+  _battleState = null;
+}
+
+async function _battleFetchRoom(code){
+  if(!STORAGE.supportsShared) return null;
+  try {
+    const r = await STORAGE.getShared(`battles:${code}`);
+    if(!r || !r.value) return null;
+    return JSON.parse(r.value);
+  } catch(e){
+    return null;
+  }
+}
+
+async function _battleSaveRoom(code, room){
+  if(!STORAGE.supportsShared) return false;
+  try {
+    await STORAGE.setShared(`battles:${code}`, JSON.stringify(room));
+    return true;
+  } catch(e){
+    return false;
+  }
+}
+
+// 진입 화면 — 방 만들기 / 입장
+function renderBattle(){
+  _battleCleanup();
+  const supported = STORAGE.supportsShared;
+  const myName = S.displayName || '';
+
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="setTab('vocab')">← 어휘</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Ἀγών</span>멀티 배틀</h2>
+    <div class="view-sub">실시간 어휘 경기 · ${supported ? '동시 2~6명' : '⚠ 미지원'}</div>
+
+    ${!supported ? `
+    <div class="card warm">
+      <b>이 환경은 실시간 통신을 지원하지 않습니다</b>
+      <div style="font-size:13px;line-height:1.7;margin-top:8px;color:var(--black-glaze-l)">
+        현재 저장 모드: <b>${STORAGE.label}</b><br>
+        멀티 배틀은 Firebase 등 공유 백엔드에서만 작동합니다. 같은 GitHub Pages 배포로 접속한 사용자들과 자동 동기화됩니다.
+      </div>
+    </div>
+    ` : `
+
+    <div class="card">
+      <div style="font-size:13px;line-height:1.7;color:var(--black-glaze-l)">
+        🎮 같은 어휘 문제 10개를 동시에 풀고 정답·속도로 순위를 가립니다.
+        방을 만들어 코드를 공유하거나, 친구의 6자리 코드를 입력해 입장하세요.
+      </div>
+    </div>
+
+    ${!myName ? `
+      <div class="card warm">
+        <b>먼저 표시 이름을 정해주세요</b>
+        <div style="font-size:12.5px;color:var(--clay-d);margin-top:6px;line-height:1.6">
+          배틀에서 다른 참가자에게 보일 이름입니다. 명예 탭에서 설정할 수 있습니다.
+        </div>
+        <input class="input" id="battle-name" placeholder="예: 김연구원" maxlength="24" style="margin-top:10px">
+        <button class="btn btn-sm" id="battle-save-name" style="margin-top:8px">저장</button>
+      </div>
+    ` : `
+      <div class="card" style="background:var(--ivory-d);border-left:3px solid var(--terracotta)">
+        <div style="font-size:12px;color:var(--clay-d)">참가 이름</div>
+        <div style="font-family:var(--font-display);font-size:18px;color:var(--terracotta-d);font-weight:600;margin-top:2px">${myName}</div>
+      </div>
+
+      <button class="card" id="battle-create" style="width:100%;text-align:left;cursor:pointer;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-top:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">방 만들기</div>
+            <div style="font-size:12.5px;color:var(--clay-d);margin-top:3px">호스트가 되어 코드를 공유합니다</div>
+          </div>
+          <div style="font-size:22px;color:var(--terracotta)">→</div>
+        </div>
+      </button>
+
+      <button class="card" id="battle-join" style="width:100%;text-align:left;cursor:pointer;border:1px solid var(--clay);border-left:3px solid var(--clay-d);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-top:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-family:var(--font-grk);font-size:20px;color:var(--clay-d);font-weight:600">방 입장</div>
+            <div style="font-size:12.5px;color:var(--clay-d);margin-top:3px">호스트가 알려준 6자리 코드 입력</div>
+          </div>
+          <div style="font-size:22px;color:var(--terracotta)">→</div>
+        </div>
+      </button>
+
+      <div class="card" style="margin-top:14px;background:var(--ivory-d);border-left:3px solid var(--clay-d)">
+        <div style="font-size:11px;color:var(--clay-d);font-style:italic;line-height:1.6">
+          🎮 호스트가 방을 만들면 6자리 코드 발급 → 친구·동료에게 공유.
+          입장 후 호스트가 "시작" 누르면 <b>모두 동시에</b> 같은 10문제(어휘) 시작.
+          빠르고 정확하게 푼 사람이 1위.<br>
+          ⚠ 매치 5분 한도 · 문제당 12초 · 연결 끊김 시 자동 미완료 처리.
+        </div>
+      </div>
+    `}
+    `}
+  `;
+
+  if(supported){
+    const nameInput = document.getElementById('battle-name');
+    if(nameInput){
+      document.getElementById('battle-save-name').addEventListener('click', () => {
+        const v = nameInput.value.trim();
+        if(!v){ toast('이름을 입력해 주세요'); return; }
+        S.displayName = v.slice(0, 24);
+        saveState();
+        renderBattle();   // 다시 그리기
+      });
+    }
+    const cb = document.getElementById('battle-create');
+    const jb = document.getElementById('battle-join');
+    if(cb) cb.addEventListener('click', () => renderBattleCreate());
+    if(jb) jb.addEventListener('click', () => renderBattleJoin());
+  }
+}
+window.renderBattle = renderBattle;
+
+// 방 만들기 — 코드 생성 + 즉시 lobby
+async function renderBattleCreate(){
+  if(!STORAGE.supportsShared){ renderBattle(); return; }
+  const code = _battleGenCode();
+  if(!S.userId){
+    S.userId = 'u' + Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
+    saveState();
+  }
+  const room = {
+    meta: {
+      hostId: S.userId,
+      createdAt: Date.now(),
+      status: 'lobby',
+      mode: 'vocab',
+      currentQuestion: 0,
+    },
+    players: {
+      [S.userId]: { name: S.displayName || '익명', joinedAt: Date.now(), score: 0, ready: false }
+    },
+  };
+  const ok = await _battleSaveRoom(code, room);
+  if(!ok){ toast('방 생성 실패 — 네트워크 확인'); renderBattle(); return; }
+  _battleState = { roomCode: code, role: 'host', pollTimer: null };
+  renderBattleLobby();
+}
+window.renderBattleCreate = renderBattleCreate;
+
+// 방 입장 — 코드 입력
+function renderBattleJoin(){
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="renderBattle()">← 배틀</button>
+    <h2 class="view-title fade-in" style="margin-top:10px">방 입장</h2>
+    <div class="view-sub">호스트가 알려준 6자리 코드를 입력하세요</div>
+
+    <div class="card">
+      <input id="battle-code-input" class="input" type="text"
+             placeholder="예: ABC234"
+             maxlength="${BATTLE_CODE_LEN}"
+             autocomplete="off"
+             autocapitalize="characters"
+             style="text-align:center;font-family:var(--font-display);font-size:28px;letter-spacing:.3em;font-weight:600;color:var(--terracotta-d)">
+      <button class="btn" id="battle-join-go" style="width:100%;margin-top:14px">입장 →</button>
+    </div>
+  `;
+  const inp = document.getElementById('battle-code-input');
+  const go = document.getElementById('battle-join-go');
+  inp.addEventListener('input', () => {
+    inp.value = inp.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, BATTLE_CODE_LEN);
+  });
+  inp.focus();
+  const attempt = async () => {
+    const code = inp.value.trim().toUpperCase();
+    if(code.length !== BATTLE_CODE_LEN){ toast(`${BATTLE_CODE_LEN}자리 코드를 입력하세요`); return; }
+    go.disabled = true;
+    go.textContent = '확인 중...';
+    const room = await _battleFetchRoom(code);
+    if(!room || !room.meta){
+      toast('해당 코드의 방이 없습니다');
+      go.disabled = false; go.textContent = '입장 →';
+      return;
+    }
+    if(room.meta.status === 'finished'){
+      toast('이미 종료된 방입니다');
+      go.disabled = false; go.textContent = '입장 →';
+      return;
+    }
+    if(room.meta.status === 'playing'){
+      toast('이미 진행 중인 방입니다 (관전 미지원)');
+      go.disabled = false; go.textContent = '입장 →';
+      return;
+    }
+    // userId 등록
+    if(!S.userId){
+      S.userId = 'u' + Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
+      saveState();
+    }
+    room.players = room.players || {};
+    room.players[S.userId] = { name: S.displayName || '익명', joinedAt: Date.now(), score: 0, ready: false };
+    const saved = await _battleSaveRoom(code, room);
+    if(!saved){
+      toast('입장 실패 — 네트워크 확인');
+      go.disabled = false; go.textContent = '입장 →';
+      return;
+    }
+    _battleState = { roomCode: code, role: 'guest', pollTimer: null };
+    renderBattleLobby();
+  };
+  go.addEventListener('click', attempt);
+  inp.addEventListener('keypress', e => { if(e.key === 'Enter') attempt(); });
+}
+window.renderBattleJoin = renderBattleJoin;
+
+// 대기실 — 호스트·게스트 공통. 호스트만 "시작" 버튼.
+async function renderBattleLobby(){
+  if(!_battleState){ renderBattle(); return; }
+  const code = _battleState.roomCode;
+  const isHost = _battleState.role === 'host';
+
+  const draw = (room) => {
+    if(!room){
+      view.innerHTML = `
+        <button class="btn btn-sm btn-o" onclick="renderBattle()">← 배틀</button>
+        <div class="card warm" style="margin-top:14px">
+          <b>방이 닫혔습니다</b>
+          <div style="font-size:13px;margin-top:6px">호스트가 방을 종료했거나 네트워크 오류입니다.</div>
+        </div>
+      `;
+      _battleStopPoll();
+      return;
+    }
+    const players = Object.entries(room.players || {});
+    const status = room.meta.status;
+    const myId = S.userId;
+    if(status === 'playing'){
+      // 답 중이면 점수보드만 부분 갱신 (전체 재렌더하면 시각 피드백 끊김)
+      if(_battleGameLocal && _battleGameLocal.answeredThisQ){
+        const sb = document.getElementById('bat-scoreboard-wrap');
+        if(sb){
+          const ps = Object.entries(room.players || {});
+          sb.innerHTML = _battleScoreboardHTML(ps);
+        }
+        return;
+      }
+      return renderBattleGame(code, room);
+    }
+    if(status === 'finished'){
+      _battleStopPoll();
+      return renderBattleResult(code, room);
+    }
+
+    view.innerHTML = `
+      <button class="btn btn-sm btn-o" onclick="_battleLeave()">← 나가기</button>
+      <h2 class="view-title fade-in" style="margin-top:10px">대기실</h2>
+      <div class="view-sub">${isHost ? '호스트' : '게스트'} · 참가자 ${players.length}명</div>
+
+      <div class="card" style="text-align:center">
+        <div style="font-size:11px;color:var(--clay-d);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">방 코드</div>
+        <div style="font-family:var(--font-display);font-size:38px;color:var(--terracotta-d);font-weight:600;letter-spacing:.25em">${code}</div>
+        <div style="font-size:11px;color:var(--clay-d);margin-top:8px;font-style:italic">친구에게 이 코드를 공유하세요</div>
+        <button class="btn btn-sm btn-o" id="battle-copy" style="margin-top:8px">📋 코드 복사</button>
+      </div>
+
+      <div class="card">
+        <div style="font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">참가자 (${players.length}/6)</div>
+        ${players.length === 0 ? `
+          <div style="color:var(--clay-d);font-size:13px;text-align:center;padding:10px">아직 참가자가 없습니다.</div>
+        ` : players.map(([uid, p]) => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px dashed var(--clay);border-radius:4px;background:${uid===myId?'var(--ivory-d)':'transparent'}">
+            <div>
+              <span style="font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--black-glaze)">${(p.name || '익명').replace(/</g,'&lt;')}</span>
+              ${uid === room.meta.hostId ? '<span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:2px 6px;border-radius:8px;margin-left:6px">호스트</span>' : ''}
+              ${uid === myId ? '<span style="font-size:10px;color:var(--terracotta-d);margin-left:6px">(나)</span>' : ''}
+            </div>
+            <span style="font-size:11px;color:var(--clay-d)">${p.ready ? '✓ 준비' : '대기 중'}</span>
+          </div>
+        `).join('')}
+      </div>
+
+      ${isHost ? `
+        <button class="btn" id="battle-start" style="width:100%;margin-top:14px" ${players.length < 2 ? 'disabled' : ''}>
+          ${players.length < 2 ? '최소 2명 필요' : `시작 (${players.length}명) →`}
+        </button>
+      ` : `
+        <div class="card" style="margin-top:14px;text-align:center;background:var(--ivory-d)">
+          <div style="font-size:13px;color:var(--clay-d)">호스트가 시작하기를 기다리는 중...</div>
+        </div>
+      `}
+    `;
+
+    const copyBtn = document.getElementById('battle-copy');
+    if(copyBtn){
+      copyBtn.addEventListener('click', () => {
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(code).then(
+            () => toast('코드 복사됨'),
+            () => toast('복사 실패 — 수동으로 입력하세요')
+          );
+        } else {
+          toast('이 브라우저는 자동 복사를 지원하지 않습니다');
+        }
+      });
+    }
+    const startBtn = document.getElementById('battle-start');
+    if(startBtn){
+      startBtn.addEventListener('click', async () => {
+        if(!confirm(`${players.length}명으로 시작합니다. 계속하시겠습니까?`)) return;
+        startBtn.disabled = true;
+        startBtn.textContent = '시작 중...';
+        const fresh = await _battleFetchRoom(code);
+        if(fresh){
+          fresh.meta.status = 'playing';
+          fresh.meta.startedAt = Date.now();
+          // 시드 — 모든 플레이어가 동일 문제 받게
+          fresh.meta.seed = Date.now() + Math.floor(Math.random() * 1000000);
+          // 각 플레이어 진행 필드 초기화 (이전 매치 잔존 방어)
+          for(const uid of Object.keys(fresh.players)){
+            fresh.players[uid].score = 0;
+            fresh.players[uid].currentQ = 0;
+            fresh.players[uid].finished = false;
+          }
+          await _battleSaveRoom(code, fresh);
+        }
+      });
+    }
+  };
+
+  // 첫 fetch 즉시 그리기
+  const room = await _battleFetchRoom(code);
+  draw(room);
+
+  // 2초 polling 시작
+  _battleStopPoll();
+  _battleState.pollTimer = setInterval(async () => {
+    const r = await _battleFetchRoom(code);
+    draw(r);
+  }, BATTLE_POLL_MS);
+}
+window.renderBattleLobby = renderBattleLobby;
+
+// 방 나가기 — 호스트면 방 삭제, 게스트면 자기만 제거
+async function _battleLeave(){
+  if(!_battleState){ renderBattle(); return; }
+  const code = _battleState.roomCode;
+  const isHost = _battleState.role === 'host';
+  _battleStopPoll();
+  try {
+    if(isHost){
+      // 호스트 이탈 — 방 자체 삭제
+      await STORAGE.delShared(`battles:${code}`);
+    } else {
+      // 게스트 이탈 — 자기만 제거
+      const room = await _battleFetchRoom(code);
+      if(room && room.players){
+        delete room.players[S.userId];
+        await _battleSaveRoom(code, room);
+      }
+    }
+  } catch(e){ /* 네트워크 실패 시 무시 — 클라이언트는 어쨌든 떠남 */ }
+  _battleCleanup();
+  renderBattle();
+}
+window._battleLeave = _battleLeave;
+
+// ===== Phase 2 (v30) — 실제 게임플레이: 시드 기반 동기 문제 + 실시간 점수 =====
+const BATTLE_N_Q             = 10;     // 문제 수
+const BATTLE_Q_TIMER_SEC     = 12;     // 문제당 12초
+const BATTLE_GAME_TTL_MS     = 5*60*1000;  // 매치 5분 한도
+let _battleQTimer = null;
+let _battleGameLocal = null;
+// { code, idx, score, answeredThisQ, startedAt, questions }
+
+// LCG seeded random — 호스트 시드로 모두 동일 문제 생성
+function _battleSeededRng(seed){
+  let s = (seed >>> 0) || 1;
+  return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 0x100000000; };
+}
+function _battleBuildQuestions(seed){
+  const rng = _battleSeededRng(seed);
+  const pool = (typeof ALL_VOCAB !== 'undefined') ? ALL_VOCAB.filter(w => w.g && w.ko) : [];
+  if(pool.length < BATTLE_N_Q + 3) return [];
+  const used = new Set();
+  const qs = [];
+  let safety = 0;
+  while(qs.length < BATTLE_N_Q && safety < 300){
+    safety++;
+    const idx = Math.floor(rng() * pool.length);
+    if(used.has(idx)) continue;
+    used.add(idx);
+    const w = pool[idx];
+    const distractors = [];
+    const distUsed = new Set([idx]);
+    while(distractors.length < 3){
+      const di = Math.floor(rng() * pool.length);
+      if(distUsed.has(di)) continue;
+      distUsed.add(di);
+      distractors.push(pool[di].ko);
+    }
+    const correctIdx = Math.floor(rng() * 4);
+    const options = [...distractors];
+    options.splice(correctIdx, 0, w.ko);
+    qs.push({ g: w.g, ko: w.ko, options, correctIdx });
+  }
+  return qs;
+}
+
+function _battleStopQTimer(){
+  if(_battleQTimer){ clearInterval(_battleQTimer); _battleQTimer = null; }
+}
+
+// 게임 진행 — renderBattleLobby가 status==='playing'일 때 호출
+async function renderBattleGame(code, room){
+  // 첫 진입 시 로컬 상태 초기화
+  if(!_battleGameLocal || _battleGameLocal.code !== code){
+    const seed = (room && room.meta && room.meta.seed) || 0;
+    const questions = _battleBuildQuestions(seed);
+    if(questions.length < BATTLE_N_Q){
+      view.innerHTML = `
+        <button class="btn btn-sm btn-o" onclick="_battleLeave()">← 나가기</button>
+        <div class="card warm" style="margin-top:14px"><b>문제 풀 부족</b>
+          <div style="font-size:13px;margin-top:6px">어휘 데이터가 부족하여 매치를 시작할 수 없습니다.</div></div>`;
+      return;
+    }
+    _battleGameLocal = {
+      code, idx: 0, score: 0, answeredThisQ: false,
+      startedAt: Date.now(), questions, finished: false,
+    };
+  }
+  const local = _battleGameLocal;
+
+  // 5분 초과 → 강제 종료
+  if(Date.now() - local.startedAt > BATTLE_GAME_TTL_MS && !local.finished){
+    local.finished = true;
+    await _battleSubmitProgress(code, local, true);
+  }
+
+  // 매치 자체가 finished 상태로 전환됐으면 결과
+  if(room && room.meta && room.meta.status === 'finished'){
+    return renderBattleResult(code, room);
+  }
+
+  // 자기 다 풀었으면 대기 화면
+  if(local.idx >= BATTLE_N_Q || local.finished){
+    return _renderBattleWaitOthers(code, room, local);
+  }
+
+  const q = local.questions[local.idx];
+  const players = Object.entries(room.players || {});
+  view.innerHTML = `
+    <h2 class="view-title fade-in" style="margin-top:6px"><span class="grk">Ἀγών</span>배틀 진행 중</h2>
+
+    <div class="card" id="bat-scoreboard-wrap" style="padding:10px 12px">
+      ${_battleScoreboardHTML(players)}
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
+        <div style="font-size:11px;color:var(--clay-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em">문제 ${local.idx+1}/${BATTLE_N_Q}</div>
+        <div id="bat-qtimer" style="font-family:var(--font-display);font-size:18px;color:var(--terracotta-d);font-weight:600">${BATTLE_Q_TIMER_SEC}초</div>
+      </div>
+      <div class="grk" style="font-size:32px;color:var(--terracotta-d);font-weight:600;text-align:center;padding:14px 0;letter-spacing:.02em">${q.g}</div>
+      <div style="font-size:12px;color:var(--clay-d);text-align:center;margin-bottom:12px">이 단어의 뜻은?</div>
+      ${q.options.map((opt, i) => `
+        <button class="btn btn-o" style="display:block;width:100%;margin:6px 0;text-align:left;font-size:13.5px" data-i="${i}">
+          ${opt.replace(/</g,'&lt;')}
+        </button>`).join('')}
+    </div>
+
+    <button class="btn btn-sm btn-o" onclick="_battleForfeit()" style="margin-top:6px;color:var(--bad);border-color:var(--bad)">포기하고 나가기</button>
+  `;
+  local.answeredThisQ = false;
+  view.querySelectorAll('[data-i]').forEach(btn => {
+    btn.addEventListener('click', () => _battleAnswer(parseInt(btn.dataset.i, 10)));
+  });
+  _battleStartQTimer();
+}
+
+function _battleScoreboardHTML(players){
+  // players: [[uid, {name, score, currentQ, ready, ...}], ...]
+  const myId = S.userId;
+  return `<div style="display:grid;grid-template-columns:repeat(${Math.min(players.length, 3)}, 1fr);gap:6px">
+    ${players.map(([uid, p]) => {
+      const mine = uid === myId;
+      return `<div style="text-align:center;padding:8px 6px;background:${mine?'var(--terracotta)':'var(--black-glaze)'};color:var(--ivory-w);border-radius:8px">
+        <div style="font-size:10px;opacity:.85;text-transform:uppercase;letter-spacing:.06em">${(p.name||'').slice(0,12)}${mine?' (나)':''}</div>
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:600;margin-top:2px">${p.score||0}</div>
+        <div style="font-size:10px;opacity:.85;margin-top:2px">${p.currentQ||0}/${BATTLE_N_Q}${p.finished?' ✓':''}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function _battleStartQTimer(){
+  _battleStopQTimer();
+  const startedAt = Date.now();
+  _battleQTimer = setInterval(() => {
+    if(!_battleGameLocal) return _battleStopQTimer();
+    const remain = Math.max(0, BATTLE_Q_TIMER_SEC - Math.floor((Date.now() - startedAt) / 1000));
+    const el = document.getElementById('bat-qtimer');
+    if(el){
+      el.textContent = remain + '초';
+      if(remain <= 3) el.style.color = 'var(--bad)';
+    }
+    if(remain <= 0){
+      _battleStopQTimer();
+      if(!_battleGameLocal.answeredThisQ) _battleAnswer(-1);
+    }
+  }, 250);
+}
+
+async function _battleAnswer(chosenIdx){
+  const local = _battleGameLocal;
+  if(!local || local.answeredThisQ) return;
+  local.answeredThisQ = true;
+  _battleStopQTimer();
+  const q = local.questions[local.idx];
+  const correct = chosenIdx === q.correctIdx;
+  if(correct) local.score++;
+  // 시각 피드백
+  view.querySelectorAll('[data-i]').forEach(b => {
+    b.disabled = true;
+    const i = parseInt(b.dataset.i, 10);
+    if(i === q.correctIdx){
+      b.style.background = 'var(--terracotta)';
+      b.style.color = '#fff';
+      b.style.borderColor = 'var(--terracotta-d)';
+    } else if(i === chosenIdx){
+      b.style.opacity = '0.45';
+    }
+  });
+  local.idx++;
+  // 자기 진척 push (다음 polling에 다른 사람도 봄)
+  await _battleSubmitProgress(local.code, local, local.idx >= BATTLE_N_Q);
+  setTimeout(() => {
+    // 다음 폴링 tick에 자동 갱신되지만 즉시 다음 문제로
+    if(_battleGameLocal && _battleGameLocal.idx < BATTLE_N_Q){
+      // 매치 상태 재조회 후 다음 문제
+      _battleFetchRoom(_battleGameLocal.code).then(room => {
+        if(room) renderBattleGame(_battleGameLocal.code, room);
+      });
+    }
+  }, 800);
+}
+
+async function _battleSubmitProgress(code, local, finished){
+  if(!S.userId) return;
+  // 자기 player 객체만 PUT (path-level) — race condition 회피
+  const payload = {
+    name: S.displayName || '익명',
+    joinedAt: Date.now(),
+    score: local.score,
+    currentQ: local.idx,
+    ready: true,
+    finished: !!finished,
+  };
+  try {
+    await STORAGE.setShared(`battles:${code}:players:${S.userId}`, JSON.stringify(payload));
+  } catch(_){}
+  // 모든 플레이어 finished인지 확인 → status를 'finished'로
+  if(finished){
+    try {
+      const fresh = await _battleFetchRoom(code);
+      if(fresh && fresh.players){
+        const allDone = Object.values(fresh.players).every(p => p.finished);
+        if(allDone && fresh.meta.status !== 'finished'){
+          fresh.meta.status = 'finished';
+          fresh.meta.finishedAt = Date.now();
+          await _battleSaveRoom(code, fresh);
+        }
+      }
+    } catch(_){}
+  }
+}
+
+function _renderBattleWaitOthers(code, room, local){
+  const players = Object.entries(room.players || {});
+  view.innerHTML = `
+    <h2 class="view-title fade-in" style="margin-top:6px"><span class="grk">Ἀγών</span>배틀 진행 중</h2>
+    <div class="card" style="padding:10px 12px">${_battleScoreboardHTML(players)}</div>
+    <div class="card" style="text-align:center;padding:24px">
+      <div style="font-family:var(--font-display);font-size:18px;color:var(--terracotta-d);font-weight:600">${local.score}/${BATTLE_N_Q} 완료</div>
+      <div style="font-size:13px;color:var(--clay-d);margin-top:8px;line-height:1.6">다른 참가자가 끝나기를 기다리는 중...</div>
+      <div style="font-size:11px;color:var(--clay-d);margin-top:12px;font-style:italic">매치 5분 한도 초과 시 자동 종료</div>
+    </div>
+  `;
+}
+
+async function _battleForfeit(){
+  if(!confirm('정말 포기하시겠습니까? 점수 0 처리됩니다.')) return;
+  if(_battleGameLocal){
+    _battleGameLocal.score = 0;
+    _battleGameLocal.idx = BATTLE_N_Q;
+    _battleGameLocal.finished = true;
+    await _battleSubmitProgress(_battleGameLocal.code, _battleGameLocal, true);
+  }
+  _battleLeave();
+}
+window._battleForfeit = _battleForfeit;
+
+function renderBattleResult(code, room){
+  _battleStopQTimer();
+  const players = Object.entries(room.players || {}).map(([uid, p]) => ({
+    uid, name: p.name || '익명', score: p.score || 0, finished: !!p.finished,
+  }));
+  players.sort((a, b) => b.score - a.score);
+  const me = players.find(p => p.uid === S.userId);
+  const myRank = me ? (players.findIndex(p => p.uid === S.userId) + 1) : 0;
+  // XP 보상: 1위 30 / 2위 18 / 3위 12 / 그 외 5
+  const xpMap = { 1:30, 2:18, 3:12 };
+  const xpGain = xpMap[myRank] || 5;
+  if(typeof S !== 'undefined' && typeof saveState === 'function' && _battleGameLocal && !_battleGameLocal.xpAwarded){
+    S.xp = (S.xp || 0) + xpGain;
+    _battleGameLocal.xpAwarded = true;
+    // 배틀 히스토리에 결과 기록 (v30)
+    _recordBattleResult({
+      score: me ? me.score : 0,
+      correctCount: me ? me.score : 0,   // 시드 기반 — 점수 = 정답 수
+      totalQ: BATTLE_N_Q,
+      rank: myRank,
+      totalPlayers: players.length,
+    });
+    saveState();
+  }
+  const rankIco = myRank === 1 ? '🏆' : (myRank === 2 ? '🥈' : (myRank === 3 ? '🥉' : '🎯'));
+  const rankColor = myRank === 1 ? 'var(--terracotta-d)' : 'var(--clay-d)';
+
+  view.innerHTML = `
+    <h2 class="view-title fade-in" style="margin-top:6px"><span class="grk">Ἀγών</span>배틀 결과</h2>
+
+    <div class="card" style="text-align:center;padding:26px 16px">
+      <div style="font-size:54px;line-height:1">${rankIco}</div>
+      <div style="font-family:var(--font-display);font-size:26px;color:${rankColor};font-weight:600;margin-top:4px">${myRank}위 · ${me ? me.score : 0}/${BATTLE_N_Q}</div>
+      <div style="font-size:12px;color:var(--clay-d);margin-top:10px">XP +${xpGain} 적립</div>
+    </div>
+
+    <div class="card">
+      <div style="font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">최종 순위</div>
+      ${players.map((p, i) => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:${i<players.length-1?'1px solid var(--clay)':'none'};background:${p.uid===S.userId?'var(--ivory-d)':'transparent'};border-radius:4px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="font-family:var(--font-display);font-size:18px;color:${i===0?'var(--terracotta-d)':'var(--clay-d)'};font-weight:600;min-width:24px">${i+1}</div>
+            <div>
+              <div style="font-family:var(--font-display);font-size:15px;color:var(--black-glaze);font-weight:600">${p.name.replace(/</g,'&lt;').slice(0,20)}${p.uid===S.userId?' (나)':''}</div>
+              ${!p.finished ? '<div style="font-size:10px;color:var(--bad);margin-top:2px">미완료</div>' : ''}
+            </div>
+          </div>
+          <div style="font-family:var(--font-display);font-size:22px;color:var(--terracotta-d);font-weight:600">${p.score}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn" onclick="renderBattle()" style="flex:1">새 배틀 →</button>
+      <button class="btn btn-o" onclick="setTab('hall')" style="flex:1">명예 탭으로</button>
+    </div>
+  `;
+  // 정리 — 호스트만 방 정리 (5초 후)
+  if(_battleState && _battleState.role === 'host'){
+    setTimeout(async () => {
+      try { await STORAGE.delShared(`battles:${code}`); } catch(_){}
+    }, 5000);
+  }
+  _battleGameLocal = null;
+}
+window.renderBattleGame = renderBattleGame;
+window.renderBattleResult = renderBattleResult;
+
+// ===== 명예의 전당 통계 시각화 (v30) =====
+// era별 작품 완독 진척 + 최근 배틀 히스토리
+
+function _renderEraStats(){
+  if(typeof WORKS === 'undefined') return '<div style="color:var(--clay-d);font-size:12px">데이터 없음</div>';
+  // era 정규화: "코이네(1)" → "코이네"
+  const eraStats = {};
+  const eraOrder = ['상고기', '고전기', '코이네', '후기'];
+  WORKS.forEach(w => {
+    let era = (w.era || '?').replace(/\([^)]*\)/g, '').trim() || '?';
+    if(!eraStats[era]) eraStats[era] = { done: 0, total: 0, sectionsDone: 0, sectionsTotal: 0 };
+    eraStats[era].total++;
+    if((S.worksFinished || []).includes(w.id)) eraStats[era].done++;
+    eraStats[era].sectionsTotal += w.sections ? w.sections.length : 0;
+    eraStats[era].sectionsDone += ((S.sectionsDone || {})[w.id] || []).length;
+  });
+  // 표시 순서: 시대 순 + 모르는 era는 뒤
+  const eras = Object.keys(eraStats).sort((a, b) => {
+    const ai = eraOrder.indexOf(a);
+    const bi = eraOrder.indexOf(b);
+    if(ai < 0 && bi < 0) return a.localeCompare(b);
+    if(ai < 0) return 1;
+    if(bi < 0) return -1;
+    return ai - bi;
+  });
+  return eras.map(era => {
+    const s = eraStats[era];
+    const pct = s.total > 0 ? Math.round(100 * s.done / s.total) : 0;
+    const secPct = s.sectionsTotal > 0 ? Math.round(100 * s.sectionsDone / s.sectionsTotal) : 0;
+    return `<div style="margin:8px 0">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;margin-bottom:4px">
+        <span style="font-family:var(--font-display);font-weight:600;color:var(--terracotta-d)">${era}</span>
+        <span style="font-size:11px;color:var(--clay-d)">완독 ${s.done}/${s.total} · 섹션 ${s.sectionsDone}/${s.sectionsTotal}</span>
+      </div>
+      <div style="height:8px;background:var(--ivory-d);border-radius:3px;overflow:hidden;position:relative">
+        <div style="height:100%;width:${secPct}%;background:linear-gradient(90deg,var(--clay) 0%,var(--terracotta) 100%);transition:width .6s;border-radius:3px"></div>
+        ${pct > 0 ? `<div style="position:absolute;top:0;left:0;height:100%;width:${pct}%;background:var(--terracotta-d);transition:width .6s;border-radius:3px;opacity:.85" title="완독 ${pct}%"></div>` : ''}
+      </div>
+      <div style="font-size:10px;color:var(--clay-d);margin-top:3px;font-style:italic">진한 막대 = 완독 · 흐린 막대 = 섹션 진행</div>
+    </div>`;
+  }).join('');
+}
+
+function _renderBattleHistory(){
+  if(!S.battleHistory || S.battleHistory.length === 0) return '';
+  const recent = S.battleHistory.slice(-10).reverse();
+  return recent.map(b => {
+    const d = new Date(b.date);
+    const dateStr = `${d.getMonth() + 1}/${d.getDate()}`;
+    const medal = b.rank === 1 ? '🥇' : (b.rank === 2 ? '🥈' : (b.rank === 3 ? '🥉' : `${b.rank}.`));
+    const accuracy = b.totalQ > 0 ? Math.round(100 * b.correctCount / b.totalQ) : 0;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--clay);font-size:12px">
+      <div style="font-family:var(--font-display);font-size:18px;color:var(--terracotta-d);min-width:32px;text-align:center">${medal}</div>
+      <div style="flex:1;min-width:0">
+        <div style="color:var(--black-glaze)"><b>${b.rank}위</b> / ${b.totalPlayers}명 · 정답 ${b.correctCount}/${b.totalQ} (${accuracy}%)</div>
+        <div style="font-size:10.5px;color:var(--clay-d);margin-top:2px">${dateStr} · 점수 ${b.score.toFixed(1)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// 배틀 히스토리에 결과 누적 (최대 20개)
+// 인자: {score, correctCount, totalQ, rank, totalPlayers}
+function _recordBattleResult(result){
+  if(!result || typeof result !== 'object') return;
+  if(!S.battleHistory) S.battleHistory = [];
+  S.battleHistory.push({
+    date: Date.now(),
+    score: result.score || 0,
+    rank: result.rank || 0,
+    totalPlayers: result.totalPlayers || 0,
+    correctCount: result.correctCount || 0,
+    totalQ: result.totalQ || 0,
+  });
+  // 최대 20개 유지 (오래된 것부터 제거)
+  if(S.battleHistory.length > 20){
+    S.battleHistory = S.battleHistory.slice(-20);
+  }
+  saveState();
+}
 
 // ===== 즐겨찾기·북마크 (v25 다태그 + 메모 + 검색 + 필터) =====
 const BOOKMARK_TAGS = ['중요', '어려움', '다시 읽기', '문법 예시', '어휘 발굴', '시구 인용', '번역 연습'];
