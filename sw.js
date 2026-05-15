@@ -1,8 +1,9 @@
 /* ============================================================================
-   Ἑλληνικὴ Παιδεία — Service Worker (v36)
+   Ἑλληνικὴ Παιδεία — Service Worker (v41)
    
    캐시 전략:
    - CRITICAL_SHELL: install 시 즉시 캐시 (≈150 KB) — 첫 SW 활성 빠름
+                     단, index.html 은 network-first (아래) — 새 HTML 즉시 전파 (v41)
    - DATA_BUNDLE:    install 후 백그라운드 비동기 캐시 (≈1.3 MB gzip)
                      → install 실패 위험 감소, 첫 SW 활성 즉시
    - espeakng.*.js, espeakng.worker.data: lazy — 사용자가 eSpeak NG 시스템을 처음
@@ -12,9 +13,15 @@
                                      latency 절감, 두 번째 사용부터 즉시)
    - Google Fonts: stale-while-revalidate
    
+   v41 변경: index.html network-first
+     v40 의 cache-first 정책은 경로 변경(예: espeak/ 평탄화) 후 한 사이클 동안
+     stale HTML 이 서빙되어, 새 SW 가 활성된 직후에도 옛 경로로 자원을 요청하는
+     race window 가 존재했다. HTML 만 network-first 로 분기하여 다음 방문 즉시
+     새 코드가 전파되도록 한다. 오프라인 시에는 캐시 폴백.
+   
    새 버전 배포 시 CACHE_VERSION만 올리면 됩니다.
    ============================================================================ */
-const CACHE_VERSION = 'v40';
+const CACHE_VERSION = 'v41';
 const CACHE_NAME    = `paideia-${CACHE_VERSION}`;
 const IMG_CACHE     = `paideia-img-${CACHE_VERSION}`;
 
@@ -108,6 +115,28 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // ── index.html (또는 navigation): network-first (v41) ──
+  // cache-first 였던 v40 에서는 경로 변경(예: espeak/ 평탄화) 후 옛 HTML 이
+  // 한 사이클 더 서빙되어 사용자가 옛 자원 경로를 요청하는 race window 가 있었다.
+  // HTML 만 network-first 로 분기하여 다음 방문 즉시 새 코드가 전파되도록 한다.
+  const isHTML = req.mode === 'navigate'
+              || url.pathname === '/'
+              || url.pathname.endsWith('/')
+              || url.pathname.endsWith('/index.html')
+              || url.pathname.endsWith('index.html');
+  if (isHTML && req.method === 'GET') {
+    event.respondWith(
+      fetch(req).then(res => {
+        if (res.ok) {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then(c => c.put(req, clone));
+        }
+        return res;
+      }).catch(() => caches.match(req).then(cached => cached || caches.match('./index.html')))
+    );
+    return;
+  }
+
   // ── 앱 셸 + 데이터: cache-first + 미스 시 fetch+캐시 ──
   event.respondWith(
     caches.match(req).then(cached =>
@@ -122,7 +151,16 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// 강제 업데이트 트리거
+// 강제 업데이트 트리거 + 버전 조회 (v41: 진단 modal 용)
 self.addEventListener('message', (event) => {
   if (event.data === 'skipWaiting') self.skipWaiting();
+  if (event.data === 'getVersion') {
+    // MessageChannel port 응답 우선, 없으면 source 직접 응답
+    const reply = { type: 'version', version: CACHE_VERSION };
+    if (event.ports && event.ports[0]) {
+      event.ports[0].postMessage(reply);
+    } else if (event.source && event.source.postMessage) {
+      event.source.postMessage(reply);
+    }
+  }
 });

@@ -97,6 +97,14 @@ paideia/
 
 **v40**: 배포 단순화 — `espeak/` 하위 디렉토리 제거, eSpeak 파일들을 루트로 평탄화. GitHub 웹 업로드 시 폴더 생성 번거로움 제거. 코드 경로 참조도 동시 업데이트 (`./espeak/espeakng.*.js → ./espeakng.*.js`).
 
+**v41**: 경로 변경 race window 차단 + eSpeak 로더 자기진단 + 인앱 진단 modal — v40 의 cache-first HTML 정책에서, 옛 SW 가 stale `index.html` 을 한 사이클 더 서빙하여 사용자가 옛 자원 경로(`./espeak/espeakng.min.js`)를 요청해 404 가 나는 incident 가 보고됨. 세 갈래로 보완.
+
+(1) **`sw.js`** 에서 `index.html`·navigation 만 network-first 로 분기 (다른 자산은 cache-first 유지). 오프라인 시 캐시 폴백. 다음 배포부터 경로·HTML 변경이 race window 없이 즉시 전파됨.
+
+(2) **`_ensureEspeak`** 의 onerror 핸들러가 실패 시 `fetch` 로 재확인하여 HTTP status·final URL 을 toast 메시지에 노출 — stale-cache(시나리오 A) vs 배포 누락(시나리오 B) 을 사용자/관리자가 한 줄로 구분.
+
+(3) **인앱 진단 modal** (`window._appDiagnose`). 홈 푸터의 `진단` 링크에서 호출. `MessageChannel` 로 SW 의 `CACHE_VERSION` 을 질의 (sw.js `getVersion` 메시지 핸들러) → `APP_VERSION` 과 비교하여 불일치 또는 `registration.waiting` 존재 시 경고. "강제 새로고침" 버튼은 `reg.waiting.postMessage('skipWaiting')` + `reg.update()` 후 cache-busting 쿼리 `?fresh=<ts>` 로 reload. "전체 초기화" 는 기존 `reset.html` 로 연결. 옛 SW (v40 이하) 가 응답 없을 때는 1500 ms 타임아웃 후 `(응답 없음)` 표기 — graceful degradation.
+
 ## 8. 알려진 미해결 사항 및 향후 작업
 
 표제어 (lemma) 검색·콘코던스 기능이 아직 없다. 사용자가 단어를 클릭하면 형태 분석이 modal 로 표시되나, 그 단어의 다른 출현 위치를 탐색하는 기능은 미구현. `data-morph.js` 의 19,875 lemma 인덱스를 활용한 역방향 검색이 자연스러운 다음 단계.

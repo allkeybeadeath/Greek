@@ -3009,7 +3009,7 @@ function imageURL(imgId, width){
 
 // 앱 버전 — sw.js CACHE_VERSION과 동기화 유지. 홈 화면 푸터에 표시되어
 // 사용자가 자신이 어느 버전을 사용 중인지 확인 가능 (캐시 갱신 진단용).
-const APP_VERSION = 'v40';
+const APP_VERSION = 'v41';
 window.__paideiaVersion = APP_VERSION;
 
 // ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
@@ -3771,11 +3771,19 @@ function renderHome(){
 
     <div style="text-align:center;font-size:10px;color:var(--clay-d);margin-top:18px;opacity:.55;letter-spacing:.03em">
       <span class="grk" style="font-style:italic">Ἑλληνικὴ Παιδεία</span> · ${APP_VERSION}
+      <a href="#" id="diag-link" style="margin-left:10px;color:var(--clay-d);text-decoration:underline;opacity:.85" aria-label="앱 진단 및 문제 해결">진단</a>
     </div>
   `;
   view.querySelectorAll('[data-go]').forEach(el=>{
     el.addEventListener('click', e=>{ e.preventDefault(); setTab(el.dataset.go); });
   });
+  const diagLink = view.querySelector('#diag-link');
+  if(diagLink){
+    diagLink.addEventListener('click', e=>{
+      e.preventDefault();
+      if(typeof window._appDiagnose === 'function') window._appDiagnose();
+    });
+  }
   renderQuickReview();
 }
 function renderQuickReview(){
@@ -6536,6 +6544,97 @@ document.body.addEventListener('click', function(e){
 });
 
 window._closeModal = function(){ document.getElementById('modal-bg').classList.remove('show'); };
+
+// ── v41: 진단 modal ─────────────────────────────────────────────────────────
+// 사용자가 stale SW · 캐시 불일치로 갇혔을 때의 회복 경로.
+// 홈 푸터 "진단" 링크에서 호출. SW 의 CACHE_VERSION 을 MessageChannel 로 질의해
+// APP_VERSION 과 비교한다. 불일치 시 강제 새로고침 또는 reset.html 로 안내.
+window._appDiagnose = async function(){
+  let swVersion = '(미등록)';
+  let swState = '(미등록)';
+  let hasWaiting = false;
+  let mismatch = false;
+  try {
+    if ('serviceWorker' in navigator) {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg) {
+        hasWaiting = !!reg.waiting;
+        const ctrl = navigator.serviceWorker.controller;
+        if (ctrl) {
+          swState = ctrl.state;
+          swVersion = await new Promise((resolve) => {
+            const ch = new MessageChannel();
+            const tm = setTimeout(()=>resolve('(응답 없음)'), 1500);
+            ch.port1.onmessage = (e) => {
+              clearTimeout(tm);
+              resolve((e.data && e.data.version) ? e.data.version : '(미상)');
+            };
+            try { ctrl.postMessage('getVersion', [ch.port2]); }
+            catch(_){ clearTimeout(tm); resolve('(전송 실패)'); }
+          });
+          mismatch = swVersion.startsWith('v') && swVersion !== APP_VERSION;
+        } else {
+          swState = '(controller 없음 — 첫 로드 또는 비활성)';
+        }
+      }
+    } else {
+      swState = '(SW 미지원 브라우저)';
+    }
+  } catch (e) { /* ignore */ }
+
+  const modal = document.getElementById('modal');
+  const modalBg = document.getElementById('modal-bg');
+  const warnColor = '#c44536';
+  modal.innerHTML = `
+    <div style="font-size:18px;font-weight:600;color:var(--terracotta-d);margin-bottom:6px">앱 진단 · 문제 해결</div>
+    <div style="font-size:11px;color:var(--clay-d);margin-bottom:14px">eSpeak 로드 실패, 화면 갱신 안 됨 등 동기화 문제 회복용</div>
+
+    <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:12px">
+      <tr><td style="padding:5px 0;color:var(--clay-d);width:42%">앱 HTML</td>
+          <td style="padding:5px 0;font-family:monospace">${APP_VERSION}</td></tr>
+      <tr><td style="padding:5px 0;color:var(--clay-d)">Service Worker</td>
+          <td style="padding:5px 0;font-family:monospace">${swVersion}${mismatch?` <span style="color:${warnColor}">⚠ 불일치</span>`:''}</td></tr>
+      <tr><td style="padding:5px 0;color:var(--clay-d)">SW 상태</td>
+          <td style="padding:5px 0;font-family:monospace;font-size:11px">${swState}</td></tr>
+      <tr><td style="padding:5px 0;color:var(--clay-d)">대기 중 새 SW</td>
+          <td style="padding:5px 0;font-family:monospace">${hasWaiting?`<span style="color:${warnColor}">있음</span>`:'없음'}</td></tr>
+    </table>
+
+    ${(mismatch || hasWaiting) ? `<div class="hint" style="margin-bottom:12px;color:${warnColor};border-left-color:${warnColor}">새 버전이 대기 중입니다. <b>강제 새로고침</b>으로 즉시 적용하세요.</div>` : ''}
+
+    <div style="font-size:12px;color:var(--clay-d);line-height:1.65;margin-bottom:14px;background:var(--ivory-d);padding:10px 12px;border-radius:6px">
+      <b>강제 새로고침</b>: 대기 중인 새 SW 활성화 후 페이지 재로드. 학습 진도는 유지됩니다.<br>
+      <b style="color:${warnColor}">전체 초기화</b>: SW · 캐시 · 학습 진도 모두 폐기. 다른 방법이 안 될 때만.
+    </div>
+
+    <div class="btn-row" style="flex-wrap:wrap;gap:6px">
+      <button class="btn btn-sm" id="diag-soft-refresh">강제 새로고침</button>
+      <a class="btn btn-sm btn-o" href="./reset.html">전체 초기화 ↗</a>
+      <button class="btn btn-sm btn-g" onclick="window._closeModal()">닫기</button>
+    </div>
+  `;
+  modalBg.classList.add('show');
+
+  const softBtn = modal.querySelector('#diag-soft-refresh');
+  if(softBtn) softBtn.addEventListener('click', async () => {
+    softBtn.disabled = true;
+    softBtn.textContent = '갱신 중…';
+    try {
+      const reg = await navigator.serviceWorker.getRegistration();
+      // 1) 새 SW 가 'waiting' 상태로 대기 중이면 깨움
+      if (reg && reg.waiting) {
+        reg.waiting.postMessage('skipWaiting');
+      }
+      // 2) 등록부에 있는 update 도 한 번 강제 (서버에 새 sw.js 가 있을 때)
+      if (reg && typeof reg.update === 'function') {
+        try { await reg.update(); } catch(_){}
+      }
+    } catch (_) {}
+    // 3) 캐시 버스팅 쿼리로 reload — network-first HTML 분기가 확실히 새 HTML 받음
+    const url = location.pathname + '?fresh=' + Date.now() + (location.hash || '');
+    location.replace(url);
+  });
+};
 // 모달 배경 클릭 시 닫기
 document.getElementById('modal-bg').addEventListener('click', function(e){
   if(e.target === this) this.classList.remove('show');
@@ -7306,12 +7405,23 @@ function _ensureEspeak(opts){
   if(showToasts && typeof toast === 'function') toast('eSpeak 엔진 로드 중… (~3MB · 첫 사용 시 1회)');
   _espeakLoadPromise = (async () => {
     // 1. 로더 스크립트 동적 삽입 (window.eSpeakNG 정의)
+    //    v41: onerror 시 HTTP status·final URL 을 함께 노출하여 사용자/관리자가
+    //    stale-cache(시나리오 A) vs 배포 누락(시나리오 B) 을 즉시 구분할 수 있게 함.
     if(typeof window.eSpeakNG === 'undefined'){
       await new Promise((res, rej) => {
         const s = document.createElement('script');
         s.src = './espeakng.min.js';
         s.onload = res;
-        s.onerror = () => rej(new Error('espeakng.min.js 로드 실패'));
+        s.onerror = async () => {
+          let diag = '';
+          try {
+            const r = await fetch('./espeakng.min.js', { cache: 'no-store' });
+            diag = ` (HTTP ${r.status} · ${r.url})`;
+          } catch (e) {
+            diag = ` (network: ${e && e.message ? e.message : 'unknown'})`;
+          }
+          rej(new Error('espeakng.min.js 로드 실패' + diag));
+        };
         document.head.appendChild(s);
       });
       if(typeof window.eSpeakNG === 'undefined'){
