@@ -5217,42 +5217,8 @@ function renderGroup(gid){
   host.querySelectorAll('[data-id]').forEach(b => b.addEventListener('click', () => renderWork(b.dataset.id)));
 }
 
-
-  const body = document.getElementById('read-body');
-  const hasAGDT = (id) => typeof MORPH_WORKS !== 'undefined' && MORPH_WORKS.includes(id);
-  body.innerHTML = WORKS.map(w=>{
-    const done = S.worksFinished.includes(w.id);
-    const progress = (S.sectionsDone[w.id]||[]).length;
-    const total = w.sections.length;
-    const pct = total>0 ? Math.round(progress*100/total) : 0;
-    const img = WORK_IMAGE[w.id];
-    const imgURL = img ? imageURL(img, 240) : null;
-    const fallback = svgFallback(w.id);
-    const agdt = hasAGDT(w.id);
-    // 두 layer: SVG 폴백(항상 그려짐) + 사진(로드되면 위에 덮어씌움)
-    const visual = `<div style="width:100%;aspect-ratio:16/9;background:var(--black-glaze);overflow:hidden;position:relative">
-        <div style="position:absolute;inset:0">${fallback}</div>
-        ${imgURL?`<img src="${imgURL}" alt="${IMAGES[img].caption.slice(0,80)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block" loading="lazy" onerror="this.remove()">`:''}
-        <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(26,22,18,.85));padding:24px 14px 10px;color:var(--ivory);z-index:2">
-          <div style="font-family:var(--font-display);font-size:18px;font-weight:600;line-height:1.2">${w.authorKo} — ${w.workKo}</div>
-          <div style="font-family:var(--font-display);font-style:italic;font-size:11px;color:var(--clay);margin-top:2px">${w.author}, <i>${w.work}</i> · ${w.era}</div>
-        </div>
-        ${agdt?'<div style="position:absolute;top:8px;right:8px;background:var(--terracotta);color:var(--ivory-w);font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;letter-spacing:.04em;z-index:2">AGDT 분석</div>':''}
-      </div>`;
-    return `<button class="card" style="width:100%;text-align:left;cursor:pointer;border:1.5px solid ${done?'var(--terracotta)':'var(--clay)'};padding:0;overflow:hidden" data-id="${w.id}">
-      ${visual}
-      <div style="padding:12px 16px">
-        <div style="font-size:12px;color:var(--clay-d);line-height:1.5;margin-bottom:8px">${w.note}</div>
-        <div style="display:flex;align-items:center;gap:10px;font-size:11px">
-          <span style="color:var(--terracotta-d);font-weight:600">${progress}/${total} 섹션</span>
-          <span class="progress" style="flex:1"><span class="fill" style="width:${pct}%"></span></span>
-          ${done?'<span style="color:var(--terracotta-d)">✓ 완독</span>':''}
-        </div>
-      </div>
-    </button>`;
-  }).join('');
-  body.querySelectorAll('[data-id]').forEach(b=> b.addEventListener('click',()=> renderWork(b.dataset.id)));
-}
+// (v15 이전의 평면 작품 리스트 함수는 그룹화 도입과 함께 renderWorksList로 대체됨 —
+//  시그니처가 잘려나간 채 dead code로 남아 있어 Safari가 syntax error로 거부했음. v21에서 정리.)
 
 function renderWork(workId){
   const w = WORKS.find(x=>x.id===workId);
