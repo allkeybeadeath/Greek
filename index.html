@@ -6926,18 +6926,28 @@ const PRON_SYSTEMS = {
     desc: '브라우저 기본 — 현대 헬라어 음운 (β=v, η=i, υ=i, αι=e 등)',
     voiceLang: 'el',
     transliterate: null,
+    engine: 'webspeech',
   },
   erasmian: {
     label: '에라스무스식',
     desc: '르네상스 유럽 학계 관용 — φ=ph, β=b, η=e, υ=u, αι=ai',
     voiceLang: 'it',
     transliterate: 'erasmian',
+    engine: 'webspeech',
   },
   restored: {
     label: '복원 아티카식',
     desc: 'W.S. Allen Vox Graeca (1987) · 5–4c BCE — η=ɛː, υ=y, ω=ɔː',
     voiceLang: 'it',
     transliterate: 'restored',
+    engine: 'webspeech',
+  },
+  espeak_grc: {
+    label: 'eSpeak NG · 기기 무관 일관',
+    desc: 'PWA 내장 WASM 합성 · grc 음운 · 모든 기기 동일 음 · 로봇 음질 · 첫 사용 시 ~3MB 로드',
+    voiceLang: 'grc',
+    transliterate: null,   // espeak grc가 그리스 글자를 직접 처리
+    engine: 'espeak',
   },
 };
 
@@ -7086,17 +7096,181 @@ function _initVoice(){
 }
 if(typeof window !== 'undefined'){ _initVoice(); }
 
+// ===== eSpeak NG WASM 엔진 통합 (v36) =====
+// PWA 내장 합성 — 기기 무관 동일 음성. 첫 사용 시 ~3MB lazy load.
+// 원본: Pettarin's espeakng.js (Eitan Isaacson의 eSpeak NG emscripten port).
+// 로봇 음질이나 espeak의 grc 음운 규칙으로 모든 기기에서 동일한 출력 보장.
+// 학술 한계: espeak grc 음성은 "initial naive implementation"으로 표시되어
+// 정밀한 Vox Graeca 재현은 아님 (일관 기준점 제공이 목적).
+
+let _espeak = null;
+let _espeakLoadPromise = null;
+let _espeakAudioCtx = null;
+let _espeakCurrentPusher = null;
+let _espeakReqSeq = 0;   // 요청 시퀀스 — 이전 요청의 async 콜백이 새 요청과 겹치는 race 방지
+
+// PushAudioNode — Eitan Isaacson / Alberto Pettarin demo.js 기반 적응
+// ScriptProcessorNode를 통해 청크 단위 오디오 스트리밍 재생
+function _EspeakPushAudioNode(ctx, bufferSize){
+  this.context = ctx;
+  this.buffer_size = bufferSize || 4096;
+  this.samples_queue = [];
+  this.scriptNode = ctx.createScriptProcessor(this.buffer_size, 1, 1);
+  this.connected = false;
+  this.sinks = [];
+  this.closed = false;
+}
+_EspeakPushAudioNode.prototype.push = function(chunk){
+  if(this.closed) return;
+  this.samples_queue.push(chunk);
+  if(!this.connected && this.sinks.length) this._connect();
+};
+_EspeakPushAudioNode.prototype.close = function(){ this.closed = true; };
+_EspeakPushAudioNode.prototype.connect = function(dest){
+  this.sinks.push(dest);
+  if(this.samples_queue.length) this._connect();
+};
+_EspeakPushAudioNode.prototype._connect = function(){
+  if(this.connected) return;
+  this.connected = true;
+  for(const d of this.sinks) this.scriptNode.connect(d);
+  this.scriptNode.onaudioprocess = this._process.bind(this);
+};
+_EspeakPushAudioNode.prototype.disconnect = function(){
+  this.scriptNode.onaudioprocess = null;
+  try { this.scriptNode.disconnect(); } catch(_){}
+  this.connected = false;
+  this.closed = true;
+  this.samples_queue.length = 0;
+};
+_EspeakPushAudioNode.prototype._process = function(evt){
+  let offset = 0;
+  const outBuf = evt.outputBuffer;
+  const bs = evt.target.bufferSize;
+  while(this.samples_queue.length && offset < bs){
+    let chunk = this.samples_queue[0];
+    const toCopy = chunk.subarray(0, bs - offset);
+    if(outBuf.copyToChannel) outBuf.copyToChannel(toCopy, 0, offset);
+    else outBuf.getChannelData(0).set(toCopy, offset);
+    offset += toCopy.length;
+    chunk = chunk.subarray(toCopy.length);
+    if(chunk.length) this.samples_queue[0] = chunk;
+    else this.samples_queue.shift();
+  }
+  if(!this.samples_queue.length && this.closed){
+    this.disconnect();
+  }
+};
+
+function _ensureEspeak(){
+  if(_espeak) return Promise.resolve(_espeak);
+  if(_espeakLoadPromise) return _espeakLoadPromise;
+  if(typeof toast === 'function') toast('eSpeak 엔진 로드 중… (~3MB · 첫 사용 시 1회)');
+  _espeakLoadPromise = (async () => {
+    // 1. 로더 스크립트 동적 삽입 (window.eSpeakNG 정의)
+    if(typeof window.eSpeakNG === 'undefined'){
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = './espeak/espeakng.min.js';
+        s.onload = res;
+        s.onerror = () => rej(new Error('espeakng.min.js 로드 실패'));
+        document.head.appendChild(s);
+      });
+      if(typeof window.eSpeakNG === 'undefined'){
+        throw new Error('eSpeakNG 전역 미정의 — 스크립트 손상');
+      }
+    }
+    // 2. Worker 인스턴스 (worker.data는 worker.js와 같은 경로에서 자동 로드)
+    const inst = await new Promise((res, rej) => {
+      const tm = setTimeout(() => rej(new Error('eSpeak Worker 로드 타임아웃 (60초)')), 60000);
+      const t = new window.eSpeakNG('./espeak/espeakng.worker.js', () => {
+        clearTimeout(tm);
+        res(t);
+      });
+    });
+    // 3. 음성을 grc(Ancient Greek)로 설정
+    await new Promise(res => inst.set_voice('grc', () => res()));
+    _espeak = inst;
+    if(typeof toast === 'function') toast('✓ eSpeak 엔진 준비 완료');
+    return inst;
+  })();
+  _espeakLoadPromise.catch(err => {
+    _espeakLoadPromise = null;
+    console.error('[eSpeak load]', err);
+    if(typeof toast === 'function') toast('eSpeak 로드 실패 — ' + (err.message || '재시도해주세요'), 'warn');
+  });
+  return _espeakLoadPromise;
+}
+
+function _speakViaEspeak(text){
+  try {
+    const myReq = ++_espeakReqSeq;
+    if(!_espeakAudioCtx){
+      _espeakAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if(_espeakAudioCtx.state === 'suspended'){
+      _espeakAudioCtx.resume();
+    }
+    // 이전 합성 정리
+    if(_espeakCurrentPusher){
+      try { _espeakCurrentPusher.disconnect(); } catch(_){}
+      _espeakCurrentPusher = null;
+    }
+    _ensureEspeak().then(espeak => {
+      if(myReq !== _espeakReqSeq) return;   // 이후 새 요청·정지가 있었으면 폐기
+      const settings = (S && S.speech) ? S.speech : {};
+      // 속도·음높이 매핑: 사용자 rate(0.5-1.5x) → espeak rate(80-450), 기본 175가 1.0배
+      const rate  = Math.round((settings.rate  || 0.85) * 175);
+      const pitch = Math.round((settings.pitch || 1.0) * 50);
+      espeak.set_rate(Math.max(80, Math.min(450, rate)));
+      espeak.set_pitch(Math.max(0, Math.min(99, pitch)));
+      const pusher = new _EspeakPushAudioNode(_espeakAudioCtx);
+      pusher.connect(_espeakAudioCtx.destination);
+      _espeakCurrentPusher = pusher;
+      espeak.synthesize(text, (samples /*, events*/) => {
+        if(myReq !== _espeakReqSeq){
+          // 도중에 새 요청 — 청크 무시
+          if(_espeakCurrentPusher === pusher){
+            try { pusher.disconnect(); } catch(_){}
+            _espeakCurrentPusher = null;
+          }
+          return;
+        }
+        if(!samples){
+          if(_espeakCurrentPusher === pusher) pusher.close();
+          return;
+        }
+        if(_espeakCurrentPusher === pusher){
+          pusher.push(new Float32Array(samples));
+        }
+      });
+    });
+    return true;
+  } catch(e){
+    console.error('[espeak speak]', e);
+    if(typeof toast === 'function') toast('eSpeak 발화 오류: ' + e.message, 'warn');
+    return false;
+  }
+}
+
 // 폴백 안내는 세션당 1회만 (사용자가 시스템·음성을 바꿀 때 재설정됨)
 let _speechFallbackNoticed = false;
 
 function speakGreek(text, overrideDialect){
-  if(!('speechSynthesis' in window) || !text) return false;
+  if(!text) return false;
   const settings = (S && S.speech) ? S.speech : {};
-  const system  = settings.system  || 'modern';
-  const dialect = overrideDialect || settings.dialect || 'default';
-  const sysCfg  = PRON_SYSTEMS[system] || PRON_SYSTEMS.modern;
-  const clean   = text.replace(/^\d+\s+/gm, '').replace(/\[\d+[a-z]?\]/g, '');
+  const system   = settings.system || 'modern';
+  const sysCfg   = PRON_SYSTEMS[system] || PRON_SYSTEMS.modern;
+  const clean    = text.replace(/^\d+\s+/gm, '').replace(/\[\d+[a-z]?\]/g, '');
 
+  // eSpeak NG 경로 — Web Speech API 우회
+  if(sysCfg.engine === 'espeak'){
+    return _speakViaEspeak(clean);
+  }
+
+  // 이하 Web Speech API 경로
+  if(!('speechSynthesis' in window)) return false;
+  const dialect = overrideDialect || settings.dialect || 'default';
   // ── 음성·텍스트 정합성 ──
   // Web Speech API 음성이 처리 못하는 글자는 letter-name spell-out으로 발화된다
   // (예: 한국 iPad의 기본 음성이 그리스 글자를 받으면 "alpha, beta..." 발화).
@@ -7108,33 +7282,28 @@ function speakGreek(text, overrideDialect){
   }
   let utterText, fallbackNote = null;
   if(voice){
-    // 의도한 lang 음성을 찾음 → 시스템 규칙대로
     utterText = sysCfg.transliterate ? greekToLatin(clean, system, dialect) : clean;
   } else if(sysCfg.transliterate){
-    // Erasmian/Restored 요청인데 it/es/en 전부 없음 → el 음성 + 원본 그리스로 폴백
     voice = _pickVoiceFor('el');
     if(voice){
       utterText = clean;
-      fallbackNote = '이탈리아어 음성이 없어 현대 그리스어 발음으로 폴백되었습니다. 설정 → 손쉬운 사용에서 이탈리아어 음성 추가 시 Erasmian/Restored 발화 가능.';
+      fallbackNote = '이탈리아어 음성이 없어 현대 그리스어 발음으로 폴백되었습니다. 설정 → 손쉬운 사용에서 이탈리아어 음성 추가 시 Erasmian/Restored 발화 가능. (또는 eSpeak NG 시스템 사용 — 기기 무관 일관 음성)';
     }
   } else {
-    // modern 요청인데 el 음성 없음 (한국 환경 흔함) → Erasmian 음역으로 it/es/en 폴백
     voice = _pickVoiceFor('it') || _pickVoiceFor('es') || _pickVoiceFor('en');
     if(voice){
       utterText = greekToLatin(clean, 'erasmian', dialect);
-      fallbackNote = '그리스어 음성이 없어 Erasmian 음역(이탈리아어 음성)으로 폴백되었습니다. 설정 → 손쉬운 사용 → 음성에서 그리스어(Ελληνικά) 추가하면 현대 발음 사용 가능.';
+      fallbackNote = '그리스어 음성이 없어 Erasmian 음역(이탈리아어 음성)으로 폴백되었습니다. 설정 → 손쉬운 사용 → 음성에서 그리스어(Ελληνικά) 추가하면 현대 발음 사용 가능. (또는 eSpeak NG 시스템 사용 — 기기 무관 일관 음성)';
     }
   }
-
   if(!voice){
-    if(typeof toast === 'function') toast('재생 가능한 음성이 없습니다. 설정 → 손쉬운 사용에서 음성을 추가하세요.', 'warn');
+    if(typeof toast === 'function') toast('재생 가능한 음성이 없습니다. eSpeak NG 시스템(기기 무관)을 선택하거나 설정 → 손쉬운 사용에서 음성을 추가하세요.', 'warn');
     return false;
   }
   if(fallbackNote && !_speechFallbackNoticed){
     _speechFallbackNoticed = true;
     if(typeof toast === 'function') toast(fallbackNote);
   }
-
   const u = new SpeechSynthesisUtterance(utterText);
   u.voice = voice;
   u.lang  = voice.lang;
@@ -7150,7 +7319,14 @@ function speakGreekDialect(text, dialect){
   return speakGreek(text, dialect);
 }
 
-function stopSpeech(){ if('speechSynthesis' in window) speechSynthesis.cancel(); }
+function stopSpeech(){
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+  _espeakReqSeq++;   // 진행 중인 espeak 요청 무효화 (async then은 자동 폐기)
+  if(_espeakCurrentPusher){
+    try { _espeakCurrentPusher.disconnect(); } catch(_){}
+    _espeakCurrentPusher = null;
+  }
+}
 
 window.speakGreek = speakGreek;
 window.speakGreekDialect = speakGreekDialect;
@@ -7227,6 +7403,7 @@ function renderSpeechSettings(){
       <div style="font-size:11px;color:var(--clay-d);margin-top:8px;font-style:italic;line-height:1.6">
         주요 차이: <b>Ionic·Aeolic</b>에는 psilosis(거센 호흡 탈락) 적용 — Hdt. ἀπικνέομαι vs Attic ἀφικνέομαι 같은 표기 차이의 발음적 근거.
         Doric·Aeolic의 ᾱ 보존, Homeric의 -οιο 어미 등 형태 차이는 텍스트 자체에 이미 반영되어 있어 음역에 그대로 따라갑니다.
+        <br><b>eSpeak NG</b> 시스템은 자체 grc 음운 규칙을 사용하므로 방언 설정과 무관합니다.
       </div>
     </div>
 
@@ -7270,6 +7447,7 @@ function renderSpeechSettings(){
         <button class="btn btn-o btn-sm" data-demo="modern" style="text-align:left">🔊 현대 <span style="font-family:var(--font-grk);opacity:.7">— En arkhí ín o lóghos…</span></button>
         <button class="btn btn-o btn-sm" data-demo="erasmian" style="text-align:left">🔊 Erasmian <span style="font-family:var(--font-grk);opacity:.7">— En arkhē̂ ēn ho lógos…</span></button>
         <button class="btn btn-o btn-sm" data-demo="restored" style="text-align:left">🔊 Restored <span style="font-family:var(--font-grk);opacity:.7">— En arkhɛ̂ːi ɛ̂ːn ho lógos…</span></button>
+        <button class="btn btn-o btn-sm" data-demo="espeak_grc" style="text-align:left">🔊 eSpeak NG <span style="font-family:var(--font-grk);opacity:.7">— 기기 무관 일관 (첫 클릭 시 ~3MB 로드)</span></button>
       </div>
     </div>
 
@@ -7280,6 +7458,7 @@ function renderSpeechSettings(){
         ◇ <b>기식음 약화</b>: θ φ χ는 [tʰ pʰ kʰ] 본래 발음을 [t p k]로 약화. 이탈리아어 음성이 영어식 'th', 'f', 'kh'를 그리스 고전 표준에 맞게 발화하지 못해 평이한 무성 폐쇄음으로 처리.<br>
         ◇ <b>υ [y] 근사</b>: 복원 발음의 전설원순고모음 [y]는 이탈리아어에 없어 [i]로 근사 (W.S. Allen, <i>Vox Graeca</i>, §1.10).<br>
         ◇ <b>rough breathing</b>: 이탈리아어 'h'가 무음이라 [h]가 정확히 들리지 않습니다 (음역 문자열에는 'h' 부여).<br>
+        ◇ <b>eSpeak NG (grc)</b>는 공식적으로 "initial naive implementation, awaiting feedback" 단계 — 학생 비교 학습용 일관 기준점으로는 충분하지만, Vox Graeca 수준의 음운 정밀도는 보장하지 않습니다.<br>
         ◇ <b>학술적 정확성</b>은 ScorpioMartianus(Luke Ranieri), Daitz <i>Pronunciation of Ancient Greek</i> 등 학자 녹음 권장.<br>
         ◇ 설정은 기기에 로컬 저장되며 외부 전송되지 않습니다.
       </div>
