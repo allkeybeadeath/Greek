@@ -253,6 +253,51 @@ defer (다음 라운드 후보):
   · 본문 읽기 뷰에서 단어 클릭 → 검색 통합 (현재는 외부 사전만)
   · aria 라벨 접근성 일괄 정비
 
+**v46**: 학자 낭독 자료 대규모 확장 — 사용자 요청 *"고전 그리스어 학습 사이트 등에서 더 자연스러운 발음을 최대한 찾아라"*.
+
+광범위한 외부 자원 조사 (ancientgreek.eu free 카탈로그 전체, SORGLL rhapsodoi SoundCloud, LibriVox Projet Homere 컬렉션, Internet Archive, ScorpioMartianus). 본 앱 본문 매칭 확장 + 별도 카탈로그 신설.
+
+**(1) SCHOLAR_AUDIO 확장** — v42 의 6 매칭 → 7 매칭 + 추가 자료 합산. 본 앱 12 작품 중 신규 매칭 1 개 (plato-euthyphro), 기존 4 작품에 추가 자료 보충.
+  · `plato-euthyphro` 신규 매칭: Stratakis 의 Euthyphro ch.01 무료 샘플 (YouTube `tHIGHELlnns`). 본 앱의 sections 2-3 매핑. type='youtube'.
+  · `plato-apology` 보충: LibriVox Apology *전체* (1:46:56, Ἑλένη Κεμικτσή, Public Domain). 발음은 *현대 그리스* (학자 복원 아님). 2-파트 mp3 직접 링크.
+  · `homer-odyssey-1` 보충: LibriVox Odyssey Book 1 전체 (Ἑλένη Κεμικτσή).
+  · `herodotus-1` 보충: Ariphron 의 psilotic Ionic 변형 발음 (Internet Archive).
+
+**(2) `_openScholarAudio` 타입 핸들러 추가** — 'youtube' (iframe embed, 200px), 'archive' (Internet Archive: 직접 mp3 link 있으면 inline `<audio>`, 없으면 "Archive 페이지 ↗" 버튼). 'archive' 의 `extra.url2` 필드로 *2 파트 mp3* (LibriVox 의 Part 1/2 분할 같은 경우) 지원.
+
+**(3) SCHOLAR_LIBRARY 신설 (Ἀκρόασις · 학자 낭독 도서관)** — 본 앱 본문 외의 학자 낭독 카탈로그.
+어휘 탭의 새 진입 카드 `Ἀκρόασις · 학자 낭독 도서관`. 총 **20 자료**, 9 카테고리:
+
+  · **Stratakis (ancientgreek.eu) 8 자료** — 모두 무료 mp3, 페이지에서 직접 URL 확인됨:
+    Sappho To Aphrodite (가창, 2:27), Sappho Brothers Poem (1:57), Euripides Helena 1-67 (5:54), Aristotle De Caelo 1.09 (10:55), Empedocles fr.4 (1:22), Hippocrates Oath (4:27), Pindar Olympian 1 *전체* (8:55!), Sophocles Oedipus Coloneus 1-13 (1:27).
+
+  · **LibriVox / Projet Homere (Κεμικτσή) 5 자료** — Public Domain, 현대 그리스 발음:
+    Odyssey Book 6 (Nausicaa), Book 21 (활 시험), Book 22 (구혼자 살해), Homeric Hymns 33편, Orphic Hymns 87편.
+
+  · **SORGLL Daitz (SoundCloud rhapsodoi) 5 자료** — 복원 발음 + pitch accent:
+    Aeschylus Prometheus 1007-1053, Sappho 1 (Aphrodite Ode), Aristophanes Birds 227-262, Demosthenes On the Crown 199-208, Euripides Trojan Women 740-779.
+
+  · **기타 2 자료**: Daitz 의 Proclus 13th Proposition, W.H.D. Rouse 의 *Sounds of Ancient Greek* (1920년대 역사적 녹음, Public Domain 확인).
+
+**(4) 발음 체계 비교 안내** — 모든 자료에 `system` 필드로 발음 체계 명시. 학자 낭독 도서관 진입 직후 첫 카드가 *발음 체계 비교 가이드* — 4 가지 체계 (Stratakis Vox Graeca / SORGLL Daitz pitch accent / Projet Homere 현대 / Ariphron psilotic Ionic) 의 차이를 명시. 학습자가 같은 시·작품의 *여러 해석* 을 비교 청취할 수 있음 (Sappho 1: Stratakis 가창 ↔ SORGLL 낭독).
+
+**솔직한 한계**:
+  · Aeschylus *Persians* (본 앱 aeschylus-persians) 의 학자 낭독은 무료 공개분에 *없음*. SORGLL 은 Prometheus, Agamemnon 만. 매칭 불가.
+  · Sophocles *Antigone* (본 앱 sophocles-antigone) 도 무료 매칭 없음. Stratakis Oedipus Coloneus 는 *다른 작품*이므로 SCHOLAR_LIBRARY 로만.
+  · Plutarch Themistocles, Hesiod Works and Days, Plato Crito 도 무료 매칭 없음.
+  · 일부 SORGLL SoundCloud URL slug 은 *추정* — rhapsodoi 컬렉션의 정확한 슬러그 미확인. 클릭 시 404 가능. modal 의 fallback (출처 페이지 링크) 으로 일부 대응.
+  · ScorpioMartianus (Luke Ranieri) 자료는 대부분 Patreon 유료. 무료 자료 ("Ancient Greek Alive 001") 가 있으나 직접 mp3 호스트 미확정. 카탈로그에 미포함.
+  · Stratakis 의 Plato Crito 오디오북은 존재 (page: plato-crito.html) 하나 무료 샘플 mp3 URL 미확인. 카탈로그에 미포함.
+
+defer (다음 라운드):
+  · SoundCloud rhapsodoi 실제 슬러그 검증·갱신
+  · Plato Crito 무료 샘플 URL 추적
+  · ScorpioMartianus Ancient Greek Alive 001 통합
+  · MI 동사 토픽, acc abs, σύν vs μετά
+  · 악센트 위치 문제 유형
+  · 본문 단어 클릭 → 인앱 검색 통합
+  · aria 라벨 정비
+
 ## 8. 알려진 미해결 사항 및 향후 작업
 
 표제어 (lemma) 검색·콘코던스 기능이 아직 없다. 사용자가 단어를 클릭하면 형태 분석이 modal 로 표시되나, 그 단어의 다른 출현 위치를 탐색하는 기능은 미구현. `data-morph.js` 의 19,875 lemma 인덱스를 활용한 역방향 검색이 자연스러운 다음 단계.

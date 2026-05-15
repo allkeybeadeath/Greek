@@ -3474,7 +3474,7 @@ function imageURL(imgId, width){
 
 // 앱 버전 — sw.js CACHE_VERSION과 동기화 유지. 홈 화면 푸터에 표시되어
 // 사용자가 자신이 어느 버전을 사용 중인지 확인 가능 (캐시 갱신 진단용).
-const APP_VERSION = 'v45';
+const APP_VERSION = 'v46';
 window.__paideiaVersion = APP_VERSION;
 
 // ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
@@ -4371,6 +4371,17 @@ function renderVocab(){
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Εὕρεσις</div>
           <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">검색·콘코던스 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:6px;margin-left:4px;vertical-align:middle">new</span></div>
           <div style="font-size:11px;color:var(--clay-d);margin-top:3px">어형·표제어로 본문 검색 · 작품·섹션별 등장 위치 · 형태분석 통합 (AGDT v2.1)</div>
+        </div>
+        <div style="font-size:22px;color:var(--terracotta)">→</div>
+      </div>
+    </button>
+
+    <button class="card" type="button" data-render="renderScholarLibrary" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Ἀκρόασις</div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">학자 낭독 도서관 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:6px;margin-left:4px;vertical-align:middle">new</span></div>
+          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">Stratakis · SORGLL Daitz · Projet Homere 등 학자 낭독 모음 · 발음 체계 비교</div>
         </div>
         <div style="font-size:22px;color:var(--terracotta)">→</div>
       </div>
@@ -8413,6 +8424,17 @@ const SCHOLAR_AUDIO = {
     system: '복원 고전 발음 (Vox Graeca 계열)',
     span: 'Prologue ≈ §17 (오디오북 ch.01 무료 샘플)',
     license: '© Stratakis · 무료 샘플 · 전체 오디오북은 별매',
+  }, {
+    // v46 추가: LibriVox Apology 전체 (현대 그리스 발음, 자연 음질)
+    sections: ['17','18','19','20','21','22','23','24','25','26','27','28','29','30','31','32','33','34','35','36','37','38','39','40','41','42'],
+    type: 'mp3',
+    url: 'https://archive.org/download/apologia_2012_librivox/apology_01_plato.mp3',
+    sourceUrl: 'https://archive.org/details/apologia_2012_librivox',
+    performer: 'Ἑλένη Κεμικτσή (Projet Homere · LibriVox)',
+    system: '현대 그리스 발음 (학자 복원이 아닌 자연 낭독)',
+    span: 'Apology 전체 (1시간 46분 56초, 2 파트)',
+    license: 'Public Domain (LibriVox · Internet Archive)',
+    extra: { url2: 'https://archive.org/download/apologia_2012_librivox/apology_02_plato.mp3', label2: 'Part 2 (후반부)' },
   }],
   'xenophon-anabasis-1': [{
     sections: ['1.1'],
@@ -8425,7 +8447,7 @@ const SCHOLAR_AUDIO = {
     license: '© Stratakis · 무료 공개분',
   }],
   'hesiod-theogony': [{
-    sections: ['1-50'],   // 본 앱의 첫 섹션. 녹음은 1-21 만 다룸 — span 표기로 안내.
+    sections: ['1-50'],
     type: 'mp3',
     url: 'https://ancientgreek.eu/mp3/theogony.mp3',
     sourceUrl: 'https://ancientgreek.eu/free/theogony.html',
@@ -8443,6 +8465,16 @@ const SCHOLAR_AUDIO = {
     system: '복원 고전 발음 · Ionic 방언 음운 적용',
     span: 'Histories 1.1–1.4 (약 6분 15초)',
     license: '© Stratakis · 무료 공개분',
+  }, {
+    // v46 추가: Ariphron 의 psilotic Ionic 변형 발음
+    sections: ['1.1','1.2','1.3','1.4'],
+    type: 'archive',
+    url: 'https://archive.org/details/herodotus_ariphron',
+    sourceUrl: 'https://archive.org/details/herodotus_ariphron',
+    performer: 'Ariphron (Internet Archive 사용자)',
+    system: '복원 발음 · psilotic Ionic 변형 (기식부호 무음화)',
+    span: 'Histories 발췌 (Ionic 방언 음운 강조)',
+    license: 'Internet Archive 공개 자료',
   }],
   'homer-iliad-1': [{
     sections: ['1.1-50'],
@@ -8463,6 +8495,28 @@ const SCHOLAR_AUDIO = {
     system: '복원 발음 · pitch accent 재현 시도',
     span: 'Odyssey 1.1–21 (섹션 1.1–50 의 첫 21 행)',
     license: '© SORGLL · SoundCloud 공개 스트리밍',
+  }, {
+    // v46 추가: LibriVox Odyssey Book 1 전체 (Projet Homere)
+    sections: ['1.1-50'],
+    type: 'archive',
+    url: 'https://archive.org/details/odyssey01_1711_librivox',
+    sourceUrl: 'https://archive.org/details/odyssey01_1711_librivox',
+    performer: 'Ἑλένη Κεμικτσή (Projet Homere · LibriVox)',
+    system: '현대 그리스 발음 (자연 음질, 학자 복원이 아님)',
+    span: 'Odyssey Book 1 전체 (~30분)',
+    license: 'Public Domain (LibriVox · Internet Archive)',
+  }],
+  // v46 신규 매칭: Plato Euthyphro
+  'plato-euthyphro': [{
+    sections: ['2','3'],
+    type: 'youtube',
+    url: 'https://www.youtube.com/embed/tHIGHELlnns',
+    sourceUrl: 'https://ancientgreek.eu/audiobooks/plato-euthyphro.html',
+    performer: 'Ioannis Stratakis',
+    system: '복원 고전 발음',
+    span: 'Euthyphro ch.01 (대화 초반부 ≈ §2-3, 오디오북 무료 샘플)',
+    license: '© Stratakis · YouTube 무료 샘플 · 전체 오디오북은 별매',
+    note: 'Euthyphro 와 Socrates 의 음성을 다르게 연기 — 젊은 점쟁이의 자신감 vs Socrates 의 부드러운 탐문',
   }],
 };
 
@@ -8504,6 +8558,45 @@ function _openScholarAudio(recs){
         <div style="font-size:11px;color:var(--clay-d);margin-top:4px">
           ↑ SoundCloud · 재생되지 않으면 <a href="${r.url}" target="_blank" rel="noopener">SoundCloud 페이지 ↗</a>
         </div>`;
+    } else if(r.type === 'youtube'){
+      // v46: YouTube embed — Stratakis 의 무료 chapter 샘플 영상 등
+      // url 은 https://www.youtube.com/embed/ID 형식. autoplay 비활성.
+      const safeUrl = r.url.replace(/"/g,'&quot;');
+      playerHTML = `
+        <iframe width="100%" height="200" frameborder="0" allow="encrypted-media; picture-in-picture"
+                src="${safeUrl}" allowfullscreen style="margin-top:8px;border-radius:6px;background:#000"></iframe>
+        <div style="font-size:11px;color:var(--clay-d);margin-top:4px">
+          ↑ YouTube · 재생되지 않으면 <a href="${r.sourceUrl}" target="_blank" rel="noopener">출처 페이지 ↗</a>
+        </div>`;
+    } else if(r.type === 'archive'){
+      // v46: Internet Archive — LibriVox·Ariphron 등. 외부 페이지에 streaming player.
+      // 직접 mp3 link 가 있으면 inline audio, 아니면 페이지 링크만.
+      const isDirectMp3 = /\.mp3(\?|$)/i.test(r.url);
+      if(isDirectMp3){
+        const safeUrl = r.url.replace(/"/g,'&quot;');
+        const extra2 = (r.extra && r.extra.url2) ? `
+          <div style="margin-top:6px;font-size:12px">
+            <b>${r.extra.label2 || 'Part 2'}</b>:
+            <audio controls preload="none" style="width:100%;margin-top:4px">
+              <source src="${r.extra.url2}" type="audio/mpeg">
+            </audio>
+          </div>` : '';
+        playerHTML = `
+          <audio controls preload="none" style="width:100%;margin-top:8px" id="scholar-audio-${i}">
+            <source src="${safeUrl}" type="audio/mpeg">
+            오디오 요소 미지원 브라우저
+          </audio>
+          ${extra2}
+          <div id="scholar-audio-err-${i}" style="display:none;margin-top:8px;padding:8px 10px;background:#fbf0ee;border-left:3px solid #c44536;border-radius:4px;font-size:12px;color:#5c4e3e">
+            재생 실패 — Internet Archive 페이지에서 직접 들으세요: <a href="${r.sourceUrl}" target="_blank" rel="noopener">출처 페이지 ↗</a>
+          </div>`;
+      } else {
+        playerHTML = `
+          <div style="margin-top:8px;padding:10px;background:var(--ivory-w);border:1px dashed var(--clay);border-radius:6px;text-align:center">
+            <a href="${r.url}" target="_blank" rel="noopener" class="btn btn-sm" style="display:inline-block">▶ Internet Archive 에서 듣기 ↗</a>
+            <div style="font-size:10px;color:var(--clay-d);margin-top:6px">외부 페이지 새 탭으로 열림</div>
+          </div>`;
+      }
     }
     return `
       <div style="background:var(--ivory-d);border:1px solid var(--clay);border-radius:8px;padding:12px 14px;margin-bottom:10px">
@@ -8536,6 +8629,226 @@ function _openScholarAudio(recs){
 }
 window._openScholarAudio = _openScholarAudio;
 window._getScholarAudio  = _getScholarAudio;
+
+// ===== SCHOLAR_LIBRARY (Ἀκρόασις · 학자 낭독 도서관, v46) =====
+// 본 앱 본문 12 작품 외의 학자 낭독 자료 카탈로그.
+// 발음 체계가 다양해서 *system 필드로 명시* — 학습자가 의식적으로 비교할 수 있게.
+//   · Stratakis: 복원 고전 발음 (Vox Graeca 계열, Attic/Ionic 방언별)
+//   · SORGLL Daitz: 복원 발음 + pitch accent 재현 시도
+//   · Projet Homere (Κεμικτσή): 현대 그리스 발음 (자연 음질, native, 학자 복원 아님)
+//   · Ariphron: 복원 + psilotic Ionic 변형
+const SCHOLAR_LIBRARY = [
+  // ── Stratakis (ancientgreek.eu) 무료 자료 — 검증된 mp3 직접 링크 ──────────────
+  {id:'sappho-aphrodite', author:'Sappho', authorKo:'사포',     work:'εἰς Ἀφροδίτην · To Aphrodite', cat:'lyric',
+   performer:'Iphigenia Spiliotopoulou (창작 멜로디·Stratakis 작곡)', system:'복원 발음 · *노래* (lyric 시는 본래 가창)',
+   dur:'2분 27초', type:'mp3', url:'https://ancientgreek.eu/mp3/aphrod-s.mp3',
+   sourceUrl:'https://ancientgreek.eu/free/aphrodite.html', license:'© Stratakis · 무료',
+   note:'Sappho fr.1 — 아프로디테에게 사랑의 도움을 청하는 기도. lyric 시 본래 가창의 재구성'},
+  {id:'sappho-brothers', author:'Sappho', authorKo:'사포', work:'Brothers Poem (2014 papyrus 발견)', cat:'lyric',
+   performer:'Ioannis Stratakis', system:'복원 발음 · 낭독',
+   dur:'1분 57초', type:'mp3', url:'https://ancientgreek.eu/mp3/brothers.mp3',
+   sourceUrl:'https://ancientgreek.eu/free/brothers.html', license:'© Stratakis · 무료',
+   note:'2014년 D. Obbink 발견 신자료. 사포가 동생을 향해 부르는 듯한 시'},
+  {id:'euripides-helena', author:'Euripides', authorKo:'에우리피데스', work:'Helena 1-67 (서막)', cat:'tragedy',
+   performer:'Ioannis Stratakis', system:'복원 발음',
+   dur:'5분 54초', type:'mp3', url:'https://ancientgreek.eu/mp3/helena.mp3',
+   sourceUrl:'https://ancientgreek.eu/free/helena.html', license:'© Stratakis · 무료',
+   note:'Helene 가 이집트 Pharos 섬에서 자신의 처지를 설명하는 prologue'},
+  {id:'aristotle-heavens', author:'Aristotle', authorKo:'아리스토텔레스', work:'De Caelo 1.09 (천체론)', cat:'philosophy',
+   performer:'Ioannis Stratakis', system:'복원 발음',
+   dur:'10분 55초', type:'mp3', url:'https://ancientgreek.eu/mp3/heavens.mp3',
+   sourceUrl:'https://ancientgreek.eu/free/aristotle-heavens.html', license:'© Stratakis · 무료',
+   note:'우주 (οὐρανός) 의 유일성 논증. 가장 긴 무료 자료 중 하나'},
+  {id:'empedocles-fr4', author:'Empedocles', authorKo:'엠페도클레스', work:'Περὶ φύσεως fr.4', cat:'philosophy',
+   performer:'Ioannis Stratakis', system:'복원 발음 · 시 (Doric 영향)',
+   dur:'1분 22초', type:'mp3', url:'https://ancientgreek.eu/mp3/empedo4.mp3',
+   sourceUrl:'https://ancientgreek.eu/free/empedo4.html', license:'© Stratakis · 무료',
+   note:'pre-Socratic 시 단편. 감각·이성 두 경로로 진리를 향하라는 권고'},
+  {id:'hippocrates-oath', author:'Hippocrates', authorKo:'히포크라테스', work:'ὅρκος · Medical Oath', cat:'science',
+   performer:'Ioannis Stratakis', system:'복원 발음 · Ionic',
+   dur:'4분 27초', type:'mp3', url:'https://ancientgreek.eu/mp3/oath.mp3',
+   sourceUrl:'https://ancientgreek.eu/free/hippocrates-oath.html', license:'© Stratakis · 무료',
+   note:'의사 선서의 원문. 의학·윤리 텍스트의 출발점'},
+  {id:'pindar-olymp-01', author:'Pindar', authorKo:'핀다로스', work:'Olympian Ode 1 (전체)', cat:'lyric',
+   performer:'Ioannis Stratakis', system:'복원 발음 · Doric',
+   dur:'8분 55초', type:'mp3', url:'https://ancientgreek.eu/mp3/pindar-ol-01.mp3',
+   sourceUrl:'https://www.ancientgreek.eu/free/pindar-ol-01.html', license:'© Stratakis · 무료',
+   note:'Hieron of Syracuse 의 올림픽 우승을 기리는 송가. Doric lyric 의 정점'},
+  {id:'sophocles-oc', author:'Sophocles', authorKo:'소포클레스', work:'Oedipus Coloneus 1-13', cat:'tragedy',
+   performer:'Ioannis Stratakis', system:'복원 발음',
+   dur:'1분 27초', type:'mp3', url:'https://ancientgreek.eu/mp3/oedipus-c.mp3',
+   sourceUrl:'https://ancientgreek.eu/audiobooks/sophocles-oedipus-coloneus.html', license:'© Stratakis · 무료 샘플',
+   note:'늙은 Oedipus 가 Colonus 에 도착하는 장면. 비극의 마지막 작품'},
+
+  // ── LibriVox / Projet Homere (Ἑλένη Κεμικτσή) — 현대 그리스 발음, public domain ──
+  {id:'homer-od-bk6', author:'Homer', authorKo:'호메로스', work:'Odyssey Book 6 (Ναυσικά)', cat:'epic',
+   performer:'Ἑλένη Κεμικτσή et al. (LibriVox)', system:'현대 그리스 발음 (학자 복원이 아님)',
+   dur:'~25분', type:'archive', url:'https://archive.org/details/odyssey_bk6_1012_librivox',
+   sourceUrl:'https://archive.org/details/odyssey_bk6_1012_librivox', license:'Public Domain',
+   note:'Nausicaa 가 해변에서 좌초된 Odysseus 와 만나는 책'},
+  {id:'homer-od-bk21', author:'Homer', authorKo:'호메로스', work:'Odyssey Book 21 (활 시험)', cat:'epic',
+   performer:'Ἑλένη Κεμικτσή (LibriVox)', system:'현대 그리스 발음',
+   dur:'~30분', type:'archive', url:'https://archive.org/details/odyssey21_1908_librivox',
+   sourceUrl:'https://archive.org/details/odyssey21_1908_librivox', license:'Public Domain',
+   note:'Odysseus 가 활을 당겨 정체를 드러내는 클라이맥스 책'},
+  {id:'homer-od-bk22', author:'Homer', authorKo:'호메로스', work:'Odyssey Book 22 (구혼자 살해)', cat:'epic',
+   performer:'Ἑλένη Κεμικτσή (LibriVox)', system:'현대 그리스 발음',
+   dur:'~30분', type:'archive', url:'https://archive.org/details/odyssey22_1908_librivox',
+   sourceUrl:'https://archive.org/details/odyssey22_1908_librivox', license:'Public Domain',
+   note:'Μνηστηροφονία — Odysseus 가 구혼자들을 처단'},
+  {id:'homer-hymns', author:'Homer 권', authorKo:'호메로스 권 (찬가 모음)', work:'Homeric Hymns (전체)', cat:'epic',
+   performer:'Ἑλένη Κεμικτσή (LibriVox)', system:'현대 그리스 발음',
+   dur:'~6시간', type:'archive', url:'https://archive.org/details/homerichymns_1705_librivox',
+   sourceUrl:'https://archive.org/details/homerichymns_1705_librivox', license:'Public Domain',
+   note:'호메로스풍 hexameter 로 된 신들에 대한 찬가 33편. Demeter·Apollo·Hermes 등'},
+  {id:'orphic-hymns', author:'Orpheus 권', authorKo:'오르페우스 권', work:'Orphic Hymns', cat:'religion',
+   performer:'Ἑλένη Κεμικτσή (LibriVox)', system:'현대 그리스 발음',
+   dur:'~3시간', type:'archive', url:'https://archive.org/details/orphichymns_1709_librivox',
+   sourceUrl:'https://archive.org/details/orphichymns_1709_librivox', license:'Public Domain',
+   note:'오르페우스 신비 의식에서 낭송된 87편의 찬가'},
+
+  // ── SORGLL Daitz (SoundCloud · rhapsodoi) — 복원 발음 + pitch accent ──
+  {id:'sorgll-prometheus', author:'Aeschylus', authorKo:'아이스킬로스',
+   work:'Prometheus Bound 1007-1053 (대결 장면)', cat:'tragedy',
+   performer:'Stephen G. Daitz (SORGLL)', system:'복원 발음 + pitch accent 재현',
+   dur:'~3분', type:'soundcloud',
+   url:'https://soundcloud.com/rhapsodoi/aeschylus-prometheus-vinctus',
+   sourceUrl:'https://rhapsodoi.org/index-of-ancient-greek-recitations/',
+   license:'© SORGLL', note:'Hermes 와 Prometheus 의 대결. 아이스킬로스의 *Persians* 직접 자료는 무료 공개분에 없음'},
+  {id:'sorgll-sappho-1', author:'Sappho', authorKo:'사포', work:'Sappho 1 (Aphrodite Ode)', cat:'lyric',
+   performer:'Stephen G. Daitz (SORGLL)', system:'복원 발음 + pitch accent',
+   dur:'~2분', type:'soundcloud',
+   url:'https://soundcloud.com/rhapsodoi/sappho-poem-1-aphrodite',
+   sourceUrl:'https://rhapsodoi.org/index-of-ancient-greek-recitations/',
+   license:'© SORGLL', note:'Stratakis 의 가창 버전과 비교 청취 가능 — 같은 시, 다른 해석'},
+  {id:'sorgll-aristoph-birds', author:'Aristophanes', authorKo:'아리스토파네스',
+   work:'Birds 227-262 (Epops 의 새 부르는 노래)', cat:'comedy',
+   performer:'Stephen G. Daitz (SORGLL)', system:'복원 발음',
+   dur:'~3분', type:'soundcloud',
+   url:'https://soundcloud.com/rhapsodoi/aristophanes-the-birds-227-262',
+   sourceUrl:'https://rhapsodoi.org/index-of-ancient-greek-recitations/',
+   license:'© SORGLL', note:'Onomatopoeia (의성어) 의 명장면 — 본 앱의 콩트 어휘와 함께 들으면 좋음'},
+  {id:'sorgll-demosthenes', author:'Demosthenes', authorKo:'데모스테네스',
+   work:'On the Crown 199-208', cat:'rhetoric',
+   performer:'Stephen G. Daitz (SORGLL)', system:'복원 발음',
+   dur:'~5분', type:'soundcloud',
+   url:'https://soundcloud.com/rhapsodoi/demosthenes-on-the-crown',
+   sourceUrl:'https://rhapsodoi.org/index-of-ancient-greek-recitations/',
+   license:'© SORGLL', note:'아테네 최고 변사의 자기 변호 — 정치 수사학의 정점'},
+  {id:'sorgll-trojan-women', author:'Euripides', authorKo:'에우리피데스',
+   work:'Trojan Women 740-779 (Andromache 의 비탄)', cat:'tragedy',
+   performer:'Stephen G. Daitz (SORGLL)', system:'복원 발음',
+   dur:'~3분', type:'soundcloud',
+   url:'https://soundcloud.com/rhapsodoi/euripides-trojan-women',
+   sourceUrl:'https://rhapsodoi.org/index-of-ancient-greek-recitations/',
+   license:'© SORGLL', note:'아들 Astyanax 를 잃기 직전 어머니의 절규'},
+
+  // ── 기타 ──
+  {id:'daitz-proclus', author:'Proclus', authorKo:'프로클루스',
+   work:'Elements of Theology, 13th Proposition', cat:'philosophy',
+   performer:'Stephen G. Daitz', system:'복원 Attic 발음 (Proclus 자신은 5세기 CE Koine 시대지만 Daitz 는 Attic 으로 낭독)',
+   dur:'~2분', type:'archive',
+   url:'https://archive.org/details/sgdaitz-proclus-13th',
+   sourceUrl:'https://archive.org/details/sgdaitz-proclus-13th',
+   license:'© S.G. Daitz · Internet Archive 무료', note:'후기 신플라톤주의 논증. Daitz 의 발음학 정수'},
+  {id:'rouse-sounds', author:'W.H.D. Rouse', authorKo:'W.H.D. 라우스',
+   work:'Sounds of Ancient Greek (발음 학습 자료)', cat:'pronunciation',
+   performer:'W.H.D. Rouse (Linguaphone, 1920년대)', system:'초기 복원 발음 시도 — 역사적 자료',
+   dur:'역사적 녹음', type:'archive',
+   url:'https://archive.org/details/grc-whdr-sounds.b',
+   sourceUrl:'https://archive.org/details/grc-whdr-sounds.b',
+   license:'Public Domain (Linguaphone 확인)',
+   note:'1920년대 영국 학자가 시도한 가장 이른 복원 발음 녹음. 현재 표준과는 다름 — 역사적 비교용'},
+];
+
+const SCHOLAR_LIB_CATS = {
+  epic:        {ko:'서사시 (Epic)',          icon:'⚔️'},
+  tragedy:     {ko:'비극 (Tragedy)',         icon:'🎭'},
+  comedy:      {ko:'희극 (Comedy)',          icon:'🎪'},
+  lyric:       {ko:'서정시 (Lyric)',         icon:'🎵'},
+  philosophy:  {ko:'철학 (Philosophy)',      icon:'🦉'},
+  rhetoric:    {ko:'변론 (Rhetoric)',        icon:'⚖️'},
+  science:     {ko:'과학·의학 (Science)',    icon:'🧪'},
+  religion:    {ko:'종교 텍스트 (Religion)', icon:'🏛'},
+  pronunciation:{ko:'발음 학습 자료',         icon:'🔊'},
+};
+
+function renderScholarLibrary(){
+  // 카테고리별 그룹
+  const groups = new Map();
+  for(const item of SCHOLAR_LIBRARY){
+    if(!groups.has(item.cat)) groups.set(item.cat, []);
+    groups.get(item.cat).push(item);
+  }
+
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="setTab('vocab')">← 어휘</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Ἀκρόασις</span>학자 낭독 도서관</h2>
+    <div class="view-sub">본문 외 작가·작품의 학자 낭독 ${SCHOLAR_LIBRARY.length}편 · ${groups.size}장르 · 외부 호스트 스트리밍</div>
+
+    <div class="card warm">
+      <b style="font-size:13px;color:var(--terracotta-d)">발음 체계 비교</b>
+      <div style="font-size:11px;color:var(--clay-d);line-height:1.7;margin-top:6px">
+        · <b>Stratakis (ancientgreek.eu)</b> — 복원 고전 발음 (Vox Graeca 계열). 방언 따라 Attic/Ionic/Doric 음운 적용. 가장 학술적.<br>
+        · <b>SORGLL Daitz</b> — 복원 발음 + <i>pitch accent 재현</i> 시도. 운율 청취에 가장 유용.<br>
+        · <b>Projet Homere (Κεμικτσή)</b> — <i>현대 그리스 발음</i>. 자연 음질·native voice 이나 학자 복원은 아님. <b>비교 청취용</b>.<br>
+        · <b>Ariphron</b> — 복원 + psilotic Ionic 변형 (기식부호 무음화 가설).
+      </div>
+    </div>
+
+    ${[...groups.entries()].map(([cat, items]) => {
+      const meta = SCHOLAR_LIB_CATS[cat] || {ko:cat, icon:'📻'};
+      return `<div class="card">
+        <div style="font-size:13px;color:var(--terracotta-d);font-weight:600;letter-spacing:.03em;margin-bottom:8px">
+          ${meta.icon} ${meta.ko} <span style="font-size:11px;color:var(--clay-d);font-weight:400">· ${items.length}편</span>
+        </div>
+        ${items.map(item => `
+          <div style="padding:8px 0;border-top:1px dashed var(--clay);display:flex;align-items:flex-start;gap:10px">
+            <div style="flex:1;min-width:0">
+              <div style="font-family:var(--font-display);font-size:14px;color:var(--black-glaze);font-weight:600">
+                ${item.authorKo} · <span style="font-style:italic">${item.work}</span>
+              </div>
+              <div style="font-size:11px;color:var(--clay-d);margin-top:2px">
+                ${item.performer} · ${item.dur}
+              </div>
+              <div style="font-size:11px;color:var(--clay-d);margin-top:2px;font-style:italic">
+                ${item.system}
+              </div>
+              ${item.note ? `<div style="font-size:11px;color:var(--black-glaze-l);margin-top:4px;line-height:1.5">${item.note}</div>` : ''}
+              <div style="font-size:10px;color:var(--clay-d);margin-top:3px;font-style:italic">${item.license}</div>
+            </div>
+            <button class="btn btn-sm" data-play="${item.id}" style="flex-shrink:0;padding:6px 12px;font-size:13px">▶ 듣기</button>
+          </div>`).join('')}
+      </div>`;
+    }).join('')}
+
+    <div style="text-align:center;font-size:10px;color:var(--clay-d);margin-top:14px;opacity:.7;line-height:1.6">
+      ※ 모든 음원은 외부 호스트에서 스트리밍됩니다. 오프라인 환경에서는 재생되지 않습니다.<br>
+      ※ Stratakis 의 무료 자료는 학습·비교용 샘플이며, 전체 오디오북은 별매입니다.
+    </div>
+  `;
+
+  view.querySelectorAll('[data-play]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.play;
+      const item = SCHOLAR_LIBRARY.find(x => x.id === id);
+      if(!item) return;
+      // 임시 record 객체로 _openScholarAudio 재사용 — 같은 modal/타입 분기
+      _openScholarAudio([{
+        sections: [],
+        type: item.type,
+        url: item.url,
+        sourceUrl: item.sourceUrl,
+        performer: item.performer + ' — ' + item.authorKo + ' « ' + item.work + ' »',
+        system: item.system,
+        span: item.dur,
+        license: item.license,
+        note: item.note,
+      }]);
+    });
+  });
+}
+window.renderScholarLibrary = renderScholarLibrary;
 
 // 아포스트로피 정규화 (v38) — Unicode 변형들을 ASCII로 통일하여 elision 맵 매칭
 // U+2019 right single quote (현대 문서 빈출), U+1FBD Greek koronis (Greek 정자법),
