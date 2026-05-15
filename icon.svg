@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <!-- 적색상 도기 배경: 검은 글레이즈 -->
+    <radialGradient id="bg" cx="50%" cy="40%" r="75%">
+      <stop offset="0%" stop-color="#2a241e"/>
+      <stop offset="60%" stop-color="#1a1612"/>
+      <stop offset="100%" stop-color="#0d0a07"/>
+    </radialGradient>
+    <!-- 테라코타 그라데이션 (글자용) -->
+    <linearGradient id="terra" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#D87060"/>
+      <stop offset="100%" stop-color="#9E3528"/>
+    </linearGradient>
+    <!-- 마이안드로스(meander) 패턴 -->
+    <pattern id="meander" width="80" height="36" patternUnits="userSpaceOnUse">
+      <path d="M0 28h12V8h28v12h-12v8h24V8h12v20h12" fill="none" stroke="#C44536" stroke-width="2.4"/>
+    </pattern>
+    <!-- 베이크드 클레이 텍스처 -->
+    <pattern id="clay" width="14" height="14" patternUnits="userSpaceOnUse">
+      <rect width="14" height="14" fill="transparent"/>
+      <path d="M0 7 L14 7" stroke="rgba(196,134,86,0.04)" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+
+  <!-- 배경: iOS 자동 둥글림 대응을 위해 모서리 살짝 둥글게 (전체 1024 기준 180px 반경) -->
+  <rect width="1024" height="1024" rx="180" ry="180" fill="url(#bg)"/>
+  <rect width="1024" height="1024" rx="180" ry="180" fill="url(#clay)"/>
+
+  <!-- 상하 meander 띠 -->
+  <rect x="80" y="120" width="864" height="36" fill="url(#meander)" opacity="0.65"/>
+  <rect x="80" y="868" width="864" height="36" fill="url(#meander)" opacity="0.65"/>
+
+  <!-- 중앙 큰 Ἑ 글자 (DejaVu Serif — polytonic Greek 완벽 지원) -->
+  <text x="512" y="640" text-anchor="middle" dominant-baseline="middle"
+        font-family="DejaVu Serif, Gentium Book Plus, Georgia, serif"
+        font-size="640" font-weight="700"
+        fill="url(#terra)">Ἑ</text>
+
+  <!-- 부제: Παιδεία (작게, 글자 아래) -->
+  <text x="512" y="820" text-anchor="middle"
+        font-family="DejaVu Serif, Gentium Book Plus, Georgia, serif"
+        font-size="68" font-style="italic" font-weight="400"
+        fill="#F4E8D8" opacity="0.78">Παιδεία</text>
+</svg>
