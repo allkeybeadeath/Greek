@@ -2722,9 +2722,8 @@ const READINGS = [
 ];
 
 </script>
-<script>var _splash=document.getElementById('splash-stage');if(_splash)_splash.textContent='본문 데이터 로딩 중… (전집 45편)';</script>
+<script>var _splash=document.getElementById('splash-stage');if(_splash)_splash.textContent='본문 데이터 로딩 중…';</script>
 <script src="data-works.js"></script>
-<script>if(_splash)_splash.textContent='형태분석 데이터 로딩 중… (37,154 키)';</script>
 <script>
 /* data_images.js */
 /* ============================================================================
@@ -2918,7 +2917,7 @@ function imageURL(imgId, width){
 }
 
 </script>
-<script src="data-morph.js"></script>
+<!-- data-morph.js (4 MB)는 지연 로드 — 단어 클릭 시점에 동적 fetch (SW가 백그라운드로 미리 캐싱) -->
 <script>if(_splash)_splash.textContent='엔진 초기화 중…';</script>
 
 
@@ -5111,7 +5110,7 @@ function renderWorksList(){
     const repId = g.imgFrom || g.works[0];
     const w = _resolveWork(repId);
     const img = WORK_IMAGE[repId];
-    const imgURL = img ? imageURL(img, 480) : null;
+    const imgURL = img ? imageURL(img, 240) : null;
     const fallback = svgFallback(repId);
     const workCount = g.works.filter(wid => _resolveWork(wid)).length;
     const anyAGDT = g.works.some(hasAGDT);
@@ -5192,7 +5191,7 @@ function renderGroup(gid){
     const total = w.sections.length;
     const pct = total>0 ? Math.round(progress*100/total) : 0;
     const img = WORK_IMAGE[w.id];
-    const imgURL = img ? imageURL(img, 480) : null;
+    const imgURL = img ? imageURL(img, 240) : null;
     const fallback = svgFallback(w.id);
     const agdt = hasAGDT(w.id);
     // 두 layer: SVG 폴백(항상 그려짐) + 사진(로드되면 위에 덮어씌움)
@@ -5223,6 +5222,8 @@ function renderGroup(gid){
 function renderWork(workId){
   const w = WORKS.find(x=>x.id===workId);
   if(!w) return;
+  // 작품 본문 진입 — 단어 클릭 시 즉응을 위해 형태분석 데이터 미리 로드 시작 (백그라운드)
+  ensureMorph().catch(()=>{ /* SW 캐시 미스 + 오프라인 — 단어 클릭 시 재시도 */ });
   const img = WORK_IMAGE[w.id];
   const imgURL = img ? imageURL(img, 800) : null;
   const imgMeta = img ? IMAGES[img] : null;
@@ -5609,9 +5610,55 @@ function posClassOf(word){
   return '';
 }
 
+// ===== 형태분석 데이터 지연 로드 (data-morph.js, ~4 MB) =====
+// SW가 activate 후 백그라운드로 미리 받으므로 보통은 즉시 완료.
+// 미캐시 상태에서 단어 첫 클릭 시 한 번만 약 0.5 MB(gzip) 받음.
+let _morphLoadPromise = null;
+function ensureMorph(){
+  if (typeof MORPH_LOOKUP !== 'undefined') return Promise.resolve();
+  if (_morphLoadPromise) return _morphLoadPromise;
+  _morphLoadPromise = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'data-morph.js';
+    s.onload = () => resolve();
+    s.onerror = () => { _morphLoadPromise = null; reject(new Error('형태분석 데이터 로드 실패')); };
+    document.head.appendChild(s);
+  });
+  return _morphLoadPromise;
+}
+window.ensureMorph = ensureMorph;
+
 function openLookup(encWord){
   const w = decodeURIComponent(encWord);
   if(!w) return;
+  // 형태분석 데이터 미로드 시: 모달에 로딩 표시 후 비동기 fetch
+  if(typeof MORPH_LOOKUP === 'undefined'){
+    const modal = document.getElementById('modal');
+    const modalBg = document.getElementById('modal-bg');
+    modal.innerHTML = `
+      <button class="modal-close" onclick="_closeModal()" aria-label="닫기">×</button>
+      <div style="text-align:center;padding:34px 22px">
+        <div style="font-family:var(--font-grk);font-size:26px;color:var(--terracotta-d);font-weight:600;margin-bottom:14px;line-height:1.2">${w}</div>
+        <div style="font-size:13px;color:var(--black-glaze);margin-bottom:6px">형태분석 데이터 로딩 중…</div>
+        <div style="font-size:11px;color:var(--clay-d);font-style:italic">AGDT v2.1 · 37,154 키 · 한 번만 받습니다</div>
+      </div>
+    `;
+    modalBg.classList.add('open');
+    ensureMorph()
+      .then(() => openLookup(encWord))   // 로드 완료 시 다시 호출 (이제 가드 통과)
+      .catch(err => {
+        modal.innerHTML = `
+          <button class="modal-close" onclick="_closeModal()" aria-label="닫기">×</button>
+          <div style="padding:24px;text-align:center">
+            <div style="font-family:var(--font-grk);font-size:22px;color:var(--terracotta-d);margin-bottom:10px">${w}</div>
+            <div style="font-size:13px;color:var(--black-glaze)">${err.message}</div>
+            <div style="font-size:11px;color:var(--clay-d);margin-top:8px">네트워크 확인 후 다시 시도해 주세요.</div>
+            <div style="margin-top:14px"><a class="btn btn-sm btn-o" href="https://www.perseus.tufts.edu/hopper/morph?l=${encWord}&la=greek" target="_blank" rel="noopener">Perseus 형태분석 →</a></div>
+          </div>
+        `;
+      });
+    return;
+  }
   // 형태분석 룩업 시도
   const analyses = (typeof MORPH_LOOKUP !== 'undefined') ? MORPH_LOOKUP[w] : null;
   const accentBlock = accentInfoBlock(w);
