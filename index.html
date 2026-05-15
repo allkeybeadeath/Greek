@@ -27812,6 +27812,60 @@ function renderVocab(){
     if(wrongList.length) startQuiz('mc','g2k', wrongList, true);
   });
 }
+// ===== 헷갈리는 오답 생성 (v9 객관식 개선) =====
+// 단순 무작위 → 시각적·의미적·품사적 혼란도 점수 기반 선택.
+function _levenshtein(a, b){
+  const m = a.length, n = b.length;
+  if(!m) return n; if(!n) return m;
+  let prev = new Array(n + 1);
+  for(let j = 0; j <= n; j++) prev[j] = j;
+  for(let i = 1; i <= m; i++){
+    const cur = new Array(n + 1);
+    cur[0] = i;
+    for(let j = 1; j <= n; j++){
+      const c = a[i-1] === b[j-1] ? 0 : 1;
+      cur[j] = Math.min(prev[j] + 1, cur[j-1] + 1, prev[j-1] + c);
+    }
+    prev = cur;
+  }
+  return prev[n];
+}
+function _stripDiacritics(w){
+  if(!w) return '';
+  return w.normalize('NFD').replace(/[\u0300-\u036F]/g, '');
+}
+function _tokenizeKo(s){
+  if(!s) return new Set();
+  return new Set(s.split(/[\s,;··:·]+|\s*\/\s*|\s*\(\s*|\s*\)\s*/)
+                  .map(x => x.trim())
+                  .filter(x => x.length >= 2 && !/^(또는|혹은|및|등|것|수|중|또|에|을|를|의|이|가|은|는)$/.test(x)));
+}
+function pickConfusingDistractors(q, pool, n){
+  // q와 시각·의미·품사적으로 혼란되는 단어 n개를 pool에서 선택.
+  const cands = pool.filter(x => x.g !== q.g);
+  if(cands.length <= n) return cands.slice(0, n);
+  const qBase = _stripDiacritics(q.g).toLowerCase();
+  const qKoTokens = _tokenizeKo(q.ko);
+  const scored = cands.map(c => {
+    let s = 0;
+    if(c.pos === q.pos) s += 10;               // 같은 품사 강한 우선
+    const cBase = _stripDiacritics(c.g).toLowerCase();
+    const lev = _levenshtein(qBase, cBase);
+    const ml = Math.max(qBase.length, cBase.length, 1);
+    s += (1 - lev / ml) * 7;                   // 시각적 유사 (0~7)
+    const cKoTokens = _tokenizeKo(c.ko);
+    let overlap = 0;
+    for(const tk of cKoTokens) if(qKoTokens.has(tk)) overlap++;
+    if(overlap > 0) s += 4 + overlap * 2;      // 의미 토큰 겹침
+    // 동일한 lesson(과) 약간 우선 (학습 동시기 단어가 헷갈림)
+    if(c.l === q.l) s += 1.5;
+    s += Math.random() * 0.4;                  // 동점자 무작위 분산
+    return {c, s};
+  });
+  scored.sort((a, b) => b.s - a.s);
+  return scored.slice(0, n).map(x => x.c);
+}
+
 function startQuiz(mode, dir, pool, isWrong){
   if(pool.length<4){ toast('풀이 너무 작습니다 (최소 4개 필요).'); return; }
   vocabSession = { qIdx:0, total:Math.min(10, pool.length), right:0, wrong:0, mode, dir, q:null, pool, isWrong:!!isWrong };
@@ -27832,7 +27886,7 @@ function nextQuestion(){
   const sub = promptGr ? `${POS_LABELS[q.pos]||q.pos}${q.note?' · '+q.note:''}` : `<span class="grk" style="opacity:.5">위의 한국어 뜻에 맞는 그리스어를 고르세요</span>`;
 
   if(s.mode==='mc'){
-    const distractors = randPick(s.pool.filter(x=>x.g!==q.g), 3);
+    const distractors = pickConfusingDistractors(q, s.pool, 3);
     const opts = [...distractors, q].sort(()=>Math.random()-.5);
     area.innerHTML = `
       <div class="quiz-card fade-in">
@@ -27968,6 +28022,28 @@ function renderGrammar(){
     <h2 class="view-title fade-in"><span class="grk">Γραμματική</span>문법</h2>
     <div class="view-sub">${TOPICS.length}개 주제 · 학습 완료 <b>${S.topicsStudied.length}</b></div>
 
+    <div class="card" onclick="renderAccent()" style="cursor:pointer;border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%)">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Τόνοι</div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">악센트 학습</div>
+          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">5종 분류 · 전집 본문 자동 분석 · 유형 퀴즈 · Smyth §156-181</div>
+        </div>
+        <div style="font-size:22px;color:var(--terracotta)">→</div>
+      </div>
+    </div>
+
+    <div class="card" onclick="renderInflection()" style="cursor:pointer;border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%)">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Κλίσις</div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">변형 드릴 (Inflection)</div>
+          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">명사·동사 변화형 ↔ 형태분석 라벨 4지선다 · TOPICS 검증 데이터</div>
+        </div>
+        <div style="font-size:22px;color:var(--terracotta)">→</div>
+      </div>
+    </div>
+
     <div class="chips" id="cat-chips">
       ${[['all','전체'],['decl','격변화 (명사·형용사·대명사)'],['verb','동사 시제·법·분사']].map(([v,l])=>
         `<button class="chip ${grammarFilter.cat===v?'active':''}" data-v="${v}">${l}</button>`).join('')}
@@ -27990,6 +28066,469 @@ function renderGrammar(){
   document.querySelectorAll('#cat-chips .chip').forEach(c=> c.addEventListener('click',()=>{ grammarFilter.cat=c.dataset.v; renderGrammar(); }));
   document.querySelectorAll('#topic-list [data-id]').forEach(b=> b.addEventListener('click',()=> renderTopic(b.dataset.id)));
 }
+// ===== 악센트 학습 화면 =====
+const ACCENT_TYPES = [
+  {type:'oxytone',         greek:'ὀξύτονον',         korean:'옥시톤',
+    rule:'마지막 음절(ultima)에 예각(´).',
+    examples:['θεός','καλός','τιμή','ποιητής']},
+  {type:'paroxytone',      greek:'παροξύτονον',      korean:'파록시톤',
+    rule:'끝에서 둘째 음절(penult)에 예각(´).',
+    examples:['λόγος','λέγω','Σωκράτης','παιδεύω']},
+  {type:'proparoxytone',   greek:'προπαροξύτονον',   korean:'프로파록시톤',
+    rule:'끝에서 셋째 음절(antepenult)에 예각(´). ultima가 단음절일 때만 허용.',
+    examples:['ἄνθρωπος','ἔλεγον','ἄειδε','βασίλειον']},
+  {type:'perispomenon',    greek:'περισπώμενον',     korean:'페리스포메논',
+    rule:'마지막 음절(ultima)에 곡절(῀). 장음절(장모음·이중모음)에만 가능.',
+    examples:['γῆ','πᾶς','φιλῶ','τιμᾷ']},
+  {type:'properispomenon', greek:'προπερισπώμενον',  korean:'프로페리스포메논',
+    rule:'끝에서 둘째 음절(penult)에 곡절(῀). penult 장+ultima 단일 때.',
+    examples:['δῶρον','σῶμα','μῆνιν','οὗτος']}
+];
+
+let _accentCorpus = null;
+function getAccentCorpus(){
+  if(_accentCorpus) return _accentCorpus;
+  const set = new Set();
+  if(typeof WORKS !== 'undefined' && Array.isArray(WORKS)){
+    for(const wk of WORKS){
+      for(const sec of (wk.sections || [])){
+        const text = sec.text || '';
+        text.split(/[\s\.,;··:\?\!"\(\)\[\]\—\-]+/).forEach(w => {
+          const clean = w.trim().replace(/^[''«»"']+|[''«»"']+$/g, '');
+          if(clean.length >= 2 && /[\u0370-\u03FF\u1F00-\u1FFF]/.test(clean)){
+            set.add(clean);
+          }
+        });
+      }
+    }
+  }
+  _accentCorpus = Array.from(set);
+  return _accentCorpus;
+}
+
+let _accentByType = null;
+function getCorpusByType(){
+  if(_accentByType) return _accentByType;
+  const corpus = getAccentCorpus();
+  const by = {oxytone:[], paroxytone:[], proparoxytone:[],
+              perispomenon:[], properispomenon:[], barytone:[], atonic:[]};
+  for(const w of corpus){
+    const r = classifyAccent(w);
+    if(by[r.type]) by[r.type].push(w);
+  }
+  _accentByType = by;
+  return by;
+}
+
+function renderAccent(){
+  const byType = getCorpusByType();
+  const corpusCounts = ACCENT_TYPES.map(t => byType[t.type].length).reduce((a,b)=>a+b,0);
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="setTab('grammar')">← 문법 목록</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Τόνοι</span>악센트</h2>
+    <div class="view-sub">5종 분류 · Smyth's Greek Grammar §156-181 · 전집 코퍼스 ${corpusCounts.toLocaleString()}어 자동 분석</div>
+
+    <div class="card">
+      <div style="font-size:13px;line-height:1.7;color:var(--black-glaze-l)">
+        고전 그리스어 악센트는 마지막 세 음절(antepenult · penult · ultima) 중 한 곳에만 위치합니다.
+        예각(´)·둔각(\`)·곡절(῀) 세 표기와 위치의 조합으로 다섯 유형이 결정됩니다.
+        둔각은 문장 중간에서 oxytone의 예각이 변한 것으로(βαρύτονον), 본디 유형은 아닙니다.
+      </div>
+    </div>
+
+    ${ACCENT_TYPES.map(t => {
+      const corpusWords = (byType[t.type] || []).slice().sort(()=>Math.random()-.5).slice(0,12);
+      return `
+      <div class="card" style="border-left:3px solid var(--terracotta)">
+        <div style="font-family:var(--font-grk);font-size:22px;color:var(--terracotta-d);font-weight:600">${t.greek}</div>
+        <div style="font-size:14px;color:var(--black-glaze);font-weight:600;margin-top:2px">${t.korean}</div>
+        <div style="font-size:13px;color:var(--black-glaze-l);margin-top:6px;line-height:1.6">${t.rule}</div>
+        <div style="margin-top:10px">
+          <div style="font-size:11px;color:var(--clay-d);margin-bottom:4px">전형 예시</div>
+          <div style="font-family:var(--font-grk);font-size:18px;color:var(--terracotta-d);letter-spacing:.05em">${t.examples.join(' · ')}</div>
+        </div>
+        ${corpusWords.length ? `
+          <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--clay)">
+            <div style="font-size:11px;color:var(--clay-d);margin-bottom:4px">전집 본문 출현 ${byType[t.type].length}개 중 ${corpusWords.length}</div>
+            <div style="font-family:var(--font-grk);font-size:14.5px;color:var(--black-glaze-l);line-height:1.9">${corpusWords.join(' · ')}</div>
+          </div>` : ''}
+      </div>`;
+    }).join('')}
+
+    <div class="card">
+      <div style="font-family:var(--font-display);font-size:16px;color:var(--terracotta-d);font-weight:600;margin-bottom:8px">악센트 규칙 요약</div>
+      <ul style="font-size:13px;line-height:1.8;color:var(--black-glaze-l);padding-left:18px;margin:0">
+        <li><b>제한 원칙(law of limitation)</b>: 악센트는 마지막 세 음절에만 위치 가능.</li>
+        <li><b>장단 제약(σωτῆρα 규칙)</b>: ultima가 장음절이면 antepenult에 예각 불가. 예 ἄνθρωπος → 속격 ἀνθρώπου (강세 이동).</li>
+        <li><b>곡절 제약</b>: 곡절은 본디 장음절(장모음·이중모음·iota subscript)에만 가능.</li>
+        <li><b>penult 곡절 조건</b>: penult가 장음절이고 ultima가 단음절이면 penult의 강세는 반드시 곡절. 예 δῶρον (장+단). ultima가 장음절이면 penult는 예각. 예 δώρου.</li>
+        <li><b>둔각 변환</b>: oxytone이 후속 단어와 만나면 ultima의 예각이 둔각으로 바뀜. 예 καλός φίλος → καλὸς φίλος.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div style="font-family:var(--font-display);font-size:16px;color:var(--terracotta-d);font-weight:600;margin-bottom:8px">악센트 유형 퀴즈</div>
+      <div style="font-size:12px;color:var(--clay-d);margin-bottom:10px">본문 단어를 임의 추출해 10문제 출제. 정답률 따라 XP 적립.</div>
+      <div id="accent-quiz">
+        <button class="btn" onclick="startAccentQuiz()">시작 →</button>
+      </div>
+    </div>
+  `;
+}
+
+function startAccentQuiz(){
+  const byType = getCorpusByType();
+  const types = ['oxytone','paroxytone','proparoxytone','perispomenon','properispomenon'];
+  const valid = types.filter(t => byType[t] && byType[t].length >= 2);
+  if(valid.length < 4){
+    document.getElementById('accent-quiz').innerHTML =
+      '<div style="color:var(--clay-d);font-size:13px">본문에서 충분한 유형이 검출되지 않았습니다.</div>';
+    return;
+  }
+  const questions = [];
+  // 각 유형이 균형 있게 나오도록
+  for(let i = 0; i < 10; i++){
+    const t = valid[i % valid.length];
+    const word = byType[t][Math.floor(Math.random() * byType[t].length)];
+    const others = valid.filter(x => x !== t).sort(()=>Math.random()-.5).slice(0, 3);
+    const options = [t, ...others].sort(()=>Math.random()-.5);
+    questions.push({word, correct: t, options});
+  }
+  questions.sort(()=>Math.random()-.5);
+  renderAccentQuiz(questions, 0, 0);
+}
+
+function renderAccentQuiz(questions, idx, score){
+  const TN = {
+    oxytone:'ὀξύτονον · 옥시톤',
+    paroxytone:'παροξύτονον · 파록시톤',
+    proparoxytone:'προπαροξύτονον · 프로파록시톤',
+    perispomenon:'περισπώμενον · 페리스포메논',
+    properispomenon:'προπερισπώμενον · 프로페리스포메논'
+  };
+  const host = document.getElementById('accent-quiz');
+  if(!host) return;
+  const q = questions[idx];
+  if(!q){
+    const total = questions.length;
+    const pct = Math.round(100 * score / total);
+    host.innerHTML = `
+      <div style="text-align:center;padding:14px 0">
+        <div style="font-family:var(--font-display);font-size:28px;color:var(--terracotta-d);font-weight:600">${score}/${total}</div>
+        <div style="font-size:13px;color:var(--clay-d);margin-top:4px">정답률 ${pct}%</div>
+        <button class="btn" style="margin-top:14px" onclick="startAccentQuiz()">다시 →</button>
+      </div>`;
+    if(typeof S !== 'undefined' && typeof saveState === 'function'){
+      S.xp = (S.xp || 0) + score * 2;
+      saveState();
+    }
+    return;
+  }
+  host.innerHTML = `
+    <div style="font-size:11px;color:var(--clay-d);margin-bottom:8px">문제 ${idx+1}/${questions.length} · 점수 ${score}</div>
+    <div style="font-family:var(--font-grk);font-size:34px;color:var(--terracotta-d);font-weight:600;text-align:center;padding:14px 0;letter-spacing:.05em">${q.word}</div>
+    <div style="font-size:12px;color:var(--clay-d);text-align:center;margin-bottom:12px">이 단어의 악센트 유형은?</div>
+    ${q.options.map(opt => `
+      <button class="btn btn-o" style="display:block;width:100%;margin:6px 0;text-align:left;font-size:13px" data-opt="${opt}">
+        ${TN[opt]}
+      </button>`).join('')}
+  `;
+  host.querySelectorAll('[data-opt]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const chosen = btn.dataset.opt;
+      const correct = chosen === q.correct;
+      host.querySelectorAll('[data-opt]').forEach(b => {
+        b.disabled = true;
+        if(b.dataset.opt === q.correct){
+          b.style.background = 'var(--terracotta)';
+          b.style.color = '#fff';
+          b.style.borderColor = 'var(--terracotta-d)';
+        } else if(b === btn){
+          b.style.opacity = '0.45';
+        }
+      });
+      setTimeout(() => renderAccentQuiz(questions, idx + 1, score + (correct ? 1 : 0)), 850);
+    });
+  });
+}
+
+// ===== 변형 드릴 (Inflection drill) =====
+// TOPICS의 items 활용: form ↔ info 4지선다. 같은 topic의 다른 items를 오답으로 우선,
+// 부족하면 다른 topic에서 Levenshtein 가까운 form 보충.
+let _inflectionPool = null;
+function getInflectionPool(){
+  if(_inflectionPool) return _inflectionPool;
+  const pool = [];
+  if(typeof TOPICS !== 'undefined'){
+    for(const tp of TOPICS){
+      if(!tp.items || !tp.items.length) continue;
+      for(const it of tp.items){
+        if(!it.form || !it.info) continue;
+        pool.push({form: it.form, info: it.info, topicTitle: tp.title, topicId: tp.id});
+      }
+    }
+  }
+  _inflectionPool = pool;
+  return pool;
+}
+function renderInflection(){
+  const pool = getInflectionPool();
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="setTab('grammar')">← 문법 목록</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Κλίσις</span>변형 드릴</h2>
+    <div class="view-sub">${pool.length}개 변화형 · TOPICS 검증 데이터 · 형태→그리스어 객관식</div>
+
+    <div class="card">
+      <div style="font-size:13px;line-height:1.7;color:var(--black-glaze-l)">
+        문법 토픽의 paradigm 표에 등재된 변화형을 임의 추출해 출제합니다.
+        오답은 같은 패러다임의 다른 셀에서 우선 선택하고, 부족하면 시각적으로 비슷한 다른 형태에서 보충합니다.
+        형태분석 라벨(예 "단수 대격 남성")을 보고 정확한 그리스어 변화형을 고르세요.
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-family:var(--font-display);font-size:16px;color:var(--terracotta-d);font-weight:600;margin-bottom:8px">시작</div>
+      <div style="font-size:12px;color:var(--clay-d);margin-bottom:10px">10문제 · 점수×2 XP 적립</div>
+      <div id="inflection-quiz">
+        <button class="btn" onclick="startInflectionDrill()">시작 →</button>
+      </div>
+    </div>
+  `;
+}
+function startInflectionDrill(){
+  const pool = getInflectionPool();
+  if(pool.length < 10){
+    document.getElementById('inflection-quiz').innerHTML =
+      '<div style="color:var(--clay-d);font-size:13px">데이터 부족 (10문항 출제 불가).</div>';
+    return;
+  }
+  const used = new Set();
+  const questions = [];
+  let attempts = 0;
+  while(questions.length < 10 && attempts < 200){
+    attempts++;
+    const q = pool[Math.floor(Math.random() * pool.length)];
+    const key = q.topicId + '|' + q.form + '|' + q.info;
+    if(used.has(key)) continue;
+    used.add(key);
+    const sameTopic = pool.filter(x =>
+      x.topicId === q.topicId && (x.form !== q.form || x.info !== q.info));
+    let distractors;
+    if(sameTopic.length >= 3){
+      distractors = sameTopic.sort(()=>Math.random()-.5).slice(0, 3);
+    } else {
+      const qBase = _stripDiacritics(q.form);
+      const others = pool.filter(x => x.form !== q.form)
+        .map(x => ({x, d: _levenshtein(_stripDiacritics(x.form), qBase)}))
+        .sort((a,b) => a.d - b.d)
+        .slice(0, 12)
+        .sort(()=>Math.random()-.5)
+        .map(o => o.x);
+      distractors = [...sameTopic];
+      for(const o of others){
+        if(distractors.length >= 3) break;
+        if(!distractors.some(d => d.form === o.form)) distractors.push(o);
+      }
+    }
+    const options = [q, ...distractors].sort(()=>Math.random()-.5);
+    questions.push({q, options});
+  }
+  renderInflectionQuiz(questions, 0, 0);
+}
+function renderInflectionQuiz(questions, idx, score){
+  const host = document.getElementById('inflection-quiz');
+  if(!host) return;
+  const Q = questions[idx];
+  if(!Q){
+    const total = questions.length;
+    const pct = Math.round(100 * score / total);
+    host.innerHTML = `
+      <div style="text-align:center;padding:14px 0">
+        <div style="font-family:var(--font-display);font-size:28px;color:var(--terracotta-d);font-weight:600">${score}/${total}</div>
+        <div style="font-size:13px;color:var(--clay-d);margin-top:4px">정답률 ${pct}%</div>
+        <button class="btn" style="margin-top:14px" onclick="startInflectionDrill()">다시 →</button>
+      </div>`;
+    if(typeof S !== 'undefined' && typeof saveState === 'function'){
+      S.xp = (S.xp || 0) + score * 2;
+      saveState();
+    }
+    return;
+  }
+  host.innerHTML = `
+    <div style="font-size:11px;color:var(--clay-d);margin-bottom:8px">문제 ${idx+1}/${questions.length} · 점수 ${score}</div>
+    <div style="font-size:12px;color:var(--clay-d);margin-bottom:4px">${Q.q.topicTitle}</div>
+    <div style="font-size:18px;font-weight:600;color:var(--black-glaze);text-align:center;padding:10px 0">${Q.q.info}</div>
+    <div style="font-size:12px;color:var(--clay-d);text-align:center;margin-bottom:12px">위 라벨에 맞는 변화형을 고르세요</div>
+    ${Q.options.map(o => `
+      <button class="btn btn-o" style="display:block;width:100%;margin:6px 0;text-align:center;font-family:var(--font-grk);font-size:18px;letter-spacing:.05em" data-f="${o.form}">${o.form}</button>
+    `).join('')}
+  `;
+  host.querySelectorAll('[data-f]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const correct = btn.dataset.f === Q.q.form;
+      host.querySelectorAll('[data-f]').forEach(b => {
+        b.disabled = true;
+        if(b.dataset.f === Q.q.form){
+          b.style.background = 'var(--terracotta)';
+          b.style.color = '#fff';
+          b.style.borderColor = 'var(--terracotta-d)';
+        } else if(b === btn){
+          b.style.opacity = '0.45';
+        }
+      });
+      setTimeout(() => renderInflectionQuiz(questions, idx + 1, score + (correct ? 1 : 0)), 850);
+    });
+  });
+}
+
+// ===== Cloze deletion (빈칸 채우기) =====
+// 실제 본문(WORKS)에서 임의 구절 추출 → 한 단어 빈칸 → 같은 구절 + 길이 비슷 단어로 4지선다.
+function _cleanGrkWord(w){
+  if(!w) return '';
+  return w.replace(/^[^\u0370-\u03FF\u1F00-\u1FFF]+|[^\u0370-\u03FF\u1F00-\u1FFF]+$/g, '');
+}
+function pickClozeQuestion(){
+  if(typeof WORKS === 'undefined' || !WORKS.length) return null;
+  for(let attempt = 0; attempt < 50; attempt++){
+    const wk = WORKS[Math.floor(Math.random() * WORKS.length)];
+    if(!wk.sections || !wk.sections.length) continue;
+    const sec = wk.sections[Math.floor(Math.random() * wk.sections.length)];
+    if(!sec.text) continue;
+    // 구절 분할: 줄바꿈 + 그리스 구두점(· ;) + 라틴 구두점(. !)
+    const clauses = sec.text.split(/\n|[\.;·!]+/)
+      .map(c => c.replace(/^\s*\d+\s*/, '').trim())   // verse 번호 제거
+      .filter(c => c.length >= 14);
+    if(!clauses.length) continue;
+    const clause = clauses[Math.floor(Math.random() * clauses.length)];
+    const tokens = clause.split(/\s+/).filter(w => /[\u0370-\u03FF\u1F00-\u1FFF]/.test(w));
+    if(tokens.length < 5 || tokens.length > 18) continue;
+    const cands = [];
+    for(let i = 0; i < tokens.length; i++){
+      const c = _cleanGrkWord(tokens[i]);
+      if(c.length >= 4) cands.push({i, clean: c});
+    }
+    if(!cands.length) continue;
+    const pick = cands[Math.floor(Math.random() * cands.length)];
+    return {
+      workTitle: wk.title || wk.id,
+      sectionLabel: sec.label || sec.n || '',
+      tokens, blankIdx: pick.i, blankWord: pick.clean
+    };
+  }
+  return null;
+}
+function buildClozeDistractors(blank, tokens, corpus){
+  const blankBase = _stripDiacritics(blank);
+  let cands = tokens
+    .map(_cleanGrkWord)
+    .filter(w => w && w !== blank && w.length >= 3);
+  if(cands.length < 6 && corpus){
+    const more = corpus.filter(w => w !== blank
+      && Math.abs(w.length - blank.length) <= 2
+      && !cands.includes(w));
+    more.sort(()=>Math.random()-.5);
+    for(const m of more.slice(0, 14)) cands.push(m);
+  }
+  const scored = cands.map(w => ({w, d: _levenshtein(_stripDiacritics(w), blankBase)}));
+  const med = scored.filter(s => s.d >= 1 && s.d <= 6);
+  const pool = med.length >= 3 ? med : scored;
+  return pool.sort(()=>Math.random()-.5).slice(0, 3).map(s => s.w);
+}
+function renderCloze(){
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="setTab('read')">← 원문 목록</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Ἔλλειψις</span>빈칸 채우기 (Cloze)</h2>
+    <div class="view-sub">전집 13편 본문에서 임의 추출 · 한 구절 한 단어 빈칸</div>
+
+    <div class="card">
+      <div style="font-size:13px;line-height:1.7;color:var(--black-glaze-l)">
+        실제 본문(Perseus DL)에서 임의 구절을 뽑고, 그 안의 한 단어를 빈칸으로 둡니다.
+        같은 구절 안의 다른 단어와 시각적으로 비슷한 형태가 오답으로 제시됩니다.
+        문맥·문법 일치를 종합해 정답을 고르세요.
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-family:var(--font-display);font-size:16px;color:var(--terracotta-d);font-weight:600;margin-bottom:8px">시작</div>
+      <div style="font-size:12px;color:var(--clay-d);margin-bottom:10px">10문제 · 점수×3 XP 적립 (난이도 보정)</div>
+      <div id="cloze-quiz">
+        <button class="btn" onclick="startCloze()">시작 →</button>
+      </div>
+    </div>
+  `;
+}
+function startCloze(){
+  const corpus = (typeof getAccentCorpus === 'function') ? getAccentCorpus() : [];
+  const questions = [];
+  let tried = 0;
+  while(questions.length < 10 && tried < 120){
+    tried++;
+    const q = pickClozeQuestion();
+    if(!q) continue;
+    const distractors = buildClozeDistractors(q.blankWord, q.tokens, corpus);
+    if(distractors.length < 3) continue;
+    const options = [q.blankWord, ...distractors].sort(()=>Math.random()-.5);
+    questions.push({...q, options});
+  }
+  if(questions.length < 3){
+    document.getElementById('cloze-quiz').innerHTML =
+      '<div style="color:var(--clay-d);font-size:13px">출제 가능한 구절이 부족합니다.</div>';
+    return;
+  }
+  renderClozeQuiz(questions, 0, 0);
+}
+function renderClozeQuiz(questions, idx, score){
+  const host = document.getElementById('cloze-quiz');
+  if(!host) return;
+  const Q = questions[idx];
+  if(!Q){
+    const total = questions.length;
+    const pct = Math.round(100 * score / total);
+    host.innerHTML = `
+      <div style="text-align:center;padding:14px 0">
+        <div style="font-family:var(--font-display);font-size:28px;color:var(--terracotta-d);font-weight:600">${score}/${total}</div>
+        <div style="font-size:13px;color:var(--clay-d);margin-top:4px">정답률 ${pct}%</div>
+        <button class="btn" style="margin-top:14px" onclick="startCloze()">다시 →</button>
+      </div>`;
+    if(typeof S !== 'undefined' && typeof saveState === 'function'){
+      S.xp = (S.xp || 0) + score * 3;
+      saveState();
+    }
+    return;
+  }
+  const display = Q.tokens.map((tok, i) => {
+    if(i === Q.blankIdx){
+      return '<span style="background:var(--terracotta-d);color:#fff;padding:1px 14px;border-radius:4px;letter-spacing:.1em">_____</span>';
+    }
+    return tok;
+  }).join(' ');
+  host.innerHTML = `
+    <div style="font-size:11px;color:var(--clay-d);margin-bottom:8px">문제 ${idx+1}/${questions.length} · 점수 ${score}</div>
+    <div style="font-size:11px;color:var(--clay-d);margin-bottom:4px">${Q.workTitle} · ${Q.sectionLabel}</div>
+    <div style="font-family:var(--font-grk);font-size:17px;line-height:1.9;color:var(--black-glaze);padding:14px 4px;text-align:center">${display}</div>
+    <div style="font-size:12px;color:var(--clay-d);text-align:center;margin-bottom:12px">빈칸에 들어갈 단어는?</div>
+    ${Q.options.map(o => `
+      <button class="btn btn-o" style="display:block;width:100%;margin:6px 0;text-align:center;font-family:var(--font-grk);font-size:18px;letter-spacing:.05em" data-w="${o}">${o}</button>
+    `).join('')}
+  `;
+  host.querySelectorAll('[data-w]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const correct = btn.dataset.w === Q.blankWord;
+      host.querySelectorAll('[data-w]').forEach(b => {
+        b.disabled = true;
+        if(b.dataset.w === Q.blankWord){
+          b.style.background = 'var(--terracotta)';
+          b.style.color = '#fff';
+          b.style.borderColor = 'var(--terracotta-d)';
+        } else if(b === btn){
+          b.style.opacity = '0.45';
+        }
+      });
+      setTimeout(() => renderClozeQuiz(questions, idx + 1, score + (correct ? 1 : 0)), 950);
+    });
+  });
+}
+
 function renderTopic(id){
   const t = TOPICS.find(x=>x.id===id);
   if(!t) return;
@@ -28095,6 +28634,17 @@ function renderRead(){
   view.innerHTML = `
     <h2 class="view-title fade-in"><span class="grk">Ἀνάγνωσις</span>원문</h2>
     <div class="view-sub">${WORKS.length}개 전집(Perseus DL) · ${READINGS.length}개 짧은 발췌</div>
+
+    <div class="card" onclick="renderCloze()" style="cursor:pointer;border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Ἔλλειψις</div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">빈칸 채우기 (Cloze)</div>
+          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">전집 본문에서 임의 구절 한 단어 빈칸 · 문맥·문법 일치</div>
+        </div>
+        <div style="font-size:22px;color:var(--terracotta)">→</div>
+      </div>
+    </div>
 
     <div class="chips" style="margin-bottom:10px">
       <button class="chip ${readFilter.mode==='works'?'active':''}" data-mode="works"><b>전집</b> ${WORKS.length}편</button>
@@ -28342,11 +28892,124 @@ function renderPassage(id){
     toast('메모 저장됨');
   });
 }
+// ===== 악센트 분석 (Smyth's Greek Grammar §156-181) =====
+// Unicode NFD 결합기호 기반. 5종 분류 + barytone + atonic.
+const _ACC = {
+  ACUTE:'\u0301', GRAVE:'\u0300', CIRCUMFLEX:'\u0342',
+  SMOOTH:'\u0313', ROUGH:'\u0314', DIAERESIS:'\u0308',
+  IOTA_SUB:'\u0345', MACRON:'\u0304'
+};
+const _GRK_VOWELS = new Set('αεηιουωΑΕΗΙΟΥΩ');
+const _DIPH_1 = new Set('αεηοΑΕΗΟυΥ');
+const _DIPH_2 = new Set('ιυΙΥ');
+function _isCombining(c){ return /\p{M}/u.test(c); }
+
+function syllabifyGreek(word){
+  // 그리스어 단어 → 음절 핵 배열 (이중모음 합침, diaeresis 시 분리)
+  const nfd = word.normalize('NFD');
+  const syls = [];
+  let i = 0;
+  while(i < nfd.length){
+    const c = nfd[i];
+    if(_GRK_VOWELS.has(c)){
+      const v = c;
+      const marks = new Set();
+      let j = i + 1;
+      while(j < nfd.length && _isCombining(nfd[j])){ marks.add(nfd[j]); j++; }
+      let secondV = '';
+      if(_DIPH_1.has(v) && j < nfd.length && _DIPH_2.has(nfd[j])){
+        let k = j + 1;
+        const tmpMarks = new Set();
+        while(k < nfd.length && _isCombining(nfd[k])){ tmpMarks.add(nfd[k]); k++; }
+        if(!tmpMarks.has(_ACC.DIAERESIS)){
+          secondV = nfd[j];
+          tmpMarks.forEach(m => marks.add(m));
+          j = k;
+        }
+      }
+      syls.push({vowels: v + secondV, marks: marks, idx: syls.length});
+      i = j;
+    } else {
+      i++;
+    }
+  }
+  return syls;
+}
+
+function classifyAccent(word){
+  if(!word) return {type:'no_vowel', greek:'', korean:'', syllableCount:0};
+  const syls = syllabifyGreek(word);
+  const n = syls.length;
+  if(n === 0) return {type:'no_vowel', greek:'', korean:'모음 없음', syllableCount:0};
+  let accIdx = -1, mark = null;
+  for(const s of syls){
+    if(s.marks.has(_ACC.ACUTE)){ accIdx = s.idx; mark = 'acute'; break; }
+    if(s.marks.has(_ACC.CIRCUMFLEX)){ accIdx = s.idx; mark = 'circumflex'; break; }
+    if(s.marks.has(_ACC.GRAVE)){ accIdx = s.idx; mark = 'grave'; break; }
+  }
+  if(accIdx === -1){
+    return {type:'atonic', greek:'ἄτονον', korean:'무강세 (전·후접어 가능)',
+            accentIdx:-1, position:null, mark:null, syllableCount:n};
+  }
+  const posFromEnd = accIdx - (n - 1);
+  const posMap = {'0':'ultima','-1':'penult','-2':'antepenult'};
+  const posLabel = posMap[String(posFromEnd)] || 'beyond';
+  if(mark === 'grave'){
+    return {type:'barytone', greek:'βαρύτονον',
+            korean:'바리톤 — oxytone의 문장 중간 변형',
+            accentIdx:accIdx, position:posLabel, mark:'grave', syllableCount:n};
+  }
+  const map = {
+    'acute': {
+      '0':  ['oxytone',       'ὀξύτονον',       '옥시톤 — 마지막 음절 예각'],
+      '-1': ['paroxytone',    'παροξύτονον',    '파록시톤 — 끝에서 둘째 음절 예각'],
+      '-2': ['proparoxytone', 'προπαροξύτονον', '프로파록시톤 — 끝에서 셋째 음절 예각']
+    },
+    'circumflex': {
+      '0':  ['perispomenon',     'περισπώμενον',     '페리스포메논 — 마지막 음절 곡절'],
+      '-1': ['properispomenon',  'προπερισπώμενον',  '프로페리스포메논 — 끝에서 둘째 음절 곡절']
+    }
+  };
+  const f = map[mark] && map[mark][String(posFromEnd)];
+  if(f) return {type:f[0], greek:f[1], korean:f[2],
+                accentIdx:accIdx, position:posLabel, mark:mark, syllableCount:n};
+  return {type:'unknown', greek:'', korean:'',
+          accentIdx:accIdx, position:posLabel, mark:mark, syllableCount:n};
+}
+
+function stripAccent(word){
+  // 악센트만 제거 (breathing·iota subscript는 유지) — 퀴즈용
+  if(!word) return '';
+  return word.normalize('NFD')
+    .replace(new RegExp('[' + _ACC.ACUTE + _ACC.GRAVE + _ACC.CIRCUMFLEX + ']', 'g'), '')
+    .normalize('NFC');
+}
+
+function accentInfoBlock(w){
+  // 단어 분석 팝업용 악센트 정보 HTML 조각
+  const a = classifyAccent(w);
+  if(a.type === 'no_vowel') return '';
+  const posKor = {ultima:'마지막', penult:'끝에서 둘째', antepenult:'끝에서 셋째'}[a.position] || '';
+  const markKor = {acute:'예각 ´', circumflex:'곡절 ῀', grave:'둔각 `'}[a.mark] || '';
+  return `
+    <div style="background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);
+                border-left:3px solid var(--terracotta);
+                padding:8px 12px;margin-bottom:10px;border-radius:6px;font-size:12px">
+      <div style="color:var(--terracotta-d);font-weight:600">악센트 ·
+        ${a.greek ? `<span style="font-family:var(--font-grk)">${a.greek}</span> · ` : ''}${a.korean}
+      </div>
+      ${a.position ? `<div style="color:var(--clay-d);margin-top:3px;font-size:11px">
+        ${a.syllableCount}음절 · ${posKor} 음절 · ${markKor}
+      </div>` : ''}
+    </div>`;
+}
+
 function openLookup(encWord){
   const w = decodeURIComponent(encWord);
   if(!w) return;
   // 형태분석 룩업 시도
   const analyses = (typeof MORPH_LOOKUP !== 'undefined') ? MORPH_LOOKUP[w] : null;
+  const accentBlock = accentInfoBlock(w);
   const perseusURL = `https://www.perseus.tufts.edu/hopper/morph?l=${encWord}&la=greek`;
   const logeionURL = `https://logeion.uchicago.edu/${encWord}`;
   const modal = document.getElementById('modal');
@@ -28360,6 +29023,7 @@ function openLookup(encWord){
       : (hasAuto ? '혼합 분석 (수동 + 자동)' : 'AGDT 수동 분석 · ' + analyses.length + '가지 가능성');
     body = `
       <div style="font-family:var(--font-grk);font-size:28px;color:var(--terracotta-d);font-weight:600;line-height:1.2;margin-bottom:8px">${w}</div>
+      ${accentBlock}
       <div style="font-size:11px;color:var(--clay-d);margin-bottom:10px">${sourceLabel}</div>
       ${analyses.map((a,i)=>`
         <div style="background:var(--ivory-d);border:1px solid var(--clay);border-radius:8px;padding:11px 13px;margin-bottom:8px${a.auto?';opacity:.92':''}">
@@ -28378,6 +29042,7 @@ function openLookup(encWord){
   } else {
     body = `
       <div style="font-family:var(--font-grk);font-size:28px;color:var(--terracotta-d);font-weight:600;line-height:1.2;margin-bottom:8px">${w}</div>
+      ${accentBlock}
       <div style="font-size:12px;color:var(--clay-d);margin-bottom:14px;line-height:1.5">이 작품은 AGDT 검증 분석이 등록되지 않았습니다.<br>외부 사전에서 형태·의미를 확인하세요.</div>
       <div class="btn-row" style="flex-wrap:wrap">
         <a class="btn btn-sm" href="${perseusURL}" target="_blank" rel="noopener">Perseus Morpheus ↗</a>
