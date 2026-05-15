@@ -1,5 +1,5 @@
 /* ============================================================================
-   Ἑλληνικὴ Παιδεία — Service Worker (v41)
+   Ἑλληνικὴ Παιδεία — Service Worker (v42)
    
    캐시 전략:
    - CRITICAL_SHELL: install 시 즉시 캐시 (≈150 KB) — 첫 SW 활성 빠름
@@ -9,19 +9,16 @@
    - espeakng.*.js, espeakng.worker.data: lazy — 사용자가 eSpeak NG 시스템을 처음
                      선택했을 때만 받아옴. 같은 origin 요청이므로 일반 fetch
                      intercept가 자동으로 캐시한다 (v36).
+   - 학자 낭독 자원 (ancientgreek.eu mp3, soundcloud.com): cross-origin 으로
+                     SW 가 가로채지 않음 (아래 url.origin 체크). 브라우저 기본
+                     처리. v42 의 SCHOLAR_AUDIO 카탈로그가 이들을 참조.
    - Wikimedia 이미지: cache-first (이미지는 거의 안 변함, 한국→Wikimedia
                                      latency 절감, 두 번째 사용부터 즉시)
    - Google Fonts: stale-while-revalidate
    
-   v41 변경: index.html network-first
-     v40 의 cache-first 정책은 경로 변경(예: espeak/ 평탄화) 후 한 사이클 동안
-     stale HTML 이 서빙되어, 새 SW 가 활성된 직후에도 옛 경로로 자원을 요청하는
-     race window 가 존재했다. HTML 만 network-first 로 분기하여 다음 방문 즉시
-     새 코드가 전파되도록 한다. 오프라인 시에는 캐시 폴백.
-   
    새 버전 배포 시 CACHE_VERSION만 올리면 됩니다.
    ============================================================================ */
-const CACHE_VERSION = 'v41';
+const CACHE_VERSION = 'v42';
 const CACHE_NAME    = `paideia-${CACHE_VERSION}`;
 const IMG_CACHE     = `paideia-img-${CACHE_VERSION}`;
 

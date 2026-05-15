@@ -105,6 +105,26 @@ paideia/
 
 (3) **인앱 진단 modal** (`window._appDiagnose`). 홈 푸터의 `진단` 링크에서 호출. `MessageChannel` 로 SW 의 `CACHE_VERSION` 을 질의 (sw.js `getVersion` 메시지 핸들러) → `APP_VERSION` 과 비교하여 불일치 또는 `registration.waiting` 존재 시 경고. "강제 새로고침" 버튼은 `reg.waiting.postMessage('skipWaiting')` + `reg.update()` 후 cache-busting 쿼리 `?fresh=<ts>` 로 reload. "전체 초기화" 는 기존 `reset.html` 로 연결. 옛 SW (v40 이하) 가 응답 없을 때는 1500 ms 타임아웃 후 `(응답 없음)` 표기 — graceful degradation.
 
+**v42**: 학자 낭독 자원 통합 — TTS 4 종 (eSpeak NG · OS Modern · Erasmian · 복원 Attic) 은 임의 텍스트에 대해 자연도·정확도·일관성 중 하나만 만족시킨다는 본질적 한계가 있다 (§6 참조). 본 변경은 *특정 구절*에 한해 학자의 인간 낭독을 외부 호스트에서 스트리밍하여 자연도·정확도를 동시에 충족.
+
+자료 출처와 본 앱 12 작품과의 매칭:
+
+(a) **Ioannis Stratakis** (`ancientgreek.eu`) — 직접 MP3 링크 가능. 복원 고전 발음.
+  - Plato *Apology* §17 → `apology-plato.mp3` (오디오북 ch.01 무료 샘플)
+  - Xenophon *Anabasis* 1.1 → `anabasis-1.1.mp3` (무료 공개)
+  - Hesiod *Theogony* 1-50 섹션 (실제 녹음은 v.1-21) → `theogony.mp3` (무료)
+  - Herodotus *Histories* 1.1-4 → `h-histories1.1-4.mp3` (무료 · Ionic 방언)
+
+(b) **SORGLL · Stephen G. Daitz** (rhapsodoi SoundCloud) — pitch accent 재현 시도.
+  - Homer *Iliad* 1.1-52 → SoundCloud widget 임베드
+  - Homer *Odyssey* 1.1-21 → SoundCloud widget 임베드
+
+매칭된 6/12 작품의 해당 섹션에서 reading view 액션 행에 `📻 학자 낭독` 버튼이 노출되며, 누르면 modal 에 인라인 `<audio>` 또는 SoundCloud iframe 이 뜬다. 카탈로그는 `SCHOLAR_AUDIO` 객체 (index.html, PRON_DIALECTS 직후) 에 정의되어 있어 lab 구성원이 추가 녹음을 발견하면 그 자리에 항목만 더하면 된다. MP3 onerror·iframe 실패 시 모두 출처 페이지 새 탭 폴백.
+
+라이선스: Stratakis 자료는 그의 사이트가 명시한 "free" 표기 자원이거나 유료 오디오북의 공식 무료 prologue 샘플만 사용. SORGLL 자료는 공개 SoundCloud 임베드. 본 PWA 는 어떤 자료도 재배포하지 않으며 외부 호스트로 스트리밍만 한다. SW 의 cross-origin 분기 (`url.origin !== self.location.origin`) 에 의해 학자 낭독 요청은 가로채지 않으며 캐시도 하지 않는다.
+
+음성 합성의 기존 4 종은 그대로 유지 — 학자 녹음이 없는 8/12 작품과 어휘·문법 학습용 임의 텍스트는 여전히 TTS 가 필요하다. 기본 TTS 시스템도 변경하지 않음 (v39 의 eSpeak NG 기본값은 cross-device 일관성을 위한 의도된 결정이므로 유지). 사용자가 "더 자연스러운 일반 TTS" 를 원하면 발음 설정에서 `현대 그리스어 (OS 음성)` 로 전환 가능 — v37–v38 의 polytonic 전처리·elision 복원 로직이 이 경로의 안정성을 보강해 두었다.
+
 ## 8. 알려진 미해결 사항 및 향후 작업
 
 표제어 (lemma) 검색·콘코던스 기능이 아직 없다. 사용자가 단어를 클릭하면 형태 분석이 modal 로 표시되나, 그 단어의 다른 출현 위치를 탐색하는 기능은 미구현. `data-morph.js` 의 19,875 lemma 인덱스를 활용한 역방향 검색이 자연스러운 다음 단계.
