@@ -1480,6 +1480,179 @@ const DCC_W = [
 ];
 </script>
 <script>
+/* data_daily.js (v43) */
+/* ============================================================================
+   일상생활 어휘 보강 (DAILY_W) — 50 항목
+   TEXTBOOK_W·DCC_W 와 중복되지 않는 어휘 위주. 음식·집·가족·신체·일상 동작.
+   ALL_VOCAB 병합 시 lesson 'd'(daily) 그룹으로 묶여 vocab 탭에서 필터링 가능.
+   ============================================================================ */
+const DAILY_W = [
+// 음식 · 식탁
+{g:"τυρός",     r:"-οῦ, ὁ",  pos:"N",l:"d",ko:"치즈",                   en:"cheese",            note:"2변화 남성. 그리스 일상 식료품"},
+{g:"ἔλαιον",    r:"-ου, τό", pos:"N",l:"d",ko:"올리브유",                en:"olive oil",         note:"2변화 중성. 식용·등잔유·운동용"},
+{g:"μέλι",      r:"-ιτος, τό",pos:"N",l:"d",ko:"꿀",                    en:"honey",             note:"3변화 중성. 단맛의 표준"},
+{g:"ἅλς",       r:"ἁλός, ὁ", pos:"N",l:"d",ko:"소금 (남: 바다)",        en:"salt; (m.) sea",    note:"3변화. 남성=바다, 여성=소금"},
+{g:"κρέας",     r:"-ως, τό", pos:"N",l:"d",ko:"고기",                   en:"meat",              note:"3변화 중성, 불규칙"},
+{g:"λάχανον",   r:"-ου, τό", pos:"N",l:"d",ko:"채소",                   en:"vegetable",         note:"2변화 중성"},
+{g:"σῖτος",     r:"-ου, ὁ",  pos:"N",l:"d",ko:"곡식, 식량",              en:"grain, food",       note:"2변화. 복수 σῖτα 가 일반적"},
+{g:"γάλα",      r:"γάλακτος, τό",pos:"N",l:"d",ko:"우유",                en:"milk",              note:"3변화 중성, 불규칙"},
+{g:"σῦκον",     r:"-ου, τό", pos:"N",l:"d",ko:"무화과",                 en:"fig",               note:"2변화 중성. 그리스 대표 과일"},
+{g:"ἐλαία",     r:"-ας, ἡ",  pos:"N",l:"d",ko:"올리브 (열매·나무)",     en:"olive",             note:"1변화 여성. 아테나의 선물"},
+
+// 집 · 가구
+{g:"οἰκία",     r:"-ας, ἡ",  pos:"N",l:"d",ko:"집",                     en:"house",             note:"1변화 여성. 어휘 빈출 1위권"},
+{g:"θύρα",      r:"-ας, ἡ",  pos:"N",l:"d",ko:"문",                     en:"door",              note:"1변화 여성"},
+{g:"στέγη",     r:"-ης, ἡ",  pos:"N",l:"d",ko:"지붕",                   en:"roof",              note:"1변화 여성"},
+{g:"κλίνη",     r:"-ης, ἡ",  pos:"N",l:"d",ko:"침대, 식탁용 긴 의자",   en:"couch, bed",        note:"1변화 여성. 향연에서 비스듬히 누움"},
+{g:"τράπεζα",   r:"-ης, ἡ",  pos:"N",l:"d",ko:"식탁",                   en:"table",             note:"1변화 여성. 환전상의 어원"},
+{g:"λύχνος",    r:"-ου, ὁ",  pos:"N",l:"d",ko:"등잔",                   en:"lamp",              note:"2변화 남성"},
+{g:"ἑστία",     r:"-ας, ἡ",  pos:"N",l:"d",ko:"화로 (집의 중심)",       en:"hearth",            note:"여신 헤스티아의 어원"},
+{g:"αὐλή",      r:"-ῆς, ἡ",  pos:"N",l:"d",ko:"마당, 안뜰",             en:"courtyard",         note:"1변화 여성"},
+{g:"χιτών",     r:"-ῶνος, ὁ",pos:"N",l:"d",ko:"키톤 (속옷)",            en:"tunic, chiton",     note:"3변화 남성"},
+{g:"ἱμάτιον",   r:"-ου, τό", pos:"N",l:"d",ko:"히마티온 (겉옷)",        en:"cloak",             note:"2변화 중성"},
+
+// 가족 · 사람
+{g:"μήτηρ",     r:"μητρός, ἡ",pos:"N",l:"d",ko:"어머니",                 en:"mother",            note:"3변화 친족 명사"},
+{g:"πατήρ",     r:"πατρός, ὁ",pos:"N",l:"d",ko:"아버지",                 en:"father",            note:"3변화 친족 명사"},
+{g:"θυγάτηρ",   r:"-τρός, ἡ",pos:"N",l:"d",ko:"딸",                     en:"daughter",          note:"3변화"},
+{g:"υἱός",      r:"-οῦ, ὁ",  pos:"N",l:"d",ko:"아들",                   en:"son",               note:"2변화 (3변화 형도 있음)"},
+{g:"ἀδελφή",    r:"-ῆς, ἡ",  pos:"N",l:"d",ko:"누이, 자매",             en:"sister",            note:"1변화"},
+{g:"ἀδελφός",   r:"-οῦ, ὁ",  pos:"N",l:"d",ko:"형제, 동기",             en:"brother",           note:"2변화"},
+{g:"γυνή",      r:"γυναικός, ἡ",pos:"N",l:"d",ko:"여자, 아내",          en:"woman, wife",       note:"3변화, 불규칙"},
+{g:"ἀνήρ",      r:"ἀνδρός, ὁ",pos:"N",l:"d",ko:"남자, 남편",            en:"man, husband",      note:"3변화, 불규칙. ἄνθρωπος 와 구분"},
+{g:"παῖς",      r:"παιδός, ὁ/ἡ",pos:"N",l:"d",ko:"아이; 종, 노예",       en:"child; slave",      note:"3변화. 맥락에 따라 의미 분기"},
+{g:"δοῦλος",    r:"-ου, ὁ",  pos:"N",l:"d",ko:"노예",                   en:"slave",             note:"2변화. παῖς 와 의미 겹침"},
+
+// 신체
+{g:"κεφαλή",    r:"-ῆς, ἡ",  pos:"N",l:"d",ko:"머리",                   en:"head",              note:"1변화 여성"},
+{g:"χείρ",      r:"χειρός, ἡ",pos:"N",l:"d",ko:"손",                    en:"hand",              note:"3변화 여성. 음운 변화 주의"},
+{g:"πούς",      r:"ποδός, ὁ", pos:"N",l:"d",ko:"발",                    en:"foot",              note:"3변화 남성. -pod 어원"},
+{g:"ὀφθαλμός",  r:"-οῦ, ὁ",  pos:"N",l:"d",ko:"눈",                     en:"eye",               note:"2변화 남성. ophthalmology"},
+{g:"οὖς",       r:"ὠτός, τό", pos:"N",l:"d",ko:"귀",                    en:"ear",               note:"3변화 중성. ot- 어근"},
+{g:"στόμα",     r:"-ατος, τό",pos:"N",l:"d",ko:"입",                    en:"mouth",             note:"3변화 중성"},
+{g:"ὀδούς",     r:"-όντος, ὁ",pos:"N",l:"d",ko:"치아",                  en:"tooth",             note:"3변화. -dont 어원"},
+{g:"καρδία",    r:"-ας, ἡ",  pos:"N",l:"d",ko:"심장, 마음",             en:"heart",             note:"1변화 여성. cardio-"},
+{g:"αἷμα",      r:"-ατος, τό",pos:"N",l:"d",ko:"피",                    en:"blood",             note:"3변화 중성. hema-"},
+{g:"σῶμα",      r:"-ατος, τό",pos:"N",l:"d",ko:"몸",                    en:"body",              note:"3변화 중성. somatic"},
+
+// 일상 동작 · 상태 동사
+{g:"καθεύδω",   r:"",        pos:"V",l:"d",ko:"잠자다",                  en:"sleep",             note:"미완료 ἐκάθευδον. 향연의 핵심어"},
+{g:"ἐγείρω",    r:"-ερῶ",    pos:"V",l:"d",ko:"깨우다 (중간: 깨다)",     en:"wake; (mid.) rise", note:"부정과거 ἤγειρα, 중간태 부정과거 ἠγρόμην"},
+{g:"λούω",      r:"-σω",     pos:"V",l:"d",ko:"씻다 (중간: 목욕하다)",   en:"wash; (mid.) bathe",note:"중간태가 자기 자신을 씻는 일상 의미"},
+{g:"ἐνδύω",     r:"",        pos:"V",l:"d",ko:"입히다 (중간: 입다)",     en:"clothe; (mid.) wear", note:"중간태 ἐνδύομαι 가 옷 입는 의미"},
+{g:"βλέπω",     r:"",        pos:"V",l:"d",ko:"보다, 시선을 두다",        en:"look at, see",      note:"부정과거 ἔβλεψα. ὁράω 와 구분: βλέπω 는 의도적 시선"},
+{g:"ἀσπάζομαι", r:"",        pos:"V",l:"d",ko:"인사하다, 포옹하다",      en:"greet, embrace",    note:"중간태 deponent. NT 편지의 마무리"},
+{g:"χαίρω",     r:"",        pos:"V",l:"d",ko:"기뻐하다, 안녕하세요",    en:"rejoice; hello",    note:"명령 χαῖρε = 인사 표준"},
+
+// 부사 · 관용
+{g:"εὐθύς",     r:"",        pos:"D",l:"d",ko:"즉시, 곧장",              en:"immediately",       note:"형용사 εὐθύς '곧은' 의 부사형. εὐθέως 와 함께"},
+{g:"σχεδόν",    r:"",        pos:"D",l:"d",ko:"거의",                    en:"almost",            note:"빈도 부사"},
+{g:"μόλις",     r:"",        pos:"D",l:"d",ko:"간신히, ~ 정도밖에",      en:"barely, hardly",    note:"제한 부사"},
+{g:"τάχα",      r:"",        pos:"D",l:"d",ko:"아마, 빨리",              en:"perhaps, quickly",  note:"두 의미. 문맥으로 구분"},
+];
+</script>
+<script>
+/* data_civic.js (v44) */
+/* ============================================================================
+   확장 어휘 (CIVIC_W) — 80 항목
+   정치·종교·자연·학문·시간·추상 영역. lesson "c" (civic·conceptual).
+   TEXTBOOK_W·DCC_W·DAILY_W 와 중복 회피.
+   ============================================================================ */
+const CIVIC_W = [
+// 정치·시민 (15)
+{g:"πόλις",      r:"-εως, ἡ", pos:"N",l:"c",ko:"폴리스, 도시국가",        en:"city-state",         note:"3변화 여성. 그리스 정치의 단위"},
+{g:"πολίτης",    r:"-ου, ὁ",  pos:"N",l:"c",ko:"시민",                    en:"citizen",            note:"1변화 남성"},
+{g:"ἐκκλησία",   r:"-ας, ἡ",  pos:"N",l:"c",ko:"민회, 집회",              en:"assembly",          note:"1변화 여성. ἐκ-καλέω '불러 모으다'에서"},
+{g:"βουλή",      r:"-ῆς, ἡ",  pos:"N",l:"c",ko:"평의회; 계획·의도",       en:"council; plan",      note:"1변화. 아테네 500인 평의회"},
+{g:"δῆμος",      r:"-ου, ὁ",  pos:"N",l:"c",ko:"민중, 시민단체",          en:"people, deme",       note:"democracy 의 어원"},
+{g:"νόμος",      r:"-ου, ὁ",  pos:"N",l:"c",ko:"법, 관습",                en:"law, custom",        note:"vs φύσις '자연' 의 대비"},
+{g:"ψῆφος",      r:"-ου, ἡ",  pos:"N",l:"c",ko:"투표, 조약돌",            en:"vote, pebble",       note:"2변화이지만 여성"},
+{g:"στρατηγός",  r:"-οῦ, ὁ",  pos:"N",l:"c",ko:"장군, 사령관",            en:"general",            note:"στρατός + ἄγω. 아테네 10명"},
+{g:"στρατιώτης", r:"-ου, ὁ",  pos:"N",l:"c",ko:"병사",                    en:"soldier",            note:"στρατιά '군대'에서"},
+{g:"ῥήτωρ",      r:"-ορος, ὁ",pos:"N",l:"c",ko:"연설가, 변사",            en:"orator",             note:"3변화. rhetoric"},
+{g:"δίκη",       r:"-ης, ἡ",  pos:"N",l:"c",ko:"정의, 재판, 형벌",        en:"justice, lawsuit",   note:"여신 Δίκη"},
+{g:"δικαστής",   r:"-οῦ, ὁ",  pos:"N",l:"c",ko:"재판관, 배심원",          en:"judge, juror",       note:"1변화"},
+{g:"μάρτυς",     r:"-υρος, ὁ/ἡ",pos:"N",l:"c",ko:"증인",                  en:"witness",            note:"3변화. martyr 어원"},
+{g:"τύραννος",   r:"-ου, ὁ",  pos:"N",l:"c",ko:"참주, 절대 통치자",       en:"tyrant",             note:"부정적 의미는 고전기 이후"},
+{g:"σύμμαχος",   r:"-ου, ὁ",  pos:"N",l:"c",ko:"동맹자",                  en:"ally",               note:"σύν + μάχομαι"},
+
+// 종교·제의 (12)
+{g:"θεός",       r:"-οῦ, ὁ/ἡ", pos:"N",l:"c",ko:"신",                     en:"god, goddess",       note:"2변화. 여성도 같은 형"},
+{g:"θεά",        r:"-ᾶς, ἡ",   pos:"N",l:"c",ko:"여신 (강조)",            en:"goddess",            note:"1변화. 여성성을 강조할 때"},
+{g:"ἱερόν",      r:"-οῦ, τό",  pos:"N",l:"c",ko:"신전, 성소",             en:"temple",             note:"ἱερός '성스러운' 의 중성"},
+{g:"ἱερεύς",     r:"-έως, ὁ",  pos:"N",l:"c",ko:"사제",                   en:"priest",             note:"3변화"},
+{g:"βωμός",      r:"-οῦ, ὁ",   pos:"N",l:"c",ko:"제단",                   en:"altar",              note:"2변화"},
+{g:"θύω",        r:"",         pos:"V",l:"c",ko:"제물로 바치다, 제사 지내다",en:"sacrifice",          note:"부정과거 ἔθυσα"},
+{g:"εὐσέβεια",   r:"-ας, ἡ",   pos:"N",l:"c",ko:"경건, 신앙심",           en:"piety",              note:"εὖ + σέβομαι"},
+{g:"μάντις",     r:"-εως, ὁ/ἡ",pos:"N",l:"c",ko:"점쟁이, 예언자",         en:"seer, prophet",      note:"3변화. 호메로스 등 빈출"},
+{g:"χρησμός",    r:"-οῦ, ὁ",   pos:"N",l:"c",ko:"신탁, 응답",             en:"oracle",             note:"χράω 에서"},
+{g:"ψυχή",       r:"-ῆς, ἡ",   pos:"N",l:"c",ko:"영혼, 생명",             en:"soul, life",         note:"psycho-"},
+{g:"δαίμων",     r:"-ονος, ὁ/ἡ",pos:"N",l:"c",ko:"신령, 운명",            en:"divinity, fate",     note:"3변화. Socrates의 δαιμόνιον"},
+{g:"νεκρός",     r:"-οῦ, ὁ",   pos:"N",l:"c",ko:"시신, 죽은 자",          en:"corpse, dead",       note:"형용사 '죽은' 으로도"},
+
+// 자연·우주 (13)
+{g:"ἥλιος",      r:"-ου, ὁ",   pos:"N",l:"c",ko:"태양",                   en:"sun",                note:"helio-"},
+{g:"σελήνη",     r:"-ης, ἡ",   pos:"N",l:"c",ko:"달",                     en:"moon",               note:"여신 Σελήνη"},
+{g:"ἀστήρ",      r:"-έρος, ὁ", pos:"N",l:"c",ko:"별",                     en:"star",               note:"3변화. astro-"},
+{g:"γῆ",         r:"γῆς, ἡ",   pos:"N",l:"c",ko:"땅, 대지",               en:"earth, land",        note:"불변수. geo-"},
+{g:"οὐρανός",    r:"-οῦ, ὁ",   pos:"N",l:"c",ko:"하늘, 천공",             en:"sky, heaven",        note:"uran-"},
+{g:"ποταμός",    r:"-οῦ, ὁ",   pos:"N",l:"c",ko:"강",                     en:"river",              note:"potamo-"},
+{g:"ὄρος",       r:"-ους, τό", pos:"N",l:"c",ko:"산",                     en:"mountain",           note:"3변화 중성"},
+{g:"νῆσος",      r:"-ου, ἡ",   pos:"N",l:"c",ko:"섬",                     en:"island",             note:"2변화이지만 여성. Peloponnesus"},
+{g:"ἄνεμος",     r:"-ου, ὁ",   pos:"N",l:"c",ko:"바람",                   en:"wind",               note:"anemo-"},
+{g:"πῦρ",        r:"-ός, τό",  pos:"N",l:"c",ko:"불",                     en:"fire",               note:"3변화 중성. pyro-"},
+{g:"δένδρον",    r:"-ου, τό",  pos:"N",l:"c",ko:"나무",                   en:"tree",               note:"dendro-"},
+{g:"ζῷον",       r:"-ου, τό",  pos:"N",l:"c",ko:"동물, 살아 있는 것",     en:"animal",             note:"zoo-"},
+{g:"ζωή",        r:"-ῆς, ἡ",   pos:"N",l:"c",ko:"삶, 생명",               en:"life",               note:"βίος 와 미세 구분: ζωή = 생물학적, βίος = 인생"},
+
+// 학문·예술·정신 (14)
+{g:"λόγος",      r:"-ου, ὁ",   pos:"N",l:"c",ko:"말, 이성, 비율, 이야기", en:"word, reason, story",note:"가장 다의적인 그리스어 단어 중 하나"},
+{g:"μῦθος",      r:"-ου, ὁ",   pos:"N",l:"c",ko:"이야기, 신화",           en:"myth, tale",         note:"λόγος 의 대비어로 자주"},
+{g:"νοῦς",       r:"νοῦ, ὁ",   pos:"N",l:"c",ko:"마음, 지성",             en:"mind, intellect",    note:"축약 명사. Anaxagoras 의 νοῦς"},
+{g:"σοφία",      r:"-ας, ἡ",   pos:"N",l:"c",ko:"지혜",                   en:"wisdom",             note:"philo-sophy"},
+{g:"σοφός",      r:"-ή, -όν",  pos:"A",l:"c",ko:"지혜로운, 솜씨 있는",    en:"wise, skilled",      note:"1·2 변화"},
+{g:"ἐπιστήμη",   r:"-ης, ἡ",   pos:"N",l:"c",ko:"지식, 학문",             en:"knowledge, science", note:"ἐπίσταμαι '알고 있다'에서"},
+{g:"τέχνη",      r:"-ης, ἡ",   pos:"N",l:"c",ko:"기술, 예술",             en:"craft, art",         note:"technology"},
+{g:"βιβλίον",    r:"-ου, τό",  pos:"N",l:"c",ko:"책, 두루마리",           en:"book, scroll",       note:"βύβλος (파피루스) 에서. Bible"},
+{g:"γράμμα",     r:"-ατος, τό",pos:"N",l:"c",ko:"글자, 편지, 문헌",       en:"letter, writing",    note:"3변화 중성. -grammar"},
+{g:"ποιητής",    r:"-οῦ, ὁ",   pos:"N",l:"c",ko:"시인",                   en:"poet, maker",        note:"ποιέω '만들다' 의 행위자"},
+{g:"μουσική",    r:"-ῆς, ἡ",   pos:"N",l:"c",ko:"음악, 무사 여신의 기예", en:"music, arts",        note:"τέχνη 가 생략된 형용사화"},
+{g:"ἀλήθεια",    r:"-ας, ἡ",   pos:"N",l:"c",ko:"진리, 진실",             en:"truth",              note:"ἀ-λήθη '망각이 없음'"},
+{g:"δόξα",       r:"-ης, ἡ",   pos:"N",l:"c",ko:"의견, 평판; 영광 (후기)",en:"opinion; glory",     note:"고전기/Koine 의미 분리"},
+{g:"αἴτιον",     r:"-ου, τό",  pos:"N",l:"c",ko:"원인, 까닭",             en:"cause, reason",      note:"αἰτία 도 같은 의미"},
+
+// 동사 — 인식·이동·소유 (13)
+{g:"γιγνώσκω",   r:"γνώσομαι", pos:"V",l:"c",ko:"알다, 인지하다",         en:"know, recognize",    note:"부정과거 ἔγνων (athematic). gnosis"},
+{g:"νοέω",       r:"-ήσω",     pos:"V",l:"c",ko:"마음으로 알다, 알아채다",en:"perceive, think",    note:"νοῦς 동족 동사"},
+{g:"σκοπέω",     r:"-ήσω",     pos:"V",l:"c",ko:"살피다, 검토하다",       en:"examine, consider",  note:"σκοπός '관찰자'에서"},
+{g:"ἡγέομαι",    r:"-ήσομαι",  pos:"V",l:"c",ko:"이끌다; ~라고 생각하다", en:"lead; consider",     note:"중간태 deponent. + 대격+부정사"},
+{g:"σπεύδω",     r:"σπεύσω",   pos:"V",l:"c",ko:"서두르다, 진력하다",     en:"hasten, exert",      note:"σπουδή 에서"},
+{g:"τυγχάνω",    r:"τεύξομαι", pos:"V",l:"c",ko:"마침 ~하다; 얻다",       en:"happen to; obtain",  note:"+ 분사 = '마침 ~하고 있다'"},
+{g:"πάσχω",      r:"πείσομαι", pos:"V",l:"c",ko:"겪다, 당하다",            en:"suffer, experience", note:"부정과거 ἔπαθον. πάθος"},
+{g:"χρή",        r:"",         pos:"V",l:"c",ko:"필요하다, 마땅하다",     en:"it is necessary",    note:"비인칭. + 대격+부정사"},
+{g:"δεῖ",        r:"",         pos:"V",l:"c",ko:"필요하다 (비인칭)",       en:"it is necessary",    note:"+ 대격+부정사. χρή 와 함께"},
+{g:"βούλομαι",   r:"βουλήσομαι",pos:"V",l:"c",ko:"원하다, 의지하다",       en:"wish, want",         note:"중간태. ἐθέλω 와 미세 구분: βούλομαι = 숙고된 의지"},
+{g:"ἐθέλω",      r:"-ήσω",     pos:"V",l:"c",ko:"~할 의사가 있다",         en:"be willing",         note:"vs βούλομαι: ἐθέλω = 자발성"},
+{g:"εὑρίσκω",    r:"εὑρήσω",   pos:"V",l:"c",ko:"찾아내다, 발견하다",     en:"find, discover",     note:"부정과거 εὗρον. Eureka!"},
+{g:"κρίνω",      r:"κρινῶ",    pos:"V",l:"c",ko:"가르다, 판단하다",       en:"separate, judge",    note:"부정과거 ἔκρινα. critic"},
+
+// 시간·정도 부사·접속사 (13)
+{g:"νῦν",        r:"",         pos:"D",l:"c",ko:"지금",                   en:"now",                note:"νυνί '바로 지금' 강조형"},
+{g:"τότε",       r:"",         pos:"D",l:"c",ko:"그때, 그 후",            en:"then",               note:"시간·논리 결과 모두"},
+{g:"αὐτίκα",     r:"",         pos:"D",l:"c",ko:"즉시, 당장",             en:"at once",            note:"εὐθύς 와 유사"},
+{g:"πάλιν",      r:"",         pos:"D",l:"c",ko:"다시; 거꾸로",           en:"again; back",        note:"고전기 두 의미 공존"},
+{g:"ἤδη",        r:"",         pos:"D",l:"c",ko:"이미, 벌써",             en:"already, by now",    note:"완료·진행상과 잘 짝"},
+{g:"οὔπω",       r:"",         pos:"D",l:"c",ko:"아직 ~ 않은",            en:"not yet",            note:"οὐ + πω. cf. μήπω"},
+{g:"μάλιστα",    r:"",         pos:"D",l:"c",ko:"가장, 특히",             en:"most, especially",   note:"μάλα 의 최상급"},
+{g:"μᾶλλον",     r:"",         pos:"D",l:"c",ko:"더, 차라리",             en:"more, rather",       note:"μάλα 의 비교급"},
+{g:"σχεδόν",     r:"",         pos:"D",l:"c",ko:"거의",                   en:"almost",             note:"d 그룹 σχεδόν 와 중복 — 의도적, 빈도 강조"},
+{g:"ὅτι",        r:"",         pos:"C",l:"c",ko:"~라는 것; ~ 때문에",     en:"that; because",      note:"indirect statement 도입. '왜냐하면' 의미는 ὅτι 단독"},
+{g:"ἵνα",        r:"",         pos:"C",l:"c",ko:"~하기 위하여 (목적)",    en:"in order that",      note:"+ 가정법/희구법. final clause"},
+{g:"ὥστε",       r:"",         pos:"C",l:"c",ko:"~할 정도로, 그래서",     en:"so that, with the result that",note:"+ 부정사 (자연 결과) / + 직설법 (실제 결과)"},
+{g:"ἐπεί",       r:"",         pos:"C",l:"c",ko:"~이므로, ~한 뒤에",      en:"since, after",       note:"인과·시간 두 의미"},
+];
+</script>
+<script>
 /* data_grammar.js */
 /* ============================================================================
    문법 주제 34개 — Chase & Phillips 진도 순서
@@ -2512,6 +2685,297 @@ const TOPICS = [
     {form:"γυναιξί", info:"γυνή 복수 여격"},
   ]
 },
+
+// ─── v43: 신규 토픽 — 입자·태·시제 미세 구분 ────────────────────────────────
+{
+  id:"men-de", lesson:99, cat:"particle",
+  title:"μέν … δέ — 대비와 균형",
+  desc:"두 절·구를 짝지어 대비시키는 그리스어의 대표적 담화 입자 (postpositive 한 쌍).",
+  expl:`μέν 과 δέ 는 *postpositive* 입자로, 각 절의 두 번째 자리에 놓여 두 부분을 *균형 잡힌 대비* 로 묶는다. 한국어로 "한편 …, 다른 한편 …" 또는 "A 는 …, B 는 …" 가 가까우나, 영어 'on one hand, on the other hand' 만큼 무겁지 않고 한국어의 보조사 '는/은' 의 대조 용법에 가깝다.
+
+핵심 구분 — 단독 δέ vs μέν…δέ vs 단독 μέν:
+
+(1) **μέν … δέ** (짝): 명시적 대비. 두 항의 *균형* 이 중요할 때.
+   ὁ μὲν Σωκράτης ἐφιλοσόφει, ὁ δὲ Ἀριστοφάνης ἔγραφε κωμῳδίας.
+   "소크라테스는 철학을 했고, 아리스토파네스는 희극을 썼다."
+
+(2) **δέ 단독**: 단순한 연결·약한 대비. 영어 'and/but' 의 중립.
+   ἦλθεν ὁ ἄγγελος. ἔλεγεν δὲ τάδε. "사자가 왔다. 그리고 이렇게 말했다."
+
+(3) **μέν 단독 (= μέν solitarium)**: δέ 가 *암시* 만 되고 명시되지 않음. 화자가 "한편으로는 …" 하고 운만 띄움 — 반대편을 청자가 짐작.
+   ἐγὼ μὲν οἴομαι σοφὸν εἶναι… "나로서는 그가 현자라고 생각하는데… (다른 사람은 어떨지)"
+
+위치 규칙 — 둘 다 *postpositive*: 절의 첫 강조어 뒤. 보통 두 번째 자리.
+   ὁ μέν ἀνήρ … ὁ δέ ἀνήρ (정관사 뒤)
+   ἐγώ μέν … σὺ δέ (대명사 뒤)
+   τότε μέν … νῦν δέ (부사 뒤, 시간 대비)
+
+µέν 의 친척 입자 들과의 미세 구분:
+   · μέντοι: 강한 역접 "그러나, 하지만". 영어 however.
+   · μήν: 강조 "정말로, 확실히". καὶ μήν "더욱이".
+   · καὶ μέν δή: "참으로 … 게다가". 격식 있는 추가.`,
+  paradigm:{
+    caption:"용례 비교",
+    rows:[
+      {form:"τὸ μὲν σῶμα ἀσθενές, ἡ δὲ ψυχὴ ἰσχυρά.", info:"몸은 약하지만 영혼은 강하다 (균형 대비)"},
+      {form:"ἐγὼ μὲν εὖ πράττω.", info:"나로서는 잘 지낸다 (= μέν solitarium; 상대방의 안부 묻기를 암시)"},
+      {form:"ἦλθον. ἔπειτα δὲ ἀπῆλθον.", info:"왔다. 그리고 갔다 (δέ 단독, 단순 연결)"},
+      {form:"σοφὸς μέντοι ἐστίν.", info:"그러나 그는 현자다 (μέντοι, 강한 역접)"},
+    ],
+  },
+  paradigmAlt:{
+    caption:"실수 회피",
+    rows:[
+      {form:"μέν 절 + δέ 절", info:"형식은 평행하게: 명사 ↔ 명사, 부사 ↔ 부사 ('어제는 …, 오늘은 …')"},
+      {form:"δέ 가 셋 이상?",   info:"세 항 이상의 열거에는 μέν … δέ … δέ … 가능. 단, 마지막은 종종 τέλος δέ"},
+      {form:"문장 첫 자리에 둠", info:"× 불가능. 항상 postpositive. 한국어 번역 시 '한편 …' 으로 옮기되 위치는 자연스럽게"},
+    ],
+  },
+},
+
+{
+  id:"aor-impf", lesson:99, cat:"verb",
+  title:"부정과거 vs 미완료 — 상(aspect) 의 본질",
+  desc:"두 시제 모두 '과거'이지만 의미는 *상(aspect)* 으로 갈린다. 시점 vs 지속, 사실 vs 배경.",
+  expl:`그리스어 부정과거(aorist)와 미완료(imperfect)는 둘 다 *과거의 행위* 를 가리키나, 영어·한국어가 단일 과거형으로 묶는 의미 차이를 *문법화* 한다. 이 구분은 그리스어 학습의 최대 난관 중 하나이며, 영어 simple past 만 알고 접근하면 거의 항상 틀린다.
+
+핵심 원리 — *완결성(completion)* 이 아니라 *시각(viewpoint)* 의 문제:
+
+· **부정과거(aor.)**: 행위를 *점(point)* 으로 봄. 시작·진행·끝을 묶어 *한 사건* 으로 압축. "그가 X 했다 (그래서 어떻게 되었다)".
+· **미완료(impf.)**: 행위를 *선(line)* 으로 봄. 지속·반복·시도·배경 묘사. "그가 X 하고 있었다 / 늘 하곤 했다 / 하려 했다".
+
+같은 동사, 다른 의미:
+   ἔγραψεν τὴν ἐπιστολήν.   (aor.) "그가 편지를 썼다." [완성된 한 통]
+   ἔγραφεν τὴν ἐπιστολήν.   (impf.) "그가 편지를 쓰고 있었다." [동안 다른 일이 일어남]
+   ἔγραφεν τὰς ἐπιστολάς.   (impf.) "그가 편지들을 (습관적으로) 쓰곤 했다."
+
+미완료의 미세 분기 — 같은 형태가 문맥에 따라 4 가지 색조:
+
+(1) **진행 (progressive)**: ~하고 있었다.
+    ἐμάχοντο ἐν Μαραθῶνι. "마라톤에서 싸우고 있었다."
+(2) **습관 (habitual / iterative)**: 늘 ~하곤 했다.
+    ὁσημέραι ἐβάδιζεν εἰς τὴν ἀγοράν. "매일 시장에 가곤 했다."
+(3) **시도 (conative)**: ~하려 했다 (이루어졌는지 미정).
+    ἔπειθον αὐτόν, οὐκ ἐπείσθη δέ. "그를 설득하려 했으나, 설득되지 않았다."
+(4) **배경 (descriptive background)**: 다른 사건의 무대 — 흔히 부정과거 본 사건과 짝.
+    ἐκάθευδον· ἐξαίφνης δὲ προσῆλθεν ἄγγελος. "나는 자고 있었다. 갑자기 사자가 왔다."
+
+부정과거의 미세 분기:
+(1) **사실 (constative)**: 단순한 과거 사실. "X 가 일어났다."
+    ἀπέθανεν ὁ Σωκράτης τῷ Θαργηλιῶνι.
+(2) **개시 (ingressive)**: 상태 동사의 부정과거 = "X 하게 되었다 / X 의 상태에 들어갔다".
+    ἐβασίλευσε. (βασιλεύω '왕이다') "왕이 되었다." (← '왕이었다' 아님)
+    ἐσίγησεν. (σιγάω '침묵이다') "침묵하게 되었다." (← 침묵하고 있었다 아님)
+(3) **요약 (complexive)**: 긴 기간을 한 점으로 압축.
+    δέκα ἔτη ἐβασίλευσε. "그는 10 년간 (한 통 묶어) 다스렸다."
+
+번역 함정:
+   ἔπειθον — '설득하고 있었다' 또는 '설득하려 했다'. *설득에 성공했다* 가 아님!
+   ἔπεισα — '설득했다 (성공)'.
+   같은 어근 πείθω 인데 시제 한 끗 차이로 *결과* 가 달라진다.`,
+  paradigm:{
+    caption:"시제 짝 — 같은 동사, 상 차이",
+    rows:[
+      {form:"ἔλεγον / εἶπον",     info:"말하고 있었다 (미완료) / 말했다 (부정과거)"},
+      {form:"ἐμάνθανον / ἔμαθον", info:"배우고 있었다 / 배웠다 (= 알게 되었다, 개시)"},
+      {form:"ἤρχομαι 가 ἤρχόμην / ἦλθον", info:"가고 있었다 / 갔다 (도착)"},
+      {form:"ἐνόμιζον / ἐνόμισα", info:"~라고 생각하곤 했다 / ~라고 (한 순간) 생각했다"},
+      {form:"ἐποίει / ἐποίησεν",  info:"만들고 있었다 / 만들었다 (완성)"},
+    ],
+  },
+  paradigmAlt:{
+    caption:"단서가 되는 부사·연결사",
+    rows:[
+      {form:"ὁσημέραι, πολλάκις, ἀεί", info:"미완료 우선 (습관·반복)"},
+      {form:"ἐξαίφνης, ἐν τούτῳ",      info:"부정과거 우선 (갑작스러운 사건)"},
+      {form:"ὁπότε / ἐπεί + 미완료",   info:"반복적 배경 ('~할 때마다')"},
+      {form:"ὅτε + 부정과거",          info:"한 시점의 사건 ('~했을 때')"},
+    ],
+  },
+},
+
+// ─── v44: 추가 심화 토픽 — 조건문·희구법·속격 절대 ─────────────────────────
+{
+  id:"cond", lesson:99, cat:"verb",
+  title:"조건문 6 종 — 시제·법의 행렬",
+  desc:"조건절(protasis) 의 시제·법 과 결과절(apodosis)의 시제·법 의 짝으로 6 종이 정의됨. 시간이 아닌 *화자의 태도* 가 구분 기준.",
+  expl:`영어 if-then 은 사실상 사실 조건과 반사실 조건 둘만 형식화한다. 그리스어는 *화자가 조건을 어떻게 보는가* — 사실인가, 미래인가, 불확실한가, 반사실인가, 일반적인가 — 에 따라 6 종을 정밀히 구별한다.
+
+분류는 결과절의 *시제 + ἄν 의 유무* 로 결정된다. ἄν 은 *비현실성·우연성* 의 표지로, 직설법과 결합하면 반사실, 가정법과 결합하면 미래일반, 희구법과 결합하면 잠재적.
+
+(1) **단순/현재 사실 조건** — εἰ + 직설법 / 직설법:
+  εἰ ταῦτα λέγει, ἀληθεύει. "만일 그가 이렇게 말한다면, 사실을 말하는 것이다."
+  → 화자는 조건이 사실인지에 대해 *중립*. 단순 'if X, then Y'.
+
+(2) **단순/과거 사실 조건** — εἰ + 과거 직설 / 과거 직설:
+  εἰ ταῦτα εἶπεν, ἠλήθευσεν. "만일 그가 이렇게 말했다면, 사실을 말했다."
+
+(3) **미래 더 생생** (future more vivid) — ἐάν + 가정법 / 미래 직설:
+  ἐὰν ταῦτα λέγῃς, ἀληθεύσεις. "네가 이렇게 말한다면, 사실을 말하게 될 것이다."
+  → 화자가 조건의 실현을 *예상* 하는 미래.
+
+(4) **미래 덜 생생** (future less vivid) — εἰ + 희구법 / ἄν + 희구법:
+  εἰ ταῦτα λέγοις, ἀληθεύοις ἄν. "만일 네가 이렇게 말한다면, 사실을 말하게 되리라."
+  → 화자가 실현을 *덜 확신* 함. 'should X, would Y'. 학자·시인의 정중한 가정.
+
+(5) **현재 반사실** (present contrafactual) — εἰ + 미완료 직설 / ἄν + 미완료 직설:
+  εἰ ταῦτα ἔλεγες, ἠλήθευες ἄν. "만일 네가 (지금) 이렇게 말하고 있다면, 사실을 말하고 있을 텐데 — *그러나 아니다*."
+
+(6) **과거 반사실** (past contrafactual) — εἰ + 부정과거 직설 / ἄν + 부정과거 직설:
+  εἰ ταῦτα εἶπες, ἠλήθευσας ἄν. "만일 (그때) 네가 이렇게 말했다면, 사실을 말했을 텐데 — *그러나 안 했다*."
+
+(7) **일반 조건** (general / habitual):
+  · 현재 일반 — ἐάν + 가정법 / 현재 직설법 ('X 할 때마다 Y 한다')
+  · 과거 일반 — εἰ + 희구법 / 미완료 직설 ('X 했을 때마다 Y 하곤 했다')
+
+식별 단서:
+  · ἄν 의 위치 — 결과절에 있으면 반사실(5,6) 또는 미래 덜 생생(4). 조건절(ἐάν)에 있으면 미래 더 생생(3) 또는 현재 일반.
+  · 희구법의 사용 — 미래 덜 생생, 과거 일반. 화자의 *유보적 태도* 신호.
+  · 시제 — 미완료 = 현재 반사실, 부정과거 = 과거 반사실. 영어 'would have' / 'would' 와 대응.`,
+  paradigm:{
+    caption:"여섯 조건문의 골격",
+    rows:[
+      {form:"εἰ + 직설법 → 직설법",          info:"단순 조건 ('만일 X 이면 Y 이다')"},
+      {form:"ἐάν + 가정법 → 미래",           info:"미래 더 생생"},
+      {form:"εἰ + 희구법 → 희구법 + ἄν",     info:"미래 덜 생생"},
+      {form:"εἰ + 미완료 → 미완료 + ἄν",     info:"현재 반사실"},
+      {form:"εἰ + 부정과거 → 부정과거 + ἄν", info:"과거 반사실"},
+      {form:"ἐάν + 가정법 → 현재",           info:"현재 일반"},
+    ],
+  },
+  paradigmAlt:{
+    caption:"한국어 번역의 단서",
+    rows:[
+      {form:"'~이면 ~이다'",        info:"단순 조건. 시간 중립"},
+      {form:"'~한다면 ~할 것이다'", info:"미래 더 생생. 화자가 가능성 인정"},
+      {form:"'~한다 하면 ~하리라'", info:"미래 덜 생생. 정중·유보적"},
+      {form:"'~이라면 ~일 텐데'",   info:"반사실. 사실은 그렇지 않음을 함의"},
+    ],
+  },
+},
+
+{
+  id:"opt", lesson:99, cat:"verb",
+  title:"희구법 (Optative) 의 네 용법",
+  desc:"유보·잠재·소망의 법. 한 형태에 네 용법 — 동반 입자 (ἄν·μή·εἰ·εἴθε) 와 문맥으로 구분.",
+  expl:`희구법은 직설법·가정법·명령법에 이은 네 번째 법으로, 그 자체로 *유보적·잠재적* 색조. 형태는 -οι- / -αι- / -ει- 의 모드 표지로 식별. 같은 형태가 네 용법으로 갈리며, 구분은 문맥과 동반 입자가 한다.
+
+(1) **소망의 희구법** — εἴθε · εἰ γάρ + 희구법:
+  εἴθε σοφὸς γενοίμην. "내가 현자가 되었으면."
+  εἰ γὰρ ἀποθάνοι. "그가 죽었으면 (좋겠다)."
+  → 실현 가능한 소망. 라틴어 utinam, 영어 would that.
+
+(2) **잠재 희구법** — ἄν + 희구법:
+  λέγοι ἄν τις. "누군가는 말할지도 모른다."
+  εὖ ἂν ἔχοι. "잘 될 수도 있겠다."
+  → '~할 수도 있다, ~ 일 것이다 (유보)'. 영어 might / would.
+
+(3) **간접화법의 희구법** — 주절이 *과거* 일 때 종속절의 직설법이 희구법으로:
+  직접: λέγει ὅτι ἀληθὲς ἐστιν. "그는 사실이라 말한다."
+  간접 (주절 과거): ἔλεγεν ὅτι ἀληθὲς εἴη. "그는 사실이라고 말하곤 했다."
+  → 직설법 보존도 가능 (선택적), 변환되면 *전달 시점이 과거임* 의 신호.
+
+(4) **조건절의 희구법** — εἰ + 희구법:
+  εἰ ταῦτα ποιοῖμεν, καλῶς ἂν ἔχοι. "우리가 그렇게 한다면, 잘 될 것이다 (덜 확신)."
+  ὁπότε εἰσέλθοι, ἐτίμα τοὺς παρόντας. "들어올 때마다, 그 자리의 사람들을 존중하곤 했다." (과거 일반)
+  → 조건문 토픽 (cond) 참조.
+
+식별 표:
+  | 동반 표지 | 용법 |
+  | :--- | :--- |
+  | εἴθε · εἰ γάρ | 소망 |
+  | ἄν (단독) | 잠재 |
+  | ὅτι · ὡς (주절 과거 뒤) | 간접화법 |
+  | εἰ (조건절) | 미래 덜 생생, 과거 일반 |
+
+흔한 함정:
+  · 가정법(-η-/-ω-) ↔ 희구법(-οι-/-αι-) 형태 혼동. -οιμι · -ειη · -οιεν 표지 빠른 식별 필수.
+  · ἄν 의 위치 — 잠재 희구법에서 ἄν 은 *주절*에. 종속절의 ἄν 은 가정법과 결합 (조건절).
+  · 희구법의 시제 = *시점이 아닌 상*. 현재 희구법 = 진행상의 잠재, 부정과거 희구법 = 단일 사건의 잠재.`,
+  paradigm:{
+    caption:"εἰμί 의 희구법",
+    rows:[
+      {form:"εἴην",    info:"1단 — 'I might be'"},
+      {form:"εἴης",    info:"2단"},
+      {form:"εἴη",     info:"3단 — 간접화법에서 가장 흔함"},
+      {form:"εἴημεν / εἶμεν", info:"1복 (병행 어형)"},
+      {form:"εἴητε / εἶτε",   info:"2복"},
+      {form:"εἴησαν / εἶεν",  info:"3복"},
+    ],
+  },
+  paradigmAlt:{
+    caption:"λύω 현재 능동 희구법",
+    rows:[
+      {form:"λύοιμι",  info:"1단"},
+      {form:"λύοις",   info:"2단"},
+      {form:"λύοι",    info:"3단"},
+      {form:"λύοιμεν", info:"1복"},
+      {form:"λύοιτε",  info:"2복"},
+      {form:"λύοιεν",  info:"3복 — 잠재 희구법에서 가장 흔한 형"},
+    ],
+  },
+},
+
+{
+  id:"gen-abs", lesson:99, cat:"verb",
+  title:"속격 절대 (Genitive Absolute)",
+  desc:"주절과 *문법적으로 분리* 된 부분에서 시간·인과·조건·양보의 배경 정보를 압축적으로 제공하는 분사 구문.",
+  expl:`속격 절대는 *주절의 어떤 성분과도 일치하지 않는 명사 + 분사* 가 함께 **속격**으로 등장하는 구문. '그 일이 일어나는 동안', '그 일이 일어났으므로', '그 일이 일어났음에도' 같은 *배경 사건* 을 압축한다. 한국어로는 부사절 ('~가 ~할 때 / 한 까닭에 / 했음에도') 로 옮겨야 한다.
+
+형태:
+  [속격 명사] + [속격 분사] + ... = '~가 ~하는 동안 / 하므로 / 했지만'
+  
+관건은 *주절과 주어가 달라야* 한다는 점 — 주어가 같으면 보통 conjunct participle (주격 분사) 을 쓴다.
+
+용례별 미세 의미:
+
+(1) **시간 (temporal)** — 가장 일반:
+  ταῦτα λεγόντων αὐτῶν, ἀφίκετο ὁ ἄγγελος.
+  "그들이 이렇게 말하고 있는 동안, 사자가 도착했다."
+  현재분사 = 동시성, 부정과거분사 = 선행성.
+
+(2) **인과 (causal)** — 흔히 ἅτε · ὡς 와 함께:
+  ἅτε τοῦ στρατηγοῦ ἀποθανόντος, ἀνεχώρησαν.
+  "장군이 죽었기 때문에, 그들은 후퇴했다."
+
+(3) **양보 (concessive)** — 흔히 καίπερ · καί 와 함께:
+  καίπερ τοῦ Σωκράτους νουθετοῦντος, ὁ Ἀλκιβιάδης οὐκ ἐπείθετο.
+  "소크라테스가 충고하고 있었음에도, 알키비아데스는 듣지 않았다."
+
+(4) **조건 (conditional)** — εἰ + 직설법 절과 유사:
+  τοῦ νόμου παρόντος, οὐδεὶς ἀδικήσει.
+  "법이 (제대로) 존재한다면, 아무도 부정한 일을 하지 않을 것이다."
+
+(5) **비인칭 분사의 절대적 사용**:
+  ἐξόν / παρόν / δυνατὸν ὄν / δοκοῦν 같은 비인칭 분사가 단독 — '그것이 가능하므로 / 허용되므로'. 명사 주어 생략.
+
+핵심 진단:
+  · 주절의 주어·목적어 어디에도 *해당 분사구의 명사가 나오지 않는다*.
+  · 명사·분사 모두 **속격**.
+  · 주어가 같으면 → conjunct participle (주격), *속격 절대를 쓰면 안 된다*.
+
+함정:
+  · 주어가 같은데 속격 절대로 쓰면 *어색한 그리스어* — 학습자의 흔한 실수.
+  · 분사의 *상* 을 살릴 것. ταῦτα λέγοντος αὐτοῦ '그가 말하고 있을 때' vs ταῦτα εἰπόντος αὐτοῦ '그가 말한 후에'.`,
+  paradigm:{
+    caption:"분사 시제 × 절대 구문의 의미",
+    rows:[
+      {form:"τούτων γιγνομένων",  info:"(현재분사) 이 일들이 일어나고 있을 때"},
+      {form:"τούτων γενομένων",   info:"(부정과거분사) 이 일들이 일어난 후에"},
+      {form:"τούτων γεγενημένων", info:"(완료분사) 이 일들이 일어난 상태에서"},
+      {form:"ἐξὸν αὐτῷ φεύγειν",  info:"(비인칭) 그가 도망갈 수 있었음에도 / 있으므로"},
+    ],
+  },
+  paradigmAlt:{
+    caption:"속격 절대 vs Conjunct Participle",
+    rows:[
+      {form:"속격 절대", info:"분사구의 주어 ≠ 주절의 성분 (Σωκράτους λέγοντος, ἀκούει ὁ μαθητής)"},
+      {form:"Conjunct participle", info:"분사구의 주어 = 주절 성분 (Σωκράτης λέγων ἀκούεται)"},
+      {form:"실수 회피",  info:"같은 주어인데 속격 절대를 쓰면 어색. 영어 dangling participle 과 유사한 오류"},
+    ],
+  },
+},
+
 ];
 
 </script>
@@ -2771,6 +3235,7 @@ const READINGS = [
 </script>
 <script>var _splash=document.getElementById('splash-stage');if(_splash)_splash.textContent='본문 데이터 로딩 중…';</script>
 <script src="data-works.js"></script>
+<script src="data-dialogues.js"></script>
 <script>
 /* data_images.js */
 /* ============================================================================
@@ -3009,7 +3474,7 @@ function imageURL(imgId, width){
 
 // 앱 버전 — sw.js CACHE_VERSION과 동기화 유지. 홈 화면 푸터에 표시되어
 // 사용자가 자신이 어느 버전을 사용 중인지 확인 가능 (캐시 갱신 진단용).
-const APP_VERSION = 'v42';
+const APP_VERSION = 'v45';
 window.__paideiaVersion = APP_VERSION;
 
 // ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
@@ -3626,7 +4091,7 @@ function refreshBanner(){
 }
 
 // ─── 어휘 풀 / 유틸 ──────────────────────────────────────────────────────────
-const ALL_VOCAB = [].concat(TEXTBOOK_W).concat(DCC_W);
+const ALL_VOCAB = [].concat(TEXTBOOK_W).concat(DCC_W).concat(typeof DAILY_W !== 'undefined' ? DAILY_W : []).concat(typeof CIVIC_W !== 'undefined' ? CIVIC_W : []);
 const POS_LABELS = {N:'명사',V:'동사',A:'형용사',D:'부사',C:'접속사',P:'전치사',PR:'대명사',NUM:'수사',ART:'관사'};
 function uniqByGreek(arr){
   const seen = new Map();
@@ -3760,6 +4225,23 @@ function renderHome(){
       <button class="tile" data-go="hall"><span class="grk">Τιμαί</span><span class="title">명예의 전당</span><span class="desc">획득 ${S.badges.length}/${BADGES.length}</span></button>
     </div>
 
+    ${(()=>{
+      // v44: SRS due-today 카운터 — 함수가 정의되어 있고 due 가 있을 때만 표시
+      if (typeof srsDueCards !== 'function' || typeof _ensureSRS !== 'function') return '';
+      try {
+        _ensureSRS();
+        const due = srsDueCards();
+        if (!due || !due.length) return '';
+        return `<div class="card warm" style="border-left:3px solid var(--terracotta)">
+          <b>오늘의 SRS 복습</b> — <span class="grk" style="color:var(--terracotta-d)">Ἐπανάληψις</span>
+          <div style="font-size:13px;line-height:1.55;margin-top:5px;color:var(--black-glaze-l)">
+            간격 반복 학습으로 망각 곡선을 다스리세요. <b>${due.length}개</b> 단어가 오늘 due.
+            <a class="minlink" href="#" id="srs-home-link">바로 시작 →</a>
+          </div>
+        </div>`;
+      } catch(_) { return ''; }
+    })()}
+
     ${wrongN>0 ? `<div class="card warm">
       <b>오답함</b>에 ${wrongN}개 단어 — <a class="minlink" href="#" data-go="vocab">복습하러 가기</a>
     </div>` : ''}
@@ -3776,6 +4258,11 @@ function renderHome(){
   `;
   view.querySelectorAll('[data-go]').forEach(el=>{
     el.addEventListener('click', e=>{ e.preventDefault(); setTab(el.dataset.go); });
+  });
+  const srsLink = view.querySelector('#srs-home-link');
+  if(srsLink) srsLink.addEventListener('click', e=>{
+    e.preventDefault();
+    if(typeof renderSRS === 'function') renderSRS();
   });
   const diagLink = view.querySelector('#diag-link');
   if(diagLink){
@@ -3827,8 +4314,19 @@ function renderVocab(){
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Διάλογος</div>
-          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">일상 회화</div>
-          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">8개 시나리오 · Attic 표준 · 고전 출전 검증</div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">일상 회화 — 표현 모음</div>
+          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">8 시나리오 · Attic 표준 단문 · 고전 출전 검증</div>
+        </div>
+        <div style="font-size:22px;color:var(--terracotta)">→</div>
+      </div>
+    </button>
+
+    <button class="card" type="button" data-render="renderDialogues" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Σκηνή</div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">콩트 장면 — 캐릭터 대화 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:6px;margin-left:4px;vertical-align:middle">new</span></div>
+          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">${(typeof DIALOGUES!=='undefined'?DIALOGUES.length:6)} 장면 · 아테네 사회 풍경 · Aristophanes 풍 가벼운 코미디 · 🔊 인라인 발음</div>
         </div>
         <div style="font-size:22px;color:var(--terracotta)">→</div>
       </div>
@@ -3851,6 +4349,28 @@ function renderVocab(){
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Ἐπανάληψις</div>
           <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">SRS · 간격 반복 학습</div>
           <div style="font-size:11px;color:var(--clay-d);margin-top:3px">SM-2 알고리즘 · 어려운 단어는 자주, 쉬운 단어는 드물게</div>
+        </div>
+        <div style="font-size:22px;color:var(--terracotta)">→</div>
+      </div>
+    </button>
+
+    <button class="card" type="button" data-render="renderDictation" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Ἀκοή</div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">받아쓰기 — 듣고 입력 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:6px;margin-left:4px;vertical-align:middle">new</span></div>
+          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">TTS 발음 → 그리스어로 입력 · polytonic/대소문자 관용 · 신규 어휘 우선</div>
+        </div>
+        <div style="font-size:22px;color:var(--terracotta)">→</div>
+      </div>
+    </button>
+
+    <button class="card" type="button" data-render="renderSearch" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Εὕρεσις</div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">검색·콘코던스 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:6px;margin-left:4px;vertical-align:middle">new</span></div>
+          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">어형·표제어로 본문 검색 · 작품·섹션별 등장 위치 · 형태분석 통합 (AGDT v2.1)</div>
         </div>
         <div style="font-size:22px;color:var(--terracotta)">→</div>
       </div>
@@ -3911,6 +4431,23 @@ function renderVocab(){
       </div>
     </div>
 
+    <div class="card" style="margin-top:8px;padding:10px 14px">
+      <div style="font-size:11px;color:var(--clay-d);letter-spacing:.04em;text-transform:uppercase;font-weight:600;margin-bottom:6px">퀴즈 난이도</div>
+      <div class="chips" id="chips-difficulty">
+        ${[['easy','쉬움 · 무작위 distractor'],['medium','보통 · 같은 품사 우선'],['hard','어려움 · 시각·의미 유사 강조']].map(([v,l])=>{
+          const cur = (S.quizSettings&&S.quizSettings.difficulty)||'medium';
+          return `<button class="chip ${cur===v?'active':''}" data-d="${v}">${l}</button>`;
+        }).join('')}
+      </div>
+      <div style="font-size:11px;color:var(--clay-d);letter-spacing:.04em;text-transform:uppercase;font-weight:600;margin:10px 0 6px">문제 수</div>
+      <div class="chips" id="chips-count">
+        ${[5,10,20].map(n=>{
+          const cur = (S.quizSettings&&S.quizSettings.count)||10;
+          return `<button class="chip ${cur===n?'active':''}" data-n="${n}">${n} 문항</button>`;
+        }).join('')}
+      </div>
+    </div>
+
     <div class="btn-row" style="margin:10px 0">
       <button class="btn" id="start-mc-g2k">희→한 객관식</button>
       <button class="btn btn-g" id="start-mc-k2g">한→희 객관식</button>
@@ -3949,6 +4486,18 @@ function renderVocab(){
   document.getElementById('start-mc-g2k').addEventListener('click',()=> startQuiz('mc','g2k', buildVocabPool()));
   document.getElementById('start-mc-k2g').addEventListener('click',()=> startQuiz('mc','k2g', buildVocabPool()));
   document.getElementById('start-typed').addEventListener('click',()=> startQuiz('typed','g2k', buildVocabPool()));
+  // v43: 난이도·문제수 chip 핸들러
+  _ensureQuizSettings();
+  document.querySelectorAll('#chips-difficulty .chip').forEach(c => c.addEventListener('click', () => {
+    S.quizSettings.difficulty = c.dataset.d;
+    saveState();
+    renderVocab();
+  }));
+  document.querySelectorAll('#chips-count .chip').forEach(c => c.addEventListener('click', () => {
+    S.quizSettings.count = parseInt(c.dataset.n, 10) || 10;
+    saveState();
+    renderVocab();
+  }));
   const csvBtn = document.getElementById('export-csv');
   if(csvBtn) csvBtn.addEventListener('click', () => exportVocabCSV(buildVocabPool(), 'csv'));
   const tsvBtn = document.getElementById('export-tsv');
@@ -3987,35 +4536,57 @@ function _tokenizeKo(s){
                   .map(x => x.trim())
                   .filter(x => x.length >= 2 && !/^(또는|혹은|및|등|것|수|중|또|에|을|를|의|이|가|은|는)$/.test(x)));
 }
-function pickConfusingDistractors(q, pool, n){
+function pickConfusingDistractors(q, pool, n, difficulty){
   // q와 시각·의미·품사적으로 혼란되는 단어 n개를 pool에서 선택.
+  // difficulty: 'easy' = 무작위 (구분 쉬움) / 'medium' = 기본 가중치 / 'hard' = 같은 품사 + 시각/의미 유사 강화
+  const diff = difficulty || (S && S.quizSettings && S.quizSettings.difficulty) || 'medium';
   const cands = pool.filter(x => x.g !== q.g);
   if(cands.length <= n) return cands.slice(0, n);
+
+  if(diff === 'easy'){
+    // 무작위 — 의미·시각적 가까운 distractor 회피하여 빠르게 답 가능
+    const shuffled = cands.slice().sort(()=>Math.random()-0.5);
+    return shuffled.slice(0, n);
+  }
+
   const qBase = _stripDiacritics(q.g).toLowerCase();
   const qKoTokens = _tokenizeKo(q.ko);
+  const W = (diff === 'hard')
+    ? {pos: 14, visual: 12, koOverlap: 6, koPerToken: 3, sameLesson: 2.5, jitter: 0.25}
+    : {pos: 10, visual: 7,  koOverlap: 4, koPerToken: 2, sameLesson: 1.5, jitter: 0.4};
+
   const scored = cands.map(c => {
     let s = 0;
-    if(c.pos === q.pos) s += 10;               // 같은 품사 강한 우선
+    if(c.pos === q.pos) s += W.pos;
     const cBase = _stripDiacritics(c.g).toLowerCase();
     const lev = _levenshtein(qBase, cBase);
     const ml = Math.max(qBase.length, cBase.length, 1);
-    s += (1 - lev / ml) * 7;                   // 시각적 유사 (0~7)
+    s += (1 - lev / ml) * W.visual;
     const cKoTokens = _tokenizeKo(c.ko);
     let overlap = 0;
     for(const tk of cKoTokens) if(qKoTokens.has(tk)) overlap++;
-    if(overlap > 0) s += 4 + overlap * 2;      // 의미 토큰 겹침
-    // 동일한 lesson(과) 약간 우선 (학습 동시기 단어가 헷갈림)
-    if(c.l === q.l) s += 1.5;
-    s += Math.random() * 0.4;                  // 동점자 무작위 분산
+    if(overlap > 0) s += W.koOverlap + overlap * W.koPerToken;
+    if(c.l === q.l) s += W.sameLesson;
+    s += Math.random() * W.jitter;
     return {c, s};
   });
   scored.sort((a, b) => b.s - a.s);
   return scored.slice(0, n).map(x => x.c);
 }
 
+// v43: 퀴즈 사용자 설정 (난이도·문제 수) — _ensureQuizSettings 에서 hydrate
+function _ensureQuizSettings(){
+  if(!S.quizSettings || typeof S.quizSettings !== 'object') S.quizSettings = {};
+  if(!['easy','medium','hard'].includes(S.quizSettings.difficulty)) S.quizSettings.difficulty = 'medium';
+  if(![5,10,20].includes(S.quizSettings.count)) S.quizSettings.count = 10;
+  return S.quizSettings;
+}
+
 function startQuiz(mode, dir, pool, isWrong){
   if(pool.length<4){ toast('풀이 너무 작습니다 (최소 4개 필요).'); return; }
-  vocabSession = { qIdx:0, total:Math.min(10, pool.length), right:0, wrong:0, mode, dir, q:null, pool, isWrong:!!isWrong };
+  const settings = _ensureQuizSettings();
+  const want = settings.count || 10;
+  vocabSession = { qIdx:0, total:Math.min(want, pool.length), right:0, wrong:0, mode, dir, q:null, pool, isWrong:!!isWrong, difficulty: settings.difficulty };
   nextQuestion();
 }
 function nextQuestion(){
@@ -4027,8 +4598,10 @@ function nextQuestion(){
   S.vocabSeen += 1; saveState();
 
   const promptGr = s.dir==='g2k';
+  // v43: 그리스어 prompt 에 🔊 버튼 — TTS 로 발음 듣기
+  const speakBtn = promptGr ? `<button class="btn btn-sm btn-o" id="q-speak" title="발음 듣기" style="vertical-align:middle;padding:2px 8px;font-size:13px;margin-left:8px">🔊</button>` : '';
   const prompt = promptGr
-    ? `<div class="quiz-prompt grk">${q.g}${q.r?` <span style="font-size:14px;color:var(--clay-d);font-family:var(--font-grk)">${q.r}</span>`:''}</div>`
+    ? `<div class="quiz-prompt grk">${q.g}${q.r?` <span style="font-size:14px;color:var(--clay-d);font-family:var(--font-grk)">${q.r}</span>`:''}${speakBtn}</div>`
     : `<div class="quiz-prompt ko">${q.ko}</div>`;
   const sub = promptGr ? `${POS_LABELS[q.pos]||q.pos}${q.note?' · '+q.note:''}` : `<span class="grk" style="opacity:.5">위의 한국어 뜻에 맞는 그리스어를 고르세요</span>`;
 
@@ -4047,6 +4620,12 @@ function nextQuestion(){
       </div>
     `;
     area.querySelectorAll('.opt').forEach(b=> b.addEventListener('click',()=> answerMC(b, q, opts)));
+    const qsp = document.getElementById('q-speak');
+    if(qsp) qsp.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      try { if(typeof stopSpeech === 'function') stopSpeech(); } catch(_){}
+      if(typeof speakGreek === 'function') speakGreek(q.g);
+    });
   } else {
     area.innerHTML = `
       <div class="quiz-card fade-in">
@@ -4066,6 +4645,12 @@ function nextQuestion(){
     inp.addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('submit-typed').click(); });
     document.getElementById('submit-typed').addEventListener('click',()=> answerTyped(q));
     document.getElementById('show-typed').addEventListener('click',()=> answerTyped(q, true));
+    const qsp2 = document.getElementById('q-speak');
+    if(qsp2) qsp2.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      try { if(typeof stopSpeech === 'function') stopSpeech(); } catch(_){}
+      if(typeof speakGreek === 'function') speakGreek(q.g);
+    });
   }
 }
 function normalizeAnswer(s){ return (s||'').replace(/\s+/g,' ').replace(/[,\.\(\)~·…!?]/g,'').trim().toLowerCase(); }
@@ -4203,7 +4788,7 @@ function renderGrammar(){
     </button>
 
     <div class="chips" id="cat-chips">
-      ${[['all','전체'],['decl','격변화 (명사·형용사·대명사)'],['verb','동사 시제·법·분사']].map(([v,l])=>
+      ${[['all','전체'],['decl','격변화 (명사·형용사·대명사)'],['verb','동사 시제·법·분사'],['particle','입자·담화 표지']].map(([v,l])=>
         `<button class="chip ${grammarFilter.cat===v?'active':''}" data-v="${v}">${l}</button>`).join('')}
     </div>
 
@@ -4213,7 +4798,7 @@ function renderGrammar(){
           <div style="display:flex;align-items:center;justify-content:space-between">
             <div>
               <div style="font-family:var(--font-display);font-size:17px;font-weight:600;color:var(--black-glaze)">${t.title}</div>
-              <div style="font-size:12px;color:var(--clay-d);margin-top:2px">${t.lesson<500?`교재 ${t.lesson}과`:'고급'} · ${t.desc}</div>
+              <div style="font-size:12px;color:var(--clay-d);margin-top:2px">${t.lesson===99?'심화':(t.lesson<500?`교재 ${t.lesson}과`:'고급')} · ${t.desc}</div>
             </div>
             <div style="font-size:12px;color:${S.topicsStudied.includes(t.id)?'var(--terracotta-d)':'var(--clay-d)'}">${S.topicsStudied.includes(t.id)?'✓':''}</div>
           </div>
@@ -5361,7 +5946,7 @@ function renderConversation(){
     <div class="card">
       <div style="font-size:13px;line-height:1.7;color:var(--black-glaze-l)">
         Attic 표준 표현을 시나리오별로 정리했습니다. 모든 표현은 고전 출전(Plato·Aristophanes·Xenophon·NT 등)이 있거나 표준 문법서에 등록된 형태입니다.
-        Athenaze·Polis 같은 라이브 메소드 자료를 직접 인용하지 않고, 광범위하게 attested된 표현만 선별했습니다.
+        Athenaze·Polis 같은 라이브 메소드 자료를 직접 인용하지 않고, 광범위하게 attested된 표현만 선별했습니다. 멀티턴 콩트는 별도의 <b>Σκηνή 콩트 장면</b> 페이지에서.
       </div>
     </div>
 
@@ -5381,6 +5966,8 @@ function renderConversation(){
     </div>
   `;
 }
+
+
 
 function renderScenario(scenarioId){
   const sc = CONVERSATIONS.find(c => c.id === scenarioId);
@@ -5403,7 +5990,10 @@ function renderScenario(scenarioId){
               ${it.note ? `<div style="font-size:11.5px;color:var(--black-glaze-l);margin-top:6px;line-height:1.5">📐 ${it.note}</div>` : ''}
               ${it.src  ? `<div style="font-size:10.5px;color:var(--clay-d);margin-top:4px;font-style:italic">📜 ${it.src}</div>` : ''}
             </div>
-            <button class="btn btn-sm ${isRead?'btn-g':'btn-o'}" data-i="${i}" style="flex-shrink:0;align-self:center;min-width:54px">${isRead?'✓':'학습'}</button>
+            <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;align-self:center">
+              <button class="btn btn-sm btn-o" data-speak-conv="${encodeURIComponent(it.grk)}" title="발음 듣기" style="min-width:54px;padding:4px 8px;font-size:13px">🔊</button>
+              <button class="btn btn-sm ${isRead?'btn-g':'btn-o'}" data-i="${i}" style="min-width:54px">${isRead?'✓':'학습'}</button>
+            </div>
           </div>
         </div>`;
     }).join('')}
@@ -5423,7 +6013,727 @@ function renderScenario(scenarioId){
       renderScenario(scenarioId);
     });
   });
+  view.querySelectorAll('[data-speak-conv]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      try { if(typeof stopSpeech === 'function') stopSpeech(); } catch(_){}
+      const t = decodeURIComponent(btn.dataset.speakConv || '');
+      if(t && typeof speakGreek === 'function') speakGreek(t);
+    });
+  });
 }
+
+// ===== 콩트식 대화 장면 (Σκηνή · Dialogues, v43) =====
+// data-dialogues.js 의 DIALOGUES 배열을 UI 로 노출.
+// 각 turn 옆에 🔊 버튼 (speakGreek 호출). 신규 어휘·문법 노트 별도 섹션.
+function renderDialogues(){
+  if(typeof DIALOGUES === 'undefined' || !DIALOGUES.length){
+    view.innerHTML = `
+      <button class="btn btn-sm btn-o" onclick="setTab('vocab')">← 어휘</button>
+      <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Σκηνή</span>콩트 장면</h2>
+      <div class="card warm">콘텐츠 로드 중… 새로고침 후에도 보이지 않으면 data-dialogues.js 가 누락된 것입니다.</div>`;
+    return;
+  }
+  if(!S.dialoguesRead) S.dialoguesRead = {};
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="setTab('vocab')">← 어휘</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Σκηνή</span>콩트 장면</h2>
+    <div class="view-sub">${DIALOGUES.length} 시나리오 · 총 ${DIALOGUES.reduce((s,d)=>s+d.turns.length,0)} 대사</div>
+
+    <div class="card">
+      <div style="font-size:13px;line-height:1.7;color:var(--black-glaze-l)">
+        아테네 시민들의 일상 — 시장 흥정, 향연의 술 자랑, 의사 진료, 체육관, 소크라테스 대화, 노인의 옛날 타령.
+        Aristophanes·Menander 풍의 가벼운 코미디로, 모든 라인은 Attic 표준 (5–4 c. BCE) 그리스어.
+        각 대사 옆 🔊 로 발음을 들을 수 있습니다.
+      </div>
+    </div>
+
+    <div class="badge-grid" style="margin-top:14px">
+      ${DIALOGUES.map(d => {
+        const seen = (S.dialoguesRead[d.id] || 0);
+        const total = d.turns.length;
+        const pct = total>0 ? Math.round(seen*100/total) : 0;
+        return `
+          <button class="card" data-d="${d.id}" style="cursor:pointer;text-align:left;width:100%;border:1px solid ${seen>=total?'var(--terracotta)':'var(--clay)'}">
+            <div style="font-family:var(--font-grk);font-size:17px;color:var(--terracotta-d);font-weight:600;line-height:1.2">${d.title}</div>
+            <div style="font-size:12px;font-weight:600;color:var(--black-glaze);margin-top:3px">${d.titleKo}</div>
+            <div style="font-size:11px;color:var(--clay-d);margin-top:4px;line-height:1.5">${d.setting}</div>
+            <div style="font-size:10px;color:var(--terracotta);margin-top:6px">${total} 대사 · 캐릭터 ${d.characters.length}명${seen>0?` · ${pct}% 읽음`:''}</div>
+          </button>`;
+      }).join('')}
+    </div>
+  `;
+  view.querySelectorAll('[data-d]').forEach(b => b.addEventListener('click', () => renderDialogueScene(b.dataset.d)));
+}
+
+function renderDialogueScene(id){
+  const d = DIALOGUES.find(x => x.id === id);
+  if(!d){ renderDialogues(); return; }
+  // 화자 색조 매핑 (3가지 캐릭터까지)
+  const palette = ['var(--terracotta-d)', 'var(--clay-d)', 'var(--black-glaze-l)'];
+  const speakerColor = {};
+  d.characters.forEach((c, i) => { speakerColor[c.tag] = palette[i % palette.length]; });
+  speakerColor['파이스'] = '#7a8a55';   // 노예 등 보조 캐릭터의 한국어 태그
+  speakerColor['παῖς']  = '#7a8a55';
+
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" data-render="renderDialogues">← 시나리오 목록</button>
+    <h2 class="view-title fade-in" style="margin-top:10px">${d.title}</h2>
+    <div class="view-sub">${d.titleKo} · ${d.turns.length} 대사</div>
+
+    <div class="card" style="background:var(--ivory-d);border-left:3px solid var(--clay-d)">
+      <div style="font-size:11px;color:var(--clay-d);letter-spacing:.04em;text-transform:uppercase;font-weight:600;margin-bottom:6px">장면</div>
+      <div style="font-size:13px;color:var(--black-glaze-l);line-height:1.6;margin-bottom:10px">${d.setting}</div>
+      <div style="font-size:11px;color:var(--clay-d);letter-spacing:.04em;text-transform:uppercase;font-weight:600;margin-bottom:6px">등장 인물</div>
+      ${d.characters.map(c => `
+        <div style="font-size:12.5px;margin:3px 0;line-height:1.5">
+          <span class="grk" style="color:${speakerColor[c.tag]};font-weight:600">${c.tag}</span> = ${c.name} (${c.nameKo}) — <span style="color:var(--clay-d)">${c.role}</span>
+        </div>`).join('')}
+    </div>
+
+    <div style="margin-top:14px">
+      ${d.turns.map((t, i) => {
+        const color = speakerColor[t.speaker] || 'var(--black-glaze)';
+        const safeId = `dlg-${id}-${i}`;
+        return `
+          <div class="card" style="border-left:3px solid ${color};margin-bottom:8px;padding:11px 14px">
+            <div style="display:flex;align-items:flex-start;gap:10px">
+              <div class="grk" style="color:${color};font-weight:700;font-size:14px;min-width:36px;flex-shrink:0">${t.speaker}</div>
+              <div style="flex:1;min-width:0">
+                <div class="grk" style="font-size:17px;color:var(--terracotta-d);font-weight:500;line-height:1.55;letter-spacing:.01em">${t.grk}</div>
+                <div style="font-size:13px;color:var(--black-glaze);margin-top:5px;line-height:1.55">${t.ko}</div>
+                ${t.note ? `<div style="font-size:11px;color:var(--clay-d);margin-top:6px;line-height:1.55;font-style:italic">📐 ${t.note}</div>` : ''}
+              </div>
+              <button class="btn btn-sm btn-o" data-speak="${safeId}" data-text="${encodeURIComponent(t.grk)}" title="발음 듣기" style="flex-shrink:0;align-self:flex-start;padding:4px 8px;font-size:13px">🔊</button>
+            </div>
+          </div>`;
+      }).join('')}
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <div style="font-size:12px;color:var(--clay-d);letter-spacing:.04em;text-transform:uppercase;font-weight:600;margin-bottom:8px">이 장면의 신규 어휘</div>
+      ${d.vocab.map(v => `
+        <div style="padding:6px 0;border-bottom:1px dashed var(--clay);display:flex;align-items:center;gap:10px">
+          <div class="grk" style="font-size:16px;color:var(--terracotta-d);font-weight:600;flex-shrink:0;min-width:90px">${v.g}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;color:var(--black-glaze)">${v.ko}</div>
+            ${v.note ? `<div style="font-size:11px;color:var(--clay-d);margin-top:2px">${v.note}</div>` : ''}
+          </div>
+          <button class="btn btn-sm btn-o" data-speak-w="${encodeURIComponent(v.g)}" title="발음" style="flex-shrink:0;padding:3px 7px;font-size:12px">🔊</button>
+        </div>`).join('')}
+    </div>
+
+    <div class="card" style="margin-top:10px">
+      <div style="font-size:12px;color:var(--clay-d);letter-spacing:.04em;text-transform:uppercase;font-weight:600;margin-bottom:8px">문법 노트</div>
+      ${d.grammar.map(g => `
+        <div style="padding:8px 10px;background:var(--ivory-d);border-radius:6px;margin-bottom:6px">
+          <div style="font-size:13px;color:var(--terracotta-d);font-weight:600;margin-bottom:4px">📐 ${g.label}</div>
+          <div style="font-size:12.5px;color:var(--black-glaze-l);line-height:1.6">${g.body}</div>
+        </div>`).join('')}
+    </div>
+  `;
+  // 진행도 갱신
+  S.dialoguesRead[id] = d.turns.length;
+  saveState();
+
+  // 🔊 버튼 — turns
+  view.querySelectorAll('[data-speak]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      try {
+        if(typeof stopSpeech === 'function') stopSpeech();
+        const t = decodeURIComponent(btn.dataset.text || '');
+        if(t && typeof speakGreek === 'function') speakGreek(t);
+      } catch(_){}
+    });
+  });
+  // 🔊 버튼 — vocab
+  view.querySelectorAll('[data-speak-w]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      try {
+        if(typeof stopSpeech === 'function') stopSpeech();
+        const t = decodeURIComponent(btn.dataset.speakW || '');
+        if(t && typeof speakGreek === 'function') speakGreek(t);
+      } catch(_){}
+    });
+  });
+}
+window.renderDialogues     = renderDialogues;
+window.renderDialogueScene = renderDialogueScene;
+
+// ===== 받아쓰기 모드 (Ἀκοή · Dictation, v44) =====
+// TTS 가 그리스어 단어/구를 발음 → 사용자가 그리스어 텍스트 입력 → 매칭.
+// 매칭은 (a) Unicode NFD 후 결합 표지(다이아크리틱) 제거 (b) 소문자 (c) 공백 정규화.
+// → 학습자가 polytonic/monotonic 어느 쪽으로 입력해도 통과. 대소문자·시그마 위치 무관.
+// 풀: ALL_VOCAB 중 어휘 길이 4-15 사이 (단음절은 발음 식별 어려움, 너무 긴 것은 부담).
+let _dictSession = null;
+
+function _normalizeForDictation(s){
+  if(!s) return '';
+  return s.normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')   // 결합 표지 (악센트·기식부호) 제거
+          .replace(/ς/g, 'σ')                 // 어말 시그마 통일
+          .replace(/[,;.·"'᾽’‘()\[\]…—–\-?!]/g, '')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .toLowerCase();
+}
+
+function renderDictation(){
+  // 풀 구성: 너무 짧거나 너무 긴 어형 제외, 발음 표제어가 단순한 것 위주
+  const pool = (typeof ALL_VOCAB !== 'undefined' ? ALL_VOCAB : []).filter(w => {
+    if(!w || !w.g) return false;
+    const stripped = w.g.replace(/\s+/g, '');
+    return stripped.length >= 4 && stripped.length <= 15;
+  });
+  if(pool.length < 10){
+    view.innerHTML = `
+      <button class="btn btn-sm btn-o" onclick="setTab('vocab')">← 어휘</button>
+      <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Ἀκοή</span>받아쓰기</h2>
+      <div class="card warm">어휘 풀이 너무 작습니다.</div>`;
+    return;
+  }
+  if(!_dictSession){
+    _dictSession = { qIdx:0, total:10, right:0, wrong:0, history:[], pool };
+  }
+  _renderDictationQuestion();
+}
+
+function _renderDictationQuestion(){
+  const s = _dictSession;
+  if(!s) return renderDictation();
+  if(s.qIdx >= s.total){ _finishDictation(); return; }
+  const q = s.pool[Math.floor(Math.random() * s.pool.length)];
+  s.q = q;
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="_endDictation()">← 어휘</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Ἀκοή</span>받아쓰기</h2>
+    <div class="view-sub">${s.qIdx+1} / ${s.total} · 정답률 ${s.qIdx>0?Math.round(s.right*100/s.qIdx)+'%':'—'}</div>
+
+    <div class="card" style="text-align:center;padding:24px 16px">
+      <div style="font-size:11px;color:var(--clay-d);letter-spacing:.04em;text-transform:uppercase;font-weight:600;margin-bottom:14px">소리를 듣고 그리스어로 입력</div>
+
+      <button class="btn" id="dict-play" style="font-size:24px;padding:12px 28px;min-width:120px">🔊 듣기</button>
+
+      <div style="font-size:11px;color:var(--clay-d);margin-top:10px;line-height:1.5;font-style:italic">
+        ${q.ko ? `힌트: <b>${q.ko}</b>` : ''}${q.pos ? ` · ${POS_LABELS[q.pos]||q.pos}` : ''}
+      </div>
+    </div>
+
+    <div class="card">
+      <input class="input grk" id="dict-input" autocomplete="off" autocapitalize="none" spellcheck="false"
+             placeholder="듣고 입력 (polytonic 없이도 OK)" style="font-size:18px;text-align:center">
+      <div class="btn-row" style="margin-top:10px;justify-content:center">
+        <button class="btn" id="dict-submit">제출</button>
+        <button class="btn btn-o btn-sm" id="dict-skip">모르겠다</button>
+      </div>
+      <div id="dict-fb" style="margin-top:10px"></div>
+    </div>
+
+    <div class="btn-row" style="margin-top:8px">
+      <button class="btn btn-o btn-sm" id="dict-replay" style="flex:1">🔁 다시 듣기</button>
+      <button class="btn btn-o btn-sm" id="dict-slow"   style="flex:1">🐢 느리게</button>
+    </div>
+  `;
+
+  const playOnce = (rate) => {
+    try { if(typeof stopSpeech === 'function') stopSpeech(); } catch(_){}
+    // speakGreek 의 rate 옵션 활용 가능하면 사용; 아니면 기본
+    if(typeof speakGreek === 'function'){
+      // speakGreek 시그니처에 옵션이 있는지 사전 점검
+      try { speakGreek(q.g, rate ? {rate} : undefined); }
+      catch(_){ speakGreek(q.g); }
+    }
+  };
+  document.getElementById('dict-play').addEventListener('click', () => playOnce());
+  document.getElementById('dict-replay').addEventListener('click', () => playOnce());
+  document.getElementById('dict-slow').addEventListener('click', () => playOnce(0.65));
+  document.getElementById('dict-submit').addEventListener('click', () => _gradeDictation(false));
+  document.getElementById('dict-skip').addEventListener('click', () => _gradeDictation(true));
+
+  const inp = document.getElementById('dict-input');
+  inp.focus();
+  inp.addEventListener('keydown', e => { if(e.key === 'Enter') _gradeDictation(false); });
+
+  // 자동 1회 재생 — 사용자 인터랙션 없이 안 들릴 수 있으므로 클릭 후 사용
+  // 첫 진입에서는 명시적 버튼 클릭 유도
+}
+
+function _gradeDictation(giveUp){
+  const s = _dictSession;
+  if(!s || !s.q) return;
+  const q = s.q;
+  const fb = document.getElementById('dict-fb');
+  const inp = document.getElementById('dict-input');
+  const user = giveUp ? '' : (inp.value || '');
+  const target = q.g;
+  const ok = !giveUp && _normalizeForDictation(user) === _normalizeForDictation(target);
+
+  if(ok){
+    s.right += 1;
+    fb.innerHTML = `<div class="feedback ok">✓ 정답 — <span class="grk">${target}</span> = ${q.ko}</div>`;
+    if(typeof addXP === 'function') addXP(8, '받아쓰기 정답');
+    if(typeof S !== 'undefined') S.vocabCorrectCount = (S.vocabCorrectCount || 0) + 1;
+  } else {
+    s.wrong += 1;
+    const showInput = user ? ` (당신: <span class="grk">${user}</span>)` : '';
+    fb.innerHTML = `<div class="feedback bad">✗ ${giveUp?'정답':'오답'} — <span class="grk">${target}</span> = ${q.ko}${showInput}</div>`;
+    if(typeof bumpWrongRoom === 'function') bumpWrongRoom(q.g, -1, q);
+  }
+  s.history.push({q, user, ok, giveUp});
+
+  // 입력·버튼 비활성화
+  document.getElementById('dict-submit').disabled = true;
+  document.getElementById('dict-skip').disabled   = true;
+  inp.disabled = true;
+
+  setTimeout(() => {
+    s.qIdx += 1;
+    _renderDictationQuestion();
+  }, ok ? 1100 : 1900);
+}
+
+function _finishDictation(){
+  const s = _dictSession;
+  const total = s.right + s.wrong;
+  const pct = total>0 ? Math.round(s.right*100/total) : 0;
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="setTab('vocab')">← 어휘</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Ἀκοή</span>받아쓰기 결과</h2>
+    <div class="card warm">
+      <div style="font-size:16px;margin-bottom:4px">정답률 <b>${pct}%</b> · ${s.right} / ${s.total}</div>
+      <div style="font-size:13px;color:var(--clay-d)">획득 XP: <b>${s.right*8}</b></div>
+    </div>
+    <div class="card">
+      <div style="font-size:12px;color:var(--clay-d);letter-spacing:.04em;text-transform:uppercase;font-weight:600;margin-bottom:8px">문항별 복습</div>
+      ${s.history.map(h => `
+        <div style="padding:6px 0;border-bottom:1px dashed var(--clay);display:flex;align-items:center;gap:10px">
+          <span style="flex-shrink:0;font-size:14px">${h.ok?'✓':'✗'}</span>
+          <div style="flex:1;min-width:0">
+            <div class="grk" style="font-size:15px;color:var(--terracotta-d)">${h.q.g}</div>
+            <div style="font-size:11px;color:var(--clay-d)">${h.q.ko}${!h.ok && h.user ? ` · 당신: <span class="grk">${h.user}</span>` : ''}</div>
+          </div>
+          <button class="btn btn-sm btn-o" data-grk="${encodeURIComponent(h.q.g)}" title="다시 듣기" style="flex-shrink:0;padding:3px 7px;font-size:12px">🔊</button>
+        </div>`).join('')}
+    </div>
+    <div class="btn-row" style="margin-top:12px">
+      <button class="btn btn-sm" onclick="_dictSession=null;renderDictation()">한 번 더</button>
+      <button class="btn btn-sm btn-o" onclick="_endDictation()">완료</button>
+    </div>
+  `;
+  view.querySelectorAll('[data-grk]').forEach(b => b.addEventListener('click', () => {
+    try { if(typeof stopSpeech === 'function') stopSpeech(); } catch(_){}
+    const t = decodeURIComponent(b.dataset.grk || '');
+    if(t && typeof speakGreek === 'function') speakGreek(t);
+  }));
+  _dictSession = null;
+}
+
+function _endDictation(){
+  try { if(typeof stopSpeech === 'function') stopSpeech(); } catch(_){}
+  _dictSession = null;
+  setTab('vocab');
+}
+
+window.renderDictation = renderDictation;
+window._endDictation   = _endDictation;
+
+// ===== 검색·콘코던스 (Εὕρεσις · Search, v45) =====
+// 본 PWA 의 본문 (WORKS · 545 섹션 · ~266K 토큰) 에 대한 전체 텍스트 검색.
+// MORPH_LOOKUP (AGDT v2.1) 의 형태분석을 활용한 lemma 기반 검색 지원.
+//
+// 아키텍처:
+//   _searchIdx = {
+//     occ: Map<form, Array<[workIdx, secIdx]>>   // form 별 등장 위치
+//     lemmaForms: Map<lemma, Set<form>>          // lemma → 어형 변이
+//   }
+//
+// 구축 비용: ~266K 토큰 순회 + Map 쓰기. node 측정 ~1-2 초. 인메모리 ~10 MB 추정.
+// 한 세션 동안 캐시 (sessionStorage 는 4 MB 한도라 부적합).
+// 본문 토큰화 후 *어떤 lemma 데이터에도 없는 form* 도 위치 인덱스에 등록 — 본문 검색 가능.
+
+let _searchIdx = null;        // 구축된 인덱스
+let _searchBuilding = false;  // 동시 진행 가드
+let _searchInput = '';        // 마지막 쿼리 (재진입 보존)
+
+// 정규화 — 입력과 인덱스 키 모두 같은 규칙 적용
+// (a) Unicode NFD 후 결합 표지 제거 (다이아크리틱)
+// (b) 어말 ς → σ
+// (c) 소문자
+// 결과: polytonic/monotonic, 시그마 위치, 대소문자 무관 검색.
+function _searchNormalize(s){
+  if(!s) return '';
+  return s.normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/ς/g, 'σ')
+          .toLowerCase()
+          .trim();
+}
+
+// 본문 토큰에서 punctuation 제거 — stripWord 와 동일 동작 (의존성 회피 위해 인라인)
+function _searchStripWord(w){
+  return w.replace(/[,;.·"'᾽’‘()\[\]…—–\-?!]/g, '').trim();
+}
+
+// 인덱스 구축 — 비동기·chunked. 한 번에 큰 작업 = UI freeze 방지.
+// progress 콜백으로 진행률 (0-1) 보고. 완료 시 _searchIdx 에 결과 캐시.
+async function _buildSearchIndex(progressCb){
+  if(_searchIdx) return _searchIdx;
+  if(_searchBuilding){
+    // 진행 중이면 완료 대기
+    return new Promise(resolve => {
+      const t = setInterval(() => {
+        if(_searchIdx){ clearInterval(t); resolve(_searchIdx); }
+      }, 100);
+    });
+  }
+  _searchBuilding = true;
+
+  const occ = new Map();            // normalized form → [workIdx*10000+secIdx, ...] (int packing)
+  const surface = new Map();        // normalized form → original surface form (대표 1개)
+  const lemmaForms = new Map();     // lemma (normalized) → Set<original form>
+  const lemmaSurface = new Map();   // lemma normalized → original lemma 형 (대표 1개)
+  const ML = (typeof MORPH_LOOKUP !== 'undefined') ? MORPH_LOOKUP : null;
+
+  const W = (typeof WORKS !== 'undefined') ? WORKS : [];
+
+  // 작품 단위로 chunk 진행, 매 작품 후 yield
+  for(let wi = 0; wi < W.length; wi++){
+    const w = W[wi];
+    const secs = w.sections || [];
+    for(let si = 0; si < secs.length; si++){
+      const text = secs[si].text || '';
+      // 라인 단위로 토큰화 — 위치 정보는 (workIdx, secIdx) 만 저장
+      for(const line of text.split('\n')){
+        for(const tok of line.split(/\s+/)){
+          const stripped = _searchStripWord(tok);
+          if(!stripped) continue;
+          const norm = _searchNormalize(stripped);
+          if(!norm) continue;
+          // 위치 packing — workIdx (max 100) * 10000 + secIdx (max 10000)
+          const pos = wi * 10000 + si;
+          if(!occ.has(norm)){
+            occ.set(norm, [pos]);
+            surface.set(norm, stripped);
+          } else {
+            const arr = occ.get(norm);
+            // 같은 (wi, si) 중복 방지 — 마지막과 다르면 push
+            if(arr[arr.length - 1] !== pos) arr.push(pos);
+          }
+          // lemma 역인덱스 — MORPH_LOOKUP 에 있을 때만
+          if(ML && ML[stripped]){
+            for(const an of ML[stripped]){
+              const lNorm = _searchNormalize(an.l);
+              if(!lemmaForms.has(lNorm)){
+                lemmaForms.set(lNorm, new Set());
+                lemmaSurface.set(lNorm, an.l);
+              }
+              lemmaForms.get(lNorm).add(stripped);
+            }
+          }
+        }
+      }
+    }
+    if(progressCb && wi % 3 === 0){
+      progressCb((wi + 1) / W.length);
+      // yield to event loop
+      await new Promise(r => setTimeout(r, 0));
+    }
+  }
+
+  // MORPH_LOOKUP 의 모든 lemma 등록 (본문에 안 나오더라도 역인덱스 자체엔 등록)
+  // 즉 사용자가 lemma 입력하면 본문에 안 나와도 어형 목록은 보여줌
+  if(ML){
+    for(const form in ML){
+      for(const an of ML[form]){
+        const lNorm = _searchNormalize(an.l);
+        if(!lemmaForms.has(lNorm)){
+          lemmaForms.set(lNorm, new Set());
+          lemmaSurface.set(lNorm, an.l);
+        }
+        lemmaForms.get(lNorm).add(form);
+      }
+    }
+  }
+
+  _searchIdx = { occ, surface, lemmaForms, lemmaSurface };
+  _searchBuilding = false;
+  if(progressCb) progressCb(1);
+  return _searchIdx;
+}
+
+// 검색 진입 — 인덱스가 없으면 lazy build, 있으면 즉시 결과
+function renderSearch(){
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="setTab('vocab')">← 어휘</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Εὕρεσις</span>검색·콘코던스</h2>
+    <div class="view-sub">본문 전체 ${((typeof WORKS!=='undefined'?WORKS:[]).length)}편 · MORPH 분석 (AGDT v2.1) 통합</div>
+
+    <div class="card">
+      <div style="font-size:13px;line-height:1.7;color:var(--black-glaze-l)">
+        어형 또는 표제어를 입력하면 (a) 형태분석, (b) 같은 lemma 의 다른 어형, (c) 본문 등장 위치를 보여줍니다.
+        악센트·기식부호·시그마 위치는 자동 정규화. 처음 한 번 인덱스 구축에 1–3 초.
+      </div>
+    </div>
+
+    <div class="card">
+      <input class="input grk" id="search-input" autocomplete="off" autocapitalize="none" spellcheck="false"
+             placeholder="예: λέγω, ἄνθρωπος, καί, μῆνις" style="font-size:18px"
+             value="${_searchInput.replace(/"/g,'&quot;')}">
+      <div class="btn-row" style="margin-top:10px;justify-content:center">
+        <button class="btn" id="search-go">🔍 검색</button>
+        <button class="btn btn-o btn-sm" id="search-clear">지움</button>
+      </div>
+      <div id="search-status" style="margin-top:8px;font-size:11px;color:var(--clay-d);text-align:center;min-height:14px"></div>
+    </div>
+
+    <div id="search-results"></div>
+  `;
+
+  const inp = document.getElementById('search-input');
+  const go  = document.getElementById('search-go');
+  const clr = document.getElementById('search-clear');
+  const status = document.getElementById('search-status');
+
+  inp.focus();
+  inp.addEventListener('keydown', e => { if(e.key === 'Enter') go.click(); });
+  clr.addEventListener('click', () => { inp.value = ''; _searchInput = ''; inp.focus(); document.getElementById('search-results').innerHTML = ''; });
+
+  go.addEventListener('click', async () => {
+    const q = (inp.value || '').trim();
+    if(!q){ toast && toast('검색어를 입력하세요'); return; }
+    _searchInput = q;
+
+    // 인덱스 빌드 (필요 시)
+    if(!_searchIdx){
+      go.disabled = true; clr.disabled = true;
+      status.innerHTML = '인덱스 구축 중… 0%';
+      await _buildSearchIndex(p => {
+        status.innerHTML = '인덱스 구축 중… ' + Math.round(p * 100) + '%';
+      });
+      status.innerHTML = '인덱스: ' + _searchIdx.occ.size.toLocaleString() + ' 고유 형태 · ' + _searchIdx.lemmaForms.size.toLocaleString() + ' 표제어';
+      go.disabled = false; clr.disabled = false;
+    } else {
+      status.innerHTML = '인덱스: ' + _searchIdx.occ.size.toLocaleString() + ' 고유 형태 · ' + _searchIdx.lemmaForms.size.toLocaleString() + ' 표제어';
+    }
+    _renderSearchResults(q);
+  });
+
+  // 인덱스가 이미 있으면 status 표시
+  if(_searchIdx){
+    status.innerHTML = '인덱스: ' + _searchIdx.occ.size.toLocaleString() + ' 고유 형태 · ' + _searchIdx.lemmaForms.size.toLocaleString() + ' 표제어';
+    // 마지막 검색어가 있으면 자동 복원
+    if(_searchInput){ _renderSearchResults(_searchInput); }
+  }
+}
+
+function _renderSearchResults(query){
+  const out = document.getElementById('search-results');
+  if(!out || !_searchIdx) return;
+  const qNorm = _searchNormalize(query.trim());
+  if(!qNorm){ out.innerHTML = ''; return; }
+
+  const { occ, surface, lemmaForms, lemmaSurface } = _searchIdx;
+
+  // 검색 결과 두 갈래:
+  // (a) 쿼리가 form 인 경우 — occ 에서 직접 hit + 같은 lemma 의 다른 form 도 lookup
+  // (b) 쿼리가 lemma 인 경우 — lemmaForms 에서 어형 집합 → 각 어형의 occ 합산
+  // 한 쿼리가 양쪽 모두 일치할 수도 있음 (예: λέγω 는 form 이자 lemma).
+
+  const ML = (typeof MORPH_LOOKUP !== 'undefined') ? MORPH_LOOKUP : null;
+  const sectionsOf = []; // 모든 종합 occurrence (정렬 전)
+  const lemmaSet = new Set();
+  const matchedForms = new Set();
+
+  // (a) form 검색
+  if(occ.has(qNorm)){
+    matchedForms.add(qNorm);
+    if(ML){
+      const orig = surface.get(qNorm);
+      if(orig && ML[orig]){
+        for(const an of ML[orig]) lemmaSet.add(_searchNormalize(an.l));
+      }
+    }
+  }
+  // (b) lemma 검색
+  if(lemmaForms.has(qNorm)){
+    lemmaSet.add(qNorm);
+    for(const f of lemmaForms.get(qNorm)){
+      matchedForms.add(_searchNormalize(f));
+    }
+  }
+
+  // 다른 lemma 들의 어형도 통합
+  for(const lN of lemmaSet){
+    const fs = lemmaForms.get(lN);
+    if(!fs) continue;
+    for(const f of fs) matchedForms.add(_searchNormalize(f));
+  }
+
+  // 모든 matchedForms 의 occurrence 합산
+  const allOcc = [];  // [{wi, si, form}]
+  for(const fN of matchedForms){
+    const arr = occ.get(fN);
+    if(!arr) continue;
+    const surf = surface.get(fN);
+    for(const pos of arr){
+      allOcc.push({ wi: Math.floor(pos / 10000), si: pos % 10000, form: surf });
+    }
+  }
+
+  if(matchedForms.size === 0 && lemmaSet.size === 0){
+    out.innerHTML = `<div class="card warm"><b>"${query}"</b> — 본문·표제어 데이터에 일치 없음. 악센트·기식부호는 자동 무시됩니다. 다른 표기를 시도해 보세요.</div>`;
+    return;
+  }
+
+  // 작품별 그룹
+  const W = (typeof WORKS !== 'undefined') ? WORKS : [];
+  const byWork = new Map();
+  for(const o of allOcc){
+    const key = o.wi;
+    if(!byWork.has(key)) byWork.set(key, []);
+    byWork.get(key).push(o);
+  }
+  // 작품 정렬 — 등장 횟수 많은 순
+  const sortedWorks = [...byWork.entries()].sort((a, b) => b[1].length - a[1].length);
+
+  // (lemma block) — 형태분석 + 어형 변이
+  let lemmaHtml = '';
+  if(lemmaSet.size > 0){
+    lemmaHtml = `<div class="card" style="border-left:3px solid var(--terracotta)">
+      <div style="font-size:11px;color:var(--clay-d);letter-spacing:.04em;text-transform:uppercase;font-weight:600;margin-bottom:8px">표제어 (Lemma)</div>
+      ${[...lemmaSet].map(lN => {
+        const lSurf = lemmaSurface.get(lN) || lN;
+        const fs = [...(lemmaForms.get(lN) || new Set())];
+        // 형태분석 — 첫 어형 하나의 분석을 대표로 표시 (lemma 자체에는 분석 없음)
+        let anaHTML = '';
+        if(ML){
+          const ana = ML[lSurf];
+          if(ana && ana.length){
+            anaHTML = ana.map(a => `<span style="display:inline-block;background:var(--ivory-d);padding:2px 7px;border-radius:4px;margin:2px 2px 0 0;font-size:11px;color:var(--clay-d)">${a.p}</span>`).join('');
+          }
+        }
+        const otherForms = fs.filter(f => _searchNormalize(f) !== lN).slice(0, 24);
+        return `<div style="padding:10px 0;border-bottom:1px dashed var(--clay)">
+          <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+            <span class="grk" style="font-size:22px;color:var(--terracotta-d);font-weight:700">${lSurf}</span>
+            <button class="btn btn-sm btn-o" data-speak-lem="${encodeURIComponent(lSurf)}" title="발음" style="padding:2px 7px;font-size:12px">🔊</button>
+            <a class="minlink" href="#" data-lookup="${encodeURIComponent(lSurf)}" style="font-size:11px">외부 사전 ↗</a>
+          </div>
+          ${anaHTML ? `<div style="margin-top:4px">${anaHTML}</div>` : ''}
+          ${otherForms.length ? `<div style="margin-top:6px;font-size:12px;color:var(--clay-d)">
+            <b>어형 변이 (${fs.length})</b>: ${otherForms.map(f => `<span class="grk" style="color:var(--black-glaze-l);margin-right:6px">${f}</span>`).join('')}${fs.length > 24 ? ` <i>… 외 ${fs.length-24}</i>` : ''}
+          </div>` : ''}
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  // (concordance block)
+  let concHtml = '';
+  if(allOcc.length){
+    concHtml = `<div class="card" style="border-left:3px solid var(--clay-d);margin-top:10px">
+      <div style="font-size:11px;color:var(--clay-d);letter-spacing:.04em;text-transform:uppercase;font-weight:600;margin-bottom:8px">본문 등장 (콘코던스) · 총 ${allOcc.length}회 · ${sortedWorks.length}편</div>
+      ${sortedWorks.slice(0, 20).map(([wi, list]) => {
+        const w = W[wi];
+        if(!w) return '';
+        // 섹션별 그룹
+        const bySec = new Map();
+        for(const o of list){
+          const sk = o.si;
+          if(!bySec.has(sk)) bySec.set(sk, []);
+          bySec.get(sk).push(o);
+        }
+        const sortedSecs = [...bySec.entries()].sort((a, b) => a[0] - b[0]).slice(0, 12);
+        return `<div style="padding:8px 0;border-bottom:1px dashed var(--clay)">
+          <div style="font-family:var(--font-display);font-size:14px;color:var(--terracotta-d);font-weight:600">${w.workKo || w.work} <span style="font-size:11px;color:var(--clay-d);font-weight:400;font-style:italic">(${list.length}회)</span></div>
+          <div style="font-size:11px;color:var(--clay-d);font-style:italic;margin-bottom:6px">${w.author || ''} · ${w.work || ''}</div>
+          ${sortedSecs.map(([si, group]) => {
+            const sec = (w.sections || [])[si];
+            if(!sec) return '';
+            // 컨텍스트 추출 — 첫 일치 토큰 ±5 단어
+            const ctx = _extractContext(sec.text || '', matchedForms);
+            return `<div style="padding:5px 0 5px 10px;border-left:2px solid var(--clay);margin:4px 0">
+              <a href="#" class="minlink" data-jump-wi="${wi}" data-jump-si="${si}" style="font-size:11px;color:var(--terracotta-d);font-weight:600">${sec.label || ('§'+sec.n)}</a>
+              <span style="font-size:10px;color:var(--clay-d)">${group.length>1?` (${group.length}회)`:''}</span>
+              <div class="grk" style="font-size:13px;color:var(--black-glaze-l);margin-top:3px;line-height:1.5">${ctx}</div>
+            </div>`;
+          }).join('')}
+        </div>`;
+      }).join('')}
+      ${sortedWorks.length > 20 ? `<div style="font-size:11px;color:var(--clay-d);font-style:italic;margin-top:8px">… 외 ${sortedWorks.length-20}편 (상위 20편 표시)</div>` : ''}
+    </div>`;
+  }
+
+  out.innerHTML = lemmaHtml + concHtml;
+
+  // 이벤트 바인딩
+  out.querySelectorAll('[data-speak-lem]').forEach(b => b.addEventListener('click', () => {
+    try { if(typeof stopSpeech === 'function') stopSpeech(); } catch(_){}
+    const t = decodeURIComponent(b.dataset.speakLem || '');
+    if(t && typeof speakGreek === 'function') speakGreek(t);
+  }));
+  out.querySelectorAll('[data-lookup]').forEach(a => a.addEventListener('click', e => {
+    e.preventDefault();
+    const t = decodeURIComponent(a.dataset.lookup || '');
+    if(t && typeof openLookup === 'function') openLookup(t);
+  }));
+  out.querySelectorAll('[data-jump-wi]').forEach(a => a.addEventListener('click', e => {
+    e.preventDefault();
+    const wi = parseInt(a.dataset.jumpWi, 10);
+    const si = parseInt(a.dataset.jumpSi, 10);
+    const W = (typeof WORKS !== 'undefined') ? WORKS : [];
+    const w = W[wi];
+    if(w && typeof renderWorkSection === 'function') renderWorkSection(w.id, si);
+  }));
+}
+
+// 컨텍스트 추출 — 본문 텍스트에서 matchedForms 중 첫 일치 토큰의 ±5 단어 추출
+// matchedForms 는 normalized form 의 Set
+function _extractContext(text, matchedForms){
+  if(!text || !matchedForms || !matchedForms.size) return text.slice(0, 80) + '…';
+  const lines = text.split('\n');
+  for(const line of lines){
+    const tokens = line.split(/(\s+)/);   // 공백 보존
+    const words = [];     // {tok, norm, isMatch}
+    for(const tok of tokens){
+      if(/^\s+$/.test(tok)){ words.push({tok, sep: true}); continue; }
+      const stripped = _searchStripWord(tok);
+      const norm = stripped ? _searchNormalize(stripped) : '';
+      words.push({tok, norm, sep: false, isMatch: matchedForms.has(norm)});
+    }
+    // 매치 위치 찾기
+    for(let i = 0; i < words.length; i++){
+      if(words[i].isMatch){
+        // ±5 word 윈도우 (separator 미포함 카운트)
+        let start = i, end = i, wordCount = 0;
+        // 왼쪽
+        for(let j = i - 1; j >= 0 && wordCount < 5; j--){
+          if(!words[j].sep) wordCount++;
+          start = j;
+        }
+        wordCount = 0;
+        for(let j = i + 1; j < words.length && wordCount < 5; j++){
+          if(!words[j].sep) wordCount++;
+          end = j;
+        }
+        // 윈도우 조립, 매치 토큰 강조
+        let html = '';
+        for(let j = start; j <= end; j++){
+          if(words[j].isMatch){
+            html += `<mark style="background:var(--terracotta);color:var(--ivory-w);padding:0 3px;border-radius:3px">${words[j].tok}</mark>`;
+          } else {
+            html += words[j].tok;
+          }
+        }
+        const prefix = start > 0 ? '… ' : '';
+        const suffix = end < words.length - 1 ? ' …' : '';
+        return prefix + html + suffix;
+      }
+    }
+  }
+  return text.slice(0, 80) + '…';
+}
+
+window.renderSearch = renderSearch;
 
 // ===== 오늘의 단어 (Word of the Day) =====
 // 날짜 기반 deterministic 선택. 형태분석 + 전집 본문 용례.
