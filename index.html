@@ -7086,31 +7086,58 @@ function _initVoice(){
 }
 if(typeof window !== 'undefined'){ _initVoice(); }
 
+// 폴백 안내는 세션당 1회만 (사용자가 시스템·음성을 바꿀 때 재설정됨)
+let _speechFallbackNoticed = false;
+
 function speakGreek(text, overrideDialect){
   if(!('speechSynthesis' in window) || !text) return false;
   const settings = (S && S.speech) ? S.speech : {};
   const system  = settings.system  || 'modern';
   const dialect = overrideDialect || settings.dialect || 'default';
   const sysCfg  = PRON_SYSTEMS[system] || PRON_SYSTEMS.modern;
-  // 본문 정리 (행번호·각주 표시 제거)
-  const clean = text.replace(/^\d+\s+/gm, '').replace(/\[\d+[a-z]?\]/g, '');
-  // 음역
-  const utterText = greekToLatin(clean, system, dialect);
-  const u = new SpeechSynthesisUtterance(utterText);
-  // 음성 선택: 시스템에 해당하는 lang 음성, 없으면 Spanish→English 폴백 (이탈리아 부재 시), 마지막으로 그리스
+  const clean   = text.replace(/^\d+\s+/gm, '').replace(/\[\d+[a-z]?\]/g, '');
+
+  // ── 음성·텍스트 정합성 ──
+  // Web Speech API 음성이 처리 못하는 글자는 letter-name spell-out으로 발화된다
+  // (예: 한국 iPad의 기본 음성이 그리스 글자를 받으면 "alpha, beta..." 발화).
+  // 따라서 (a) 사용 가능 음성을 먼저 선택하고, (b) 그 음성에 안전한 텍스트
+  // 표현을 결정한다. 어떤 적합 음성도 없으면 발화를 보류하고 사용자에게 안내한다.
   let voice = _pickVoiceFor(sysCfg.voiceLang);
   if(!voice && sysCfg.voiceLang === 'it'){
     voice = _pickVoiceFor('es') || _pickVoiceFor('en');
   }
-  if(!voice){
-    voice = _pickVoiceFor('el');
-  }
+  let utterText, fallbackNote = null;
   if(voice){
-    u.voice = voice;
-    u.lang  = voice.lang;
+    // 의도한 lang 음성을 찾음 → 시스템 규칙대로
+    utterText = sysCfg.transliterate ? greekToLatin(clean, system, dialect) : clean;
+  } else if(sysCfg.transliterate){
+    // Erasmian/Restored 요청인데 it/es/en 전부 없음 → el 음성 + 원본 그리스로 폴백
+    voice = _pickVoiceFor('el');
+    if(voice){
+      utterText = clean;
+      fallbackNote = '이탈리아어 음성이 없어 현대 그리스어 발음으로 폴백되었습니다. 설정 → 손쉬운 사용에서 이탈리아어 음성 추가 시 Erasmian/Restored 발화 가능.';
+    }
   } else {
-    u.lang = sysCfg.voiceLang === 'el' ? 'el-GR' : 'it-IT';
+    // modern 요청인데 el 음성 없음 (한국 환경 흔함) → Erasmian 음역으로 it/es/en 폴백
+    voice = _pickVoiceFor('it') || _pickVoiceFor('es') || _pickVoiceFor('en');
+    if(voice){
+      utterText = greekToLatin(clean, 'erasmian', dialect);
+      fallbackNote = '그리스어 음성이 없어 Erasmian 음역(이탈리아어 음성)으로 폴백되었습니다. 설정 → 손쉬운 사용 → 음성에서 그리스어(Ελληνικά) 추가하면 현대 발음 사용 가능.';
+    }
   }
+
+  if(!voice){
+    if(typeof toast === 'function') toast('재생 가능한 음성이 없습니다. 설정 → 손쉬운 사용에서 음성을 추가하세요.', 'warn');
+    return false;
+  }
+  if(fallbackNote && !_speechFallbackNoticed){
+    _speechFallbackNoticed = true;
+    if(typeof toast === 'function') toast(fallbackNote);
+  }
+
+  const u = new SpeechSynthesisUtterance(utterText);
+  u.voice = voice;
+  u.lang  = voice.lang;
   u.rate  = typeof settings.rate  === 'number' ? settings.rate  : 0.85;
   u.pitch = typeof settings.pitch === 'number' ? settings.pitch : 1.0;
   speechSynthesis.cancel();
@@ -7282,6 +7309,7 @@ function renderSpeechSettings(){
     voiceSelect.addEventListener('change', () => {
       S.speech.voiceName = voiceSelect.value;
       _voiceCache = {};
+      _speechFallbackNoticed = false;
       saveState();
     });
 
@@ -7294,6 +7322,7 @@ function renderSpeechSettings(){
       btn.addEventListener('click', () => {
         S.speech.system = btn.dataset.sys;
         _voiceCache = {};
+        _speechFallbackNoticed = false;
         saveState();
         renderSpeechSettings();   // 활성 상태 즉시 반영
       });
