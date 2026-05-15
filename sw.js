@@ -3,7 +3,7 @@
    캐시 전략: cache-first for shell (HTML/icons/manifest), network-first for
    외부 도기 사진 (Wikimedia). 새 버전 배포 시 CACHE_VERSION만 올리면 됩니다.
    ============================================================================ */
-const CACHE_VERSION = 'v14';
+const CACHE_VERSION = 'v16';
 const CACHE_NAME = `paideia-${CACHE_VERSION}`;
 const SHELL = [
   './',

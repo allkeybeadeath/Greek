@@ -3175,6 +3175,11 @@ function lessonGroupFn(g){
   if(g==='dcc-300')        return w => w.l===503;
   if(g==='dcc-400')        return w => w.l===504;
   if(g==='dcc-523')        return w => w.l===505;
+  // 개별 교재 과: tb-3, tb-4, ..., tb-40
+  if(g.startsWith('tb-')){
+    const n = parseInt(g.slice(3), 10);
+    if(!isNaN(n)) return w => w.l === n;
+  }
   return _=>true;
 }
 function buildVocabPool(){
@@ -3307,16 +3312,57 @@ let vocabSession = { qIdx:0, total:10, right:0, wrong:0, mode:'mc', dir:'g2k', q
 function renderVocab(){
   const pool = buildVocabPool();
   const wrongN = Object.keys(S.wrongRoom).length;
+  // 교재 과(3-40)와 DCC 100구간(501-505)을 펼친 칩
+  const textbookLessons = [];
+  for(let i = 3; i <= 40; i++) textbookLessons.push(['tb-'+i, ''+i+'과']);
+  const dccGroups = [
+    ['dcc-100','DCC 1-100'],['dcc-200','DCC 101-200'],
+    ['dcc-300','DCC 201-300'],['dcc-400','DCC 301-400'],
+    ['dcc-523','DCC 401-523'],
+  ];
   view.innerHTML = `
     <h2 class="view-title fade-in"><span class="grk">Λέξεις</span>어휘</h2>
     <div class="view-sub">현재 풀: <b>${pool.length}</b>개 단어 · 오답함: <b>${wrongN}</b>개</div>
 
-    <button class="card" type="button" data-render="renderConversation" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:10px">
+    <button class="card" type="button" data-render="renderConversation" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Διάλογος</div>
           <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">일상 회화</div>
           <div style="font-size:11px;color:var(--clay-d);margin-top:3px">8개 시나리오 · Attic 표준 · 고전 출전 검증</div>
+        </div>
+        <div style="font-size:22px;color:var(--terracotta)">→</div>
+      </div>
+    </button>
+
+    <button class="card" type="button" data-render="renderWordOfDay" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Λέξις ἡμέρας</div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">오늘의 단어</div>
+          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">매일 한 단어 · 형태분석 · 전집 본문 용례</div>
+        </div>
+        <div style="font-size:22px;color:var(--terracotta)">→</div>
+      </div>
+    </button>
+
+    <button class="card" type="button" data-render="renderSRS" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Ἐπανάληψις</div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">SRS · 간격 반복 학습</div>
+          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">SM-2 알고리즘 · 어려운 단어는 자주, 쉬운 단어는 드물게</div>
+        </div>
+        <div style="font-size:22px;color:var(--terracotta)">→</div>
+      </div>
+    </button>
+
+    <button class="card" type="button" data-render="renderFrequency" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Συχνότης</div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">단어 빈도 분석</div>
+          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">전집에서 가장 자주 등장하는 단어 · 작품별·전체</div>
         </div>
         <div style="font-size:22px;color:var(--terracotta)">→</div>
       </div>
@@ -3328,21 +3374,16 @@ function renderVocab(){
         ${[['all','전체'],['textbook','교재 (Chase & Phillips)'],['dcc','DCC Core 523']].map(([v,l])=>
           `<button class="chip ${VOCAB_FILTERS.source===v?'active':''}" data-v="${v}">${l}</button>`).join('')}
       </div>
-      <div style="font-size:12px;color:var(--clay-d);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;font-weight:600">단계</div>
-      <div class="chips" id="chips-lesson">
-        ${[
-          ['all','전체'],
-          ['textbook-early','교재 3-12과'],
-          ['textbook-mid','교재 13-24과'],
-          ['textbook-late','교재 25-40과'],
-          ['dcc-100','DCC 1-100'],
-          ['dcc-200','DCC 101-200'],
-          ['dcc-300','DCC 201-300'],
-          ['dcc-400','DCC 301-400'],
-          ['dcc-523','DCC 401-523'],
-        ].map(([v,l])=>`<button class="chip ${VOCAB_FILTERS.lessonGroups.includes(v)?'active':''}" data-v="${v}">${l}</button>`).join('')}
+      <div style="font-size:12px;color:var(--clay-d);margin:10px 0 6px;letter-spacing:.04em;text-transform:uppercase;font-weight:600">교재 과 (Chase & Phillips)</div>
+      <div class="chips" id="chips-lesson-tb">
+        <button class="chip ${VOCAB_FILTERS.lessonGroups.includes('all')?'active':''}" data-v="all">전체</button>
+        ${textbookLessons.map(([v,l])=>`<button class="chip ${VOCAB_FILTERS.lessonGroups.includes(v)?'active':''}" data-v="${v}">${l}</button>`).join('')}
       </div>
-      <div style="font-size:12px;color:var(--clay-d);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;font-weight:600">품사</div>
+      <div style="font-size:12px;color:var(--clay-d);margin:10px 0 6px;letter-spacing:.04em;text-transform:uppercase;font-weight:600">DCC 구간</div>
+      <div class="chips" id="chips-lesson-dcc">
+        ${dccGroups.map(([v,l])=>`<button class="chip ${VOCAB_FILTERS.lessonGroups.includes(v)?'active':''}" data-v="${v}">${l}</button>`).join('')}
+      </div>
+      <div style="font-size:12px;color:var(--clay-d);margin:10px 0 6px;letter-spacing:.04em;text-transform:uppercase;font-weight:600">품사</div>
       <div class="chips" id="chips-pos">
         ${[['all','전체'],['N','명사'],['V','동사'],['A','형용사'],['D','부사'],['C','접속사'],['P','전치사'],['PR','대명사']].map(([v,l])=>
           `<button class="chip ${VOCAB_FILTERS.pos===v?'active':''}" data-v="${v}">${l}</button>`).join('')}
@@ -3355,13 +3396,18 @@ function renderVocab(){
       <button class="btn btn-o" id="start-typed">희→한 입력형</button>
     </div>
 
+    <div class="btn-row" style="margin:6px 0">
+      <button class="btn btn-o btn-sm" id="export-csv" style="flex:1;font-size:11px">현재 풀 CSV로 export</button>
+      <button class="btn btn-o btn-sm" id="export-tsv" style="flex:1;font-size:11px">Anki용 TSV로 export</button>
+    </div>
+
     ${wrongN>0?`<button class="btn btn-o" id="start-wrong" style="width:100%">오답함 복습 (${wrongN}개)</button>`:''}
 
     <div id="quiz-area"></div>
   `;
   // 칩 이벤트
   document.querySelectorAll('#chips-source .chip').forEach(c=> c.addEventListener('click',()=>{ VOCAB_FILTERS.source=c.dataset.v; renderVocab(); }));
-  document.querySelectorAll('#chips-lesson .chip').forEach(c=> c.addEventListener('click',()=>{
+  const handleLessonClick = (c)=>{
     const v = c.dataset.v;
     let arr = VOCAB_FILTERS.lessonGroups || ['all'];
     if(v === 'all'){
@@ -3374,12 +3420,18 @@ function renderVocab(){
     }
     VOCAB_FILTERS.lessonGroups = arr;
     renderVocab();
-  }));
+  };
+  document.querySelectorAll('#chips-lesson-tb .chip').forEach(c => c.addEventListener('click', () => handleLessonClick(c)));
+  document.querySelectorAll('#chips-lesson-dcc .chip').forEach(c => c.addEventListener('click', () => handleLessonClick(c)));
   document.querySelectorAll('#chips-pos .chip').forEach(c=> c.addEventListener('click',()=>{ VOCAB_FILTERS.pos=c.dataset.v; renderVocab(); }));
 
   document.getElementById('start-mc-g2k').addEventListener('click',()=> startQuiz('mc','g2k', buildVocabPool()));
   document.getElementById('start-mc-k2g').addEventListener('click',()=> startQuiz('mc','k2g', buildVocabPool()));
   document.getElementById('start-typed').addEventListener('click',()=> startQuiz('typed','g2k', buildVocabPool()));
+  const csvBtn = document.getElementById('export-csv');
+  if(csvBtn) csvBtn.addEventListener('click', () => exportVocabCSV(buildVocabPool(), 'csv'));
+  const tsvBtn = document.getElementById('export-tsv');
+  if(tsvBtn) tsvBtn.addEventListener('click', () => exportVocabCSV(buildVocabPool(), 'tsv'));
   const wb = document.getElementById('start-wrong');
   if(wb) wb.addEventListener('click',()=>{
     const wrongList = Object.values(S.wrongRoom).map(x=>({g:x.lemma||x.g||x.greek, r:'', pos:x.pos||'', l:0, ko:x.ko, en:''}));
@@ -4418,7 +4470,284 @@ function renderScenario(scenarioId){
   });
 }
 
-function renderTopic(id){
+// ===== 오늘의 단어 (Word of the Day) =====
+// 날짜 기반 deterministic 선택. 형태분석 + 전집 본문 용례.
+function _todaySeed(){
+  const d = new Date();
+  return d.getFullYear() * 10000 + (d.getMonth()+1) * 100 + d.getDate();
+}
+function _seededPick(arr, seed){
+  // Mulberry32 PRNG
+  let s = seed | 0;
+  s = (s + 0x6D2B79F5) | 0;
+  let t = Math.imul(s ^ (s >>> 15), 1 | s);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  const r = ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  return arr[Math.floor(r * arr.length)];
+}
+function _findWordInWorks(word, maxHits){
+  // word를 전집 본문에서 찾아 (work, section, snippet) 반환
+  if(typeof WORKS === 'undefined') return [];
+  const hits = [];
+  const baseStrip = stripAccent(word).toLowerCase();
+  for(const w of WORKS){
+    for(const sec of (w.sections || [])){
+      const text = sec.text || '';
+      // 단어 경계에서 찾기 (그리스어 단어 분리)
+      const tokens = text.split(/[\s\.,;··:·!\?"\(\)\[\]\—\-\n]+/);
+      for(let ti = 0; ti < tokens.length; ti++){
+        const tok = tokens[ti].replace(/^[''«»"']+|[''«»"']+$/g, '');
+        if(!tok || tok.length < 2) continue;
+        if(stripAccent(tok).toLowerCase() === baseStrip){
+          // 주변 문맥
+          const start = Math.max(0, ti - 4);
+          const end = Math.min(tokens.length, ti + 5);
+          const snippet = tokens.slice(start, end).join(' ');
+          hits.push({
+            workId: w.id, workKo: w.workKo, author: w.authorKo,
+            section: sec.label || sec.n, snippet, matched: tok
+          });
+          if(hits.length >= maxHits) return hits;
+          break;  // 한 섹션당 한 hit
+        }
+      }
+    }
+  }
+  return hits;
+}
+function renderWordOfDay(){
+  const all = (typeof DEFAULT_W !== 'undefined' && Array.isArray(DEFAULT_W)) ? DEFAULT_W : [];
+  if(!all.length){
+    view.innerHTML = `<button class="btn btn-sm btn-o" onclick="setTab('vocab')">← 어휘</button>
+      <div class="card">단어 데이터가 없습니다.</div>`;
+    return;
+  }
+  const seed = _todaySeed();
+  const word = _seededPick(all, seed);
+  const a = (typeof classifyAccent === 'function') ? classifyAccent(word.g) : null;
+  const hits = _findWordInWorks(word.g, 5);
+  const today = new Date();
+  const ymd = `${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일`;
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="setTab('vocab')">← 어휘</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Λέξις ἡμέρας</span>오늘의 단어</h2>
+    <div class="view-sub">${ymd} · 매일 새 단어</div>
+
+    <div class="card" style="text-align:center;padding:24px 16px">
+      <div style="font-family:var(--font-grk);font-size:42px;color:var(--terracotta-d);font-weight:600;line-height:1.1;letter-spacing:.02em">${word.g}</div>
+      ${word.r?`<div style="font-family:var(--font-grk);font-size:18px;color:var(--clay-d);margin-top:6px">${word.r}</div>`:''}
+      <div style="font-size:18px;color:var(--black-glaze);font-weight:500;margin-top:14px">${word.ko}</div>
+      ${word.en?`<div style="font-size:13px;color:var(--clay-d);margin-top:4px;font-style:italic">${word.en}</div>`:''}
+      <div style="margin-top:12px;display:flex;gap:6px;justify-content:center;font-size:11px;color:var(--clay-d)">
+        <span style="background:var(--ivory-d);padding:3px 8px;border-radius:8px">${({N:'명사',V:'동사',A:'형용사',D:'부사',C:'접속사',P:'전치사',PR:'대명사'})[word.pos]||word.pos}</span>
+        ${word.l?`<span style="background:var(--ivory-d);padding:3px 8px;border-radius:8px">${word.l<500?`교재 ${word.l}과`:'DCC 빈도'}</span>`:''}
+      </div>
+    </div>
+
+    ${a && a.greek ? `
+    <div class="card">
+      <div style="font-family:var(--font-display);font-size:14px;color:var(--terracotta-d);font-weight:600;margin-bottom:6px">악센트 분석</div>
+      <div style="font-size:13px;color:var(--black-glaze-l);line-height:1.7">
+        <span style="font-family:var(--font-grk);font-weight:600">${a.greek}</span> · ${a.korean}<br>
+        <span style="color:var(--clay-d);font-size:11.5px">${a.syllableCount}음절 · ${({ultima:'마지막',penult:'끝에서 둘째',antepenult:'끝에서 셋째'})[a.position]||''} 음절</span>
+      </div>
+    </div>` : ''}
+
+    ${hits.length ? `
+    <div class="card">
+      <div style="font-family:var(--font-display);font-size:14px;color:var(--terracotta-d);font-weight:600;margin-bottom:8px">전집 본문 용례 (${hits.length})</div>
+      ${hits.map(h => `
+        <div style="padding:8px 0;border-bottom:1px dashed var(--clay)">
+          <div style="font-size:11px;color:var(--clay-d);margin-bottom:3px">${h.author} · ${h.workKo} · ${h.section}</div>
+          <div style="font-family:var(--font-grk);font-size:14px;color:var(--black-glaze);line-height:1.6">${h.snippet.replace(h.matched, `<b style="color:var(--terracotta-d)">${h.matched}</b>`)}</div>
+        </div>`).join('')}
+    </div>` : `
+    <div class="card"><div style="font-size:12px;color:var(--clay-d)">이 단어는 전집 본문에서 발견되지 않았습니다 (어휘 사전에만 등재).</div></div>`}
+  `;
+}
+
+// ===== 빈도 분석 (Frequency Analysis) =====
+let _freqCache = null;
+function computeFrequency(){
+  if(_freqCache) return _freqCache;
+  if(typeof WORKS === 'undefined') return {global: [], byWork: {}};
+  const STOP = new Set(['καί','δέ','τε','γάρ','μέν','οὖν','δή','οὐ','οὐκ','οὐχ','μή',
+                        'ὁ','ἡ','τό','τοῦ','τῆς','τοῖς','ταῖς','τόν','τήν','τούς','τάς',
+                        'ἐν','ἐκ','ἐξ','εἰς','ἐπί','κατά','πρός','σύν','διά','παρά','ὑπό','ὑπέρ',
+                        'ἐγώ','σύ','αὐτός','αὐτή','αὐτό','ἡμεῖς','ὑμεῖς','τις','τίς','τι','τί',
+                        'ὥς','ὧδε','τις','τὶς','ἄν','ἐάν','εἰ','ἤ','ὅτι','ὥστε','ὅδε',
+                        'δʼ','τʼ','γʼ','μʼ','σʼ','οἷς','αἷς','ᾧ','ᾗ','τῷ','τῇ']);
+  const global = {};
+  const byWork = {};
+  for(const w of WORKS){
+    const local = {};
+    for(const sec of (w.sections || [])){
+      const text = sec.text || '';
+      const tokens = text.split(/[\s\.,;··:·!\?"\(\)\[\]\—\-\n0-9]+/);
+      for(const tok of tokens){
+        const clean = tok.replace(/^[''«»"'·]+|[''«»"'·]+$/g, '');
+        if(!clean || clean.length < 3) continue;
+        if(!/[\u0370-\u03FF\u1F00-\u1FFF]/.test(clean)) continue;
+        const norm = stripAccent(clean).toLowerCase();
+        if(STOP.has(clean) || STOP.has(norm)) continue;
+        global[clean] = (global[clean] || 0) + 1;
+        local[clean] = (local[clean] || 0) + 1;
+      }
+    }
+    byWork[w.id] = Object.entries(local).sort((a,b)=>b[1]-a[1]);
+  }
+  const globalSorted = Object.entries(global).sort((a,b)=>b[1]-a[1]);
+  _freqCache = {global: globalSorted, byWork};
+  return _freqCache;
+}
+let _freqScope = 'all';
+function renderFrequency(){
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="setTab('vocab')">← 어휘</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Συχνότης</span>단어 빈도 분석</h2>
+    <div class="view-sub">전집 본문에서 자주 등장하는 단어 · 불용어(관사·접속사·전치사) 제외</div>
+
+    <div class="card">
+      <div style="font-size:11px;color:var(--clay-d);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;font-weight:600">범위</div>
+      <div class="chips" id="freq-scope">
+        <button class="chip ${_freqScope==='all'?'active':''}" data-s="all">전체 전집</button>
+        ${WORKS.slice(0,20).map(w =>
+          `<button class="chip ${_freqScope===w.id?'active':''}" data-s="${w.id}">${w.workKo}</button>`
+        ).join('')}
+      </div>
+    </div>
+
+    <div id="freq-results"></div>
+  `;
+  document.querySelectorAll('#freq-scope .chip').forEach(c => c.addEventListener('click', () => {
+    _freqScope = c.dataset.s;
+    renderFrequency();
+  }));
+  // 비동기로 계산 (큰 작업) — 로딩 표시
+  const host = document.getElementById('freq-results');
+  host.innerHTML = '<div class="card"><div style="text-align:center;padding:20px;color:var(--clay-d)">계산 중...</div></div>';
+  setTimeout(() => {
+    const data = computeFrequency();
+    const list = _freqScope === 'all' ? data.global : (data.byWork[_freqScope] || []);
+    const top = list.slice(0, 100);
+    const total = list.reduce((s, [_, n]) => s + n, 0);
+    host.innerHTML = `
+      <div class="card">
+        <div style="font-size:12px;color:var(--clay-d);margin-bottom:10px">${total.toLocaleString()}개 어형 등장 · 상위 100개 표시</div>
+        ${top.map(([w, n], i) => `
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px dashed var(--clay);font-size:13px">
+            <span style="color:var(--clay-d);min-width:34px;font-size:11px">#${i+1}</span>
+            <span style="font-family:var(--font-grk);color:var(--terracotta-d);font-weight:600;min-width:120px;cursor:pointer;text-decoration:underline" data-w="${encodeURIComponent(w)}">${w}</span>
+            <span style="flex:1;color:var(--clay-d)">${n}회</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    host.querySelectorAll('[data-w]').forEach(el => el.addEventListener('click', () => openLookup(el.dataset.w)));
+  }, 30);
+}
+
+// ===== 전체 검색 (Search) =====
+function searchInWorks(query, maxHits){
+  if(typeof WORKS === 'undefined' || !query || query.length < 2) return [];
+  const baseQ = stripAccent(query).toLowerCase();
+  const hits = [];
+  for(const w of WORKS){
+    for(const sec of (w.sections || [])){
+      const text = sec.text || '';
+      const baseText = stripAccent(text).toLowerCase();
+      let idx = 0;
+      while(true){
+        const found = baseText.indexOf(baseQ, idx);
+        if(found < 0) break;
+        // 단어 경계 확인
+        const before = found > 0 ? baseText[found-1] : ' ';
+        const after = found + baseQ.length < baseText.length ? baseText[found + baseQ.length] : ' ';
+        const isWordBoundary = !/[\u0370-\u03FF\u1F00-\u1FFF]/.test(before) && !/[\u0370-\u03FF\u1F00-\u1FFF]/.test(after);
+        if(isWordBoundary){
+          const lo = Math.max(0, found - 50);
+          const hi = Math.min(text.length, found + baseQ.length + 50);
+          let snippet = text.slice(lo, hi);
+          // 매칭 부분 찾아 표시 (원본 텍스트에서)
+          const matchInOriginal = text.slice(found, found + baseQ.length);
+          snippet = (lo > 0 ? '…' : '') +
+                    snippet.replace(matchInOriginal, `<b style="color:var(--terracotta-d);background:var(--ivory-d);padding:0 2px">${matchInOriginal}</b>`) +
+                    (hi < text.length ? '…' : '');
+          hits.push({
+            workId: w.id, workKo: w.workKo, author: w.authorKo,
+            section: sec.label || sec.n, snippet,
+            sectionId: sec.n
+          });
+          if(hits.length >= maxHits) return hits;
+        }
+        idx = found + baseQ.length;
+      }
+    }
+  }
+  return hits;
+}
+function renderSearch(initialQuery){
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="setTab('read')">← 원문</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Ζήτησις</span>전체 검색</h2>
+    <div class="view-sub">${WORKS.length}편 전집 본문에서 검색 (악센트 무시)</div>
+
+    <div class="card">
+      <input id="search-input" type="text" placeholder="그리스어 단어 또는 구절..."
+        style="width:100%;padding:10px 12px;font-family:var(--font-grk);font-size:18px;border:1px solid var(--clay);border-radius:8px;background:var(--ivory)"
+        value="${initialQuery||''}">
+      <div style="font-size:11px;color:var(--clay-d);margin-top:6px">예: λόγος · θεός · ἐν ἀρχῇ · 단어 일부도 가능</div>
+    </div>
+
+    <div id="search-results"></div>
+  `;
+  const input = document.getElementById('search-input');
+  const host = document.getElementById('search-results');
+  let timer = null;
+  const doSearch = () => {
+    const q = input.value.trim();
+    if(q.length < 2){
+      host.innerHTML = '';
+      return;
+    }
+    const hits = searchInWorks(q, 50);
+    if(!hits.length){
+      host.innerHTML = '<div class="card"><div style="color:var(--clay-d);font-size:13px">결과 없음</div></div>';
+      return;
+    }
+    // 작품별 그룹화
+    const byWork = {};
+    for(const h of hits){
+      if(!byWork[h.workId]) byWork[h.workId] = {workKo: h.workKo, author: h.author, items: []};
+      byWork[h.workId].items.push(h);
+    }
+    host.innerHTML = `
+      <div class="card">
+        <div style="font-size:11px;color:var(--clay-d);margin-bottom:10px">${hits.length}개 일치 · ${Object.keys(byWork).length}편 작품</div>
+        ${Object.entries(byWork).map(([wid, gw]) => `
+          <div style="margin-bottom:14px">
+            <div style="font-size:13px;font-weight:600;color:var(--terracotta-d);margin-bottom:6px">${gw.author} · ${gw.workKo} (${gw.items.length})</div>
+            ${gw.items.slice(0,8).map(h => `
+              <div style="padding:6px 0;border-bottom:1px dashed var(--clay);font-size:12.5px">
+                <div style="font-size:10.5px;color:var(--clay-d);margin-bottom:2px">${h.section}</div>
+                <div style="font-family:var(--font-grk);line-height:1.6;color:var(--black-glaze)">${h.snippet}</div>
+              </div>
+            `).join('')}
+            ${gw.items.length > 8 ? `<div style="font-size:11px;color:var(--clay-d);margin-top:4px">…${gw.items.length-8}개 더</div>` : ''}
+          </div>
+        `).join('')}
+      </div>
+    `;
+  };
+  input.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(doSearch, 200);
+  });
+  input.focus();
+  if(initialQuery) doSearch();
+}
+
+
   const t = TOPICS.find(x=>x.id===id);
   if(!t) return;
   const p = t.paradigm;
@@ -4524,12 +4853,45 @@ function renderRead(){
     <h2 class="view-title fade-in"><span class="grk">Ἀνάγνωσις</span>원문</h2>
     <div class="view-sub">${WORKS.length}개 전집(Perseus DL) · ${READINGS.length}개 짧은 발췌</div>
 
-    <button class="card" type="button" data-render="renderCloze" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:10px">
+    <button class="card" type="button" data-render="renderCloze" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Ἔλλειψις</div>
           <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">빈칸 채우기 (Cloze)</div>
           <div style="font-size:11px;color:var(--clay-d);margin-top:3px">전집 본문에서 임의 구절 한 단어 빈칸 · 문맥·문법 일치</div>
+        </div>
+        <div style="font-size:22px;color:var(--terracotta)">→</div>
+      </div>
+    </button>
+
+    <button class="card" type="button" data-render="renderSearch" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Ζήτησις</div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">전체 검색</div>
+          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">${WORKS.length}편 전집 본문에서 단어·구절 검색 · 악센트 무시</div>
+        </div>
+        <div style="font-size:22px;color:var(--terracotta)">→</div>
+      </div>
+    </button>
+
+    <button class="card" type="button" data-render="renderBookmarks" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Σημαντικά</div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">내 북마크</div>
+          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">⭐ 표시한 섹션 모음 · 빠른 재진입</div>
+        </div>
+        <div style="font-size:22px;color:var(--terracotta)">→</div>
+      </div>
+    </button>
+
+    <button class="card" type="button" data-render="renderCrossRefs" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Παράλληλα</div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">연관 인용·평행 구절</div>
+          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">두 작품 이상에 나타나는 4단어+ 구절 자동 검출</div>
         </div>
         <div style="font-size:22px;color:var(--terracotta)">→</div>
       </div>
@@ -4547,7 +4909,156 @@ function renderRead(){
   else renderExcerptsList();
 }
 
+// ===== 작품 그룹 정의 (시리즈·저자 단위 그룹핑) =====
+// 단일 작품도 OK; 시리즈 작품(Iliad 5권, NT 27권)은 한 묶음.
+const WORK_GROUPS = [
+  {id:'gr-iliad',     groupKo:'일리아스', groupGrk:'Ἰλιάς',
+    author:'Homer', authorKo:'호메로스', era:'상고기', eraIdx:1, kind:'verse',
+    desc:'아킬레우스의 분노로 시작하는 24권 서사시. 트로이아 전쟁 10년차의 50일.',
+    works:['homer-iliad-1','homer-iliad-6','homer-iliad-9','homer-iliad-22','homer-iliad-24'],
+    imgFrom:'homer-iliad-1'},
+  {id:'gr-odyssey',   groupKo:'오뒷세이아', groupGrk:'Ὀδύσσεια',
+    author:'Homer', authorKo:'호메로스', era:'상고기', eraIdx:1, kind:'verse',
+    desc:'오뒷세우스의 10년 귀향. 24권 서사시.',
+    works:['homer-odyssey-1'],
+    imgFrom:'homer-odyssey-1'},
+  {id:'gr-hesiod',    groupKo:'헤시오도스', groupGrk:'Ἡσίοδος',
+    author:'Hesiod', authorKo:'헤시오도스', era:'상고기', eraIdx:1, kind:'verse',
+    desc:'그리스 신화의 우주발생론(신통기) + 농민 윤리(일과 날). 호메로스와 함께 그리스 종교·도덕 체계의 두 기둥.',
+    works:['hesiod-theogony','hesiod-wd']},
+  {id:'gr-tragedy',   groupKo:'아티카 비극', groupGrk:'Τραγῳδία',
+    author:'Aeschylus·Sophocles', authorKo:'아이스킬로스·소포클레스', era:'고전기', eraIdx:2, kind:'verse',
+    desc:'5세기 BCE 디오뉘소스 극장의 비극. 코로스 합창 + 대화.',
+    works:['aeschylus-persians','sophocles-antigone','sophocles-oedipus']},
+  {id:'gr-plato',     groupKo:'플라톤 대화편', groupGrk:'Πλάτων',
+    author:'Plato', authorKo:'플라톤', era:'고전기', eraIdx:2, kind:'prose',
+    desc:'소크라테스 재판 3부작(에우튀프론·변론·크리톤). Attic 산문의 정점.',
+    works:['plato-euthyphro','plato-apology','plato-crito']},
+  {id:'gr-historiog', groupKo:'그리스 산문 역사·전기', groupGrk:'Ἱστορία',
+    author:'Herodotus·Xenophon·Plutarch', authorKo:'헤로도토스·크세노폰·플루타르코스', era:'고전기', eraIdx:2, kind:'prose',
+    desc:'헤로도토스(역사학의 아버지)·크세노폰(소크라테스 제자, 군사가)·플루타르코스(영웅전).',
+    works:['herodotus-1','xenophon-anabasis-1','plutarch-themistocles']},
+  {id:'gr-medicine',  groupKo:'히포크라테스 의학', groupGrk:'Ἰατρική',
+    author:'Hippocrates', authorKo:'히포크라테스', era:'고전기', eraIdx:2, kind:'prose',
+    desc:'코스 학파의 임상 기록. 의학사 최초의 case study. 이오니아 산문.',
+    works:['hippocrates-epidemics']},
+  // === 신약성서 ===
+  {id:'gr-nt-gospels', groupKo:'신약 사복음서 + 사도행전', groupGrk:'Εὐαγγέλια',
+    author:'NT', authorKo:'신약', era:'헬레니즘기', eraIdx:3, kind:'prose',
+    desc:'마태·마가·누가·요한 + 사도행전. Koine 그리스어, 1세기 CE.',
+    works:['nt-matthew','nt-mark','nt-luke','nt-john','nt-acts']},
+  {id:'gr-nt-pauline', groupKo:'신약 바울 서신', groupGrk:'Παῦλος',
+    author:'NT', authorKo:'신약', era:'헬레니즘기', eraIdx:3, kind:'prose',
+    desc:'바울의 13서신. 로마서·고린도·갈라디아·에베소·빌립보 등.',
+    works:['nt-romans','nt-1corinthians','nt-2corinthians','nt-galatians','nt-ephesians',
+           'nt-philippians','nt-colossians','nt-1thessalonians','nt-2thessalonians',
+           'nt-1timothy','nt-2timothy','nt-titus','nt-philemon']},
+  {id:'gr-nt-general', groupKo:'신약 공동서신', groupGrk:'Καθολικαὶ ἐπιστολαί',
+    author:'NT', authorKo:'신약', era:'헬레니즘기', eraIdx:3, kind:'prose',
+    desc:'히브리서·야고보·베드로·요한·유다.',
+    works:['nt-hebrews','nt-james','nt-1peter','nt-2peter','nt-1john','nt-2john','nt-3john','nt-jude']},
+  {id:'gr-nt-revelation', groupKo:'요한 묵시록', groupGrk:'Ἀποκάλυψις',
+    author:'NT', authorKo:'신약', era:'헬레니즘기', eraIdx:3, kind:'prose',
+    desc:'신약 마지막 권. 묵시문학.',
+    works:['nt-revelation']},
+];
+function _resolveWork(id){ return WORKS.find(w => w.id === id); }
+function _groupProgress(g){
+  let done = 0, total = 0, allDone = true;
+  for(const wid of g.works){
+    const w = _resolveWork(wid);
+    if(!w) continue;
+    total += w.sections.length;
+    const dn = (S.sectionsDone[wid] || []).length;
+    done += dn;
+    if(!S.worksFinished.includes(wid)) allDone = false;
+  }
+  return {done, total, pct: total > 0 ? Math.round(done * 100 / total) : 0, allDone};
+}
+
 function renderWorksList(){
+  const body = document.getElementById('read-body');
+  const hasAGDT = (id) => typeof MORPH_WORKS !== 'undefined' && MORPH_WORKS.includes(id);
+  // 그룹 내 작품이 0개면 그룹 자체 숨김 (해당 작품 데이터 없을 시)
+  const visibleGroups = WORK_GROUPS.filter(g => g.works.some(wid => _resolveWork(wid)));
+  body.innerHTML = visibleGroups.map(g => {
+    const prog = _groupProgress(g);
+    const repId = g.imgFrom || g.works[0];
+    const w = _resolveWork(repId);
+    const img = WORK_IMAGE[repId];
+    const imgURL = img ? imageURL(img, 480) : null;
+    const fallback = svgFallback(repId);
+    const workCount = g.works.filter(wid => _resolveWork(wid)).length;
+    const anyAGDT = g.works.some(hasAGDT);
+    const visual = `<div style="width:100%;aspect-ratio:16/9;background:var(--black-glaze);overflow:hidden;position:relative">
+        <div style="position:absolute;inset:0">${fallback}</div>
+        ${imgURL?`<img src="${imgURL}" alt="${(IMAGES[img]?.caption||'').slice(0,80)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block" loading="lazy" onerror="this.remove()">`:''}
+        <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(26,22,18,.85));padding:24px 14px 10px;color:var(--ivory);z-index:2">
+          <div style="font-family:var(--font-grk);font-size:22px;font-weight:600;line-height:1.1">${g.groupGrk}</div>
+          <div style="font-family:var(--font-display);font-size:16px;font-weight:600;margin-top:2px">${g.authorKo} — ${g.groupKo}</div>
+          <div style="font-family:var(--font-display);font-style:italic;font-size:11px;color:var(--clay);margin-top:2px">${g.era}${workCount>1?` · ${workCount}편`:''}</div>
+        </div>
+        ${anyAGDT?'<div style="position:absolute;top:8px;right:8px;background:var(--terracotta);color:var(--ivory-w);font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;letter-spacing:.04em;z-index:2">AGDT 분석</div>':''}
+      </div>`;
+    return `<button class="card" style="width:100%;text-align:left;cursor:pointer;border:1.5px solid ${prog.allDone?'var(--terracotta)':'var(--clay)'};padding:0;overflow:hidden" data-gid="${g.id}">
+      ${visual}
+      <div style="padding:12px 16px">
+        <div style="font-size:12px;color:var(--clay-d);line-height:1.5;margin-bottom:8px">${g.desc}</div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:11px">
+          <span style="color:var(--terracotta-d);font-weight:600">${prog.done}/${prog.total} 섹션</span>
+          <span class="progress" style="flex:1"><span class="fill" style="width:${prog.pct}%"></span></span>
+          ${prog.allDone?'<span style="color:var(--terracotta-d)">✓ 완독</span>':''}
+        </div>
+      </div>
+    </button>`;
+  }).join('');
+  body.querySelectorAll('[data-gid]').forEach(b => b.addEventListener('click', () => renderGroup(b.dataset.gid)));
+}
+
+function renderGroup(gid){
+  const g = WORK_GROUPS.find(x => x.id === gid);
+  if(!g) return;
+  const hasAGDT = (id) => typeof MORPH_WORKS !== 'undefined' && MORPH_WORKS.includes(id);
+  const works = g.works.map(_resolveWork).filter(Boolean);
+  // 단일 작품 그룹은 바로 작품 화면으로
+  if(works.length === 1){ renderWork(works[0].id); return; }
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="setTab('read')">← 원문 목록</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">${g.groupGrk}</span>${g.groupKo}</h2>
+    <div class="view-sub">${g.authorKo} · ${works.length}편 · ${g.era}</div>
+    <div class="card"><div style="font-size:13px;line-height:1.7;color:var(--black-glaze-l)">${g.desc}</div></div>
+    <div id="group-works"></div>
+  `;
+  const host = document.getElementById('group-works');
+  host.innerHTML = works.map(w => {
+    const done = S.worksFinished.includes(w.id);
+    const progress = (S.sectionsDone[w.id] || []).length;
+    const total = w.sections.length;
+    const pct = total > 0 ? Math.round(progress * 100 / total) : 0;
+    const agdt = hasAGDT(w.id);
+    const mins = (typeof estimateReadingMinutes === 'function') ? estimateReadingMinutes(w) : 0;
+    return `<button class="card" data-id="${w.id}" style="width:100%;text-align:left;cursor:pointer;border:1px solid ${done?'var(--terracotta)':'var(--clay)'};margin:6px 0">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div style="flex:1;min-width:0">
+          <div style="font-family:var(--font-grk);font-size:18px;color:var(--terracotta-d);font-weight:600;line-height:1.2">${w.work}</div>
+          <div style="font-size:13px;font-weight:600;color:var(--black-glaze);margin-top:2px">${w.workKo}</div>
+          <div style="font-size:11px;color:var(--clay-d);margin-top:4px;line-height:1.4">${w.note.slice(0, 90)}${w.note.length > 90 ? '…' : ''}</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;margin-top:6px;flex-wrap:wrap">
+            <span style="color:var(--terracotta-d);font-weight:600">${progress}/${total}</span>
+            <span class="progress" style="flex:1;max-width:100px;min-width:60px"><span class="fill" style="width:${pct}%"></span></span>
+            ${mins?`<span style="color:var(--clay-d);font-size:10px">⏱ ${mins}분</span>`:''}
+            ${agdt?'<span style="background:var(--terracotta);color:var(--ivory-w);font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px">AGDT</span>':''}
+            ${done?'<span style="color:var(--terracotta-d)">✓</span>':''}
+          </div>
+        </div>
+        <div style="font-size:18px;color:var(--terracotta);flex-shrink:0">→</div>
+      </div>
+    </button>`;
+  }).join('');
+  host.querySelectorAll('[data-id]').forEach(b => b.addEventListener('click', () => renderWork(b.dataset.id)));
+}
+
+
   const body = document.getElementById('read-body');
   const hasAGDT = (id) => typeof MORPH_WORKS !== 'undefined' && MORPH_WORKS.includes(id);
   body.innerHTML = WORKS.map(w=>{
@@ -4662,7 +5173,9 @@ function renderWorkSection(workId, secIdx){
         ${secIdx>0?`<button class="btn btn-sm btn-o" onclick="window._renderWorkSection('${workId}',${secIdx-1})">← 이전</button>`:''}
         ${secIdx<w.sections.length-1?`<button class="btn btn-sm btn-o" onclick="window._renderWorkSection('${workId}',${secIdx+1})">다음 →</button>`:''}
       </div>
-      <div style="display:flex;gap:6px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${('speechSynthesis' in window)?`<button class="btn btn-sm btn-o" id="speak-sec" title="발음 듣기">🔊</button>`:''}
+        <button class="btn btn-sm ${isBookmarked(workId,sec.n)?'':'btn-o'}" id="bookmark-sec" title="즐겨찾기">${isBookmarked(workId,sec.n)?'★':'☆'}</button>
         <button class="btn btn-sm" id="save-sec-memo">저장</button>
         <button class="btn btn-sm ${done?'btn-o':''}" id="mark-sec-done">${done?'✓ 완독':'완독 (+20 XP)'}</button>
       </div>
@@ -4680,13 +5193,27 @@ function renderWorkSection(workId, secIdx){
     if(!S.sectionsDone[workId].includes(sec.n)){
       S.sectionsDone[workId].push(sec.n);
       addXP(20, '섹션 완독');
-      // 작품 전체 완독 체크
       if(S.sectionsDone[workId].length === w.sections.length && !S.worksFinished.includes(workId)){
         S.worksFinished.push(workId);
         setTimeout(()=> addXP(200, `${w.workKo} 전권 완독`), 600);
       }
       saveState();
       renderWorkSection(workId, secIdx);
+    }
+  });
+  const bb = document.getElementById('bookmark-sec');
+  if(bb) bb.addEventListener('click', ()=>{
+    const added = toggleBookmark(workId, sec.n);
+    toast(added ? '북마크 추가됨 ⭐' : '북마크 제거됨');
+    renderWorkSection(workId, secIdx);
+  });
+  const sp = document.getElementById('speak-sec');
+  if(sp) sp.addEventListener('click', ()=>{
+    if(speechSynthesis.speaking){
+      stopSpeech();
+      sp.textContent = '🔊';
+    } else {
+      if(speakGreek(sec.text)) sp.textContent = '⏸';
     }
   });
 }
@@ -5270,6 +5797,324 @@ async function init(){
   refreshBanner();
   setTab('home');
 }
+// ===== 읽기 시간 추정 =====
+// 학습자 그리스어 읽기 속도: 약 40 단어/분 (느린 정독). 산문은 5/분 빠름.
+function estimateReadingMinutes(work){
+  if(!work || !work.sections) return 0;
+  let words = 0;
+  for(const sec of work.sections){
+    words += (sec.text || '').split(/\s+/).filter(Boolean).length;
+  }
+  const wpm = work.kind === 'prose' ? 45 : 35;
+  return Math.max(1, Math.round(words / wpm));
+}
+
+// ===== 음성 합성 (TTS) =====
+let _greekVoice = null;
+function _initVoice(){
+  if(!('speechSynthesis' in window)) return;
+  const pick = () => {
+    const voices = speechSynthesis.getVoices();
+    _greekVoice = voices.find(v => v.lang.startsWith('el')) ||
+                  voices.find(v => v.lang.toLowerCase().includes('greek')) || null;
+  };
+  pick();
+  if(!_greekVoice) speechSynthesis.onvoiceschanged = pick;
+}
+if(typeof window !== 'undefined'){ _initVoice(); }
+function speakGreek(text){
+  if(!('speechSynthesis' in window) || !text) return false;
+  const clean = text.replace(/^\d+\s+/gm, '').replace(/\[\d+[a-z]?\]/g, '');
+  const u = new SpeechSynthesisUtterance(clean);
+  if(_greekVoice) u.voice = _greekVoice;
+  u.lang = 'el-GR'; u.rate = 0.85; u.pitch = 1.0;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+  return true;
+}
+function stopSpeech(){ if('speechSynthesis' in window) speechSynthesis.cancel(); }
+
+// ===== 즐겨찾기·북마크 =====
+function _ensureBookmarks(){ if(!S.bookmarks) S.bookmarks = {}; }
+function bookmarkKey(workId, secN){ return `${workId}::${secN}`; }
+function toggleBookmark(workId, secN, tag){
+  _ensureBookmarks();
+  const k = bookmarkKey(workId, secN);
+  if(S.bookmarks[k]){
+    delete S.bookmarks[k]; saveState(); return false;
+  } else {
+    S.bookmarks[k] = {workId, secN, tag: tag || '중요', ts: Date.now()};
+    saveState(); return true;
+  }
+}
+function isBookmarked(workId, secN){
+  _ensureBookmarks();
+  return !!S.bookmarks[bookmarkKey(workId, secN)];
+}
+function renderBookmarks(){
+  _ensureBookmarks();
+  const items = Object.values(S.bookmarks).sort((a,b) => b.ts - a.ts);
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="setTab('read')">← 원문</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Σημαντικά</span>내 북마크</h2>
+    <div class="view-sub">${items.length}개 즐겨찾기 섹션</div>
+    ${items.length === 0 ? `
+      <div class="card"><div style="font-size:13px;color:var(--clay-d);line-height:1.7">
+        섹션 화면에서 ☆ 버튼을 누르면 즐겨찾기에 추가됩니다.<br>
+        중요한 구절·다시 읽을 부분·어려운 섹션을 모아 빠르게 돌아오세요.
+      </div></div>` : items.map(b => {
+        const w = WORKS.find(x => x.id === b.workId);
+        if(!w) return '';
+        const secIdx = w.sections.findIndex(s => s.n === b.secN);
+        if(secIdx < 0) return '';
+        const sec = w.sections[secIdx];
+        const preview = (sec.text || '').replace(/^\d+\s+/, '').slice(0, 80);
+        const date = new Date(b.ts).toLocaleDateString('ko-KR');
+        return `<div class="card" style="border-left:3px solid var(--terracotta);cursor:pointer" data-wid="${b.workId}" data-sec="${secIdx}">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:11px;color:var(--clay-d)">${w.authorKo} · ${w.workKo} · ${sec.label}</div>
+              <div style="font-family:var(--font-grk);font-size:14px;color:var(--black-glaze);margin-top:6px;line-height:1.5">${preview}…</div>
+              <div style="font-size:10.5px;color:var(--clay-d);margin-top:6px">📅 ${date}</div>
+            </div>
+            <button class="btn btn-sm btn-o" data-rm="${bookmarkKey(b.workId, b.secN)}" style="flex-shrink:0;font-size:11px">제거</button>
+          </div>
+        </div>`;
+      }).join('')}
+  `;
+  view.querySelectorAll('[data-wid]').forEach(el => el.addEventListener('click', (e) => {
+    if(e.target.closest('[data-rm]')) return;
+    window._renderWorkSection(el.dataset.wid, parseInt(el.dataset.sec, 10));
+  }));
+  view.querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', (e) => {
+    e.stopPropagation();
+    delete S.bookmarks[b.dataset.rm];
+    saveState();
+    renderBookmarks();
+  }));
+}
+
+// ===== SRS — 간격 반복 학습 (SM-2) =====
+function _ensureSRS(){ if(!S.srs) S.srs = {}; }
+function _srsKey(word){ return word.g; }
+function _srsToday(){
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
+function srsDueCards(){
+  _ensureSRS();
+  if(typeof DEFAULT_W === 'undefined') return [];
+  const today = _srsToday();
+  const due = [];
+  for(const w of DEFAULT_W){
+    const k = _srsKey(w);
+    const st = S.srs[k];
+    if(!st){ due.push({word: w, isNew: true, st: null}); }
+    else if(st.due <= today){ due.push({word: w, isNew: false, st}); }
+  }
+  return due;
+}
+function srsGrade(word, quality){
+  _ensureSRS();
+  const k = _srsKey(word);
+  let st = S.srs[k] || {ef: 2.5, interval: 0, reps: 0, lapses: 0, due: _srsToday()};
+  if(quality < 3){
+    st.lapses = (st.lapses || 0) + 1;
+    st.reps = 0; st.interval = 1;
+  } else {
+    st.reps = (st.reps || 0) + 1;
+    if(st.reps === 1) st.interval = 1;
+    else if(st.reps === 2) st.interval = 6;
+    else st.interval = Math.round(st.interval * st.ef);
+    st.ef = Math.max(1.3, st.ef + 0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+  }
+  st.due = _srsToday() + st.interval * 24 * 60 * 60 * 1000;
+  st.lastReview = Date.now();
+  S.srs[k] = st;
+  saveState();
+}
+let _srsQueue = null, _srsIdx = 0, _srsCorrect = 0;
+function renderSRS(){
+  _ensureSRS();
+  const due = srsDueCards();
+  const stats = {
+    total: typeof DEFAULT_W !== 'undefined' ? DEFAULT_W.length : 0,
+    learned: Object.keys(S.srs).length,
+    dueToday: due.length,
+    new: due.filter(d => d.isNew).length,
+  };
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="setTab('vocab')">← 어휘</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Ἐπανάληψις</span>SRS · 간격 반복</h2>
+    <div class="view-sub">SM-2 알고리즘 · 오늘 복습 ${stats.dueToday}개</div>
+    <div class="card">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center">
+        <div><div style="font-family:var(--font-display);font-size:22px;color:var(--terracotta-d);font-weight:600">${stats.total}</div><div style="font-size:10px;color:var(--clay-d)">전체 단어</div></div>
+        <div><div style="font-family:var(--font-display);font-size:22px;color:var(--terracotta-d);font-weight:600">${stats.learned}</div><div style="font-size:10px;color:var(--clay-d)">학습 중</div></div>
+        <div><div style="font-family:var(--font-display);font-size:22px;color:var(--terracotta-d);font-weight:600">${stats.dueToday}</div><div style="font-size:10px;color:var(--clay-d)">오늘 due</div></div>
+      </div>
+      <div style="font-size:11px;color:var(--clay-d);line-height:1.6;margin-top:10px;padding-top:10px;border-top:1px dashed var(--clay)">
+        SM-2: 어려운 단어는 자주, 쉬운 단어는 드물게 보여줍니다. 다시·어려움·보통·쉬움 4단계로 평가하면 다음 복습일이 자동 계산됩니다.
+      </div>
+    </div>
+    <div id="srs-session">
+      ${stats.dueToday === 0 ?
+        '<div class="card" style="text-align:center;padding:24px"><div style="font-family:var(--font-display);font-size:18px;color:var(--terracotta-d);font-weight:600">오늘 복습 완료 ✓</div><div style="font-size:12px;color:var(--clay-d);margin-top:6px">내일 다시 오세요.</div></div>' :
+        '<button class="btn" onclick="startSRSSession()" style="width:100%">시작 (' + stats.dueToday + '개) →</button>'}
+    </div>
+  `;
+}
+function startSRSSession(){
+  _srsQueue = srsDueCards().sort(() => Math.random() - 0.5).slice(0, 20);
+  _srsIdx = 0; _srsCorrect = 0;
+  renderSRSCard();
+}
+function renderSRSCard(){
+  const host = document.getElementById('srs-session');
+  if(!host) return;
+  if(_srsIdx >= _srsQueue.length){
+    host.innerHTML = `
+      <div class="card" style="text-align:center;padding:24px">
+        <div style="font-family:var(--font-display);font-size:24px;color:var(--terracotta-d);font-weight:600">${_srsCorrect}/${_srsQueue.length}</div>
+        <div style="font-size:12px;color:var(--clay-d);margin-top:6px">세션 완료.</div>
+        <button class="btn" style="margin-top:14px" onclick="renderSRS()">메인 →</button>
+      </div>`;
+    if(typeof addXP === 'function') addXP(_srsCorrect * 3, 'SRS 복습');
+    return;
+  }
+  const card = _srsQueue[_srsIdx];
+  const w = card.word;
+  const a = (typeof classifyAccent === 'function') ? classifyAccent(w.g) : null;
+  const hasSpeech = ('speechSynthesis' in window);
+  host.innerHTML = `
+    <div class="card" style="text-align:center">
+      <div style="font-size:11px;color:var(--clay-d);margin-bottom:6px">${_srsIdx+1}/${_srsQueue.length}${card.isNew?' · 새 카드':''}</div>
+      <div style="font-family:var(--font-grk);font-size:38px;color:var(--terracotta-d);font-weight:600;line-height:1.2;padding:14px 0">${w.g}</div>
+      ${w.r?`<div style="font-family:var(--font-grk);font-size:14px;color:var(--clay-d)">${w.r}</div>`:''}
+      ${hasSpeech?`<button class="btn btn-sm btn-o" onclick="speakGreek('${w.g.replace(/'/g,"\\'")}')" style="margin-top:6px;font-size:11px">🔊 발음</button>`:''}
+      <div id="srs-answer" style="margin-top:14px;display:none">
+        <div style="border-top:1px dashed var(--clay);padding-top:14px">
+          <div style="font-size:17px;color:var(--black-glaze);font-weight:500">${w.ko}</div>
+          ${w.en?`<div style="font-size:12px;color:var(--clay-d);margin-top:3px;font-style:italic">${w.en}</div>`:''}
+          ${a && a.greek ? `<div style="font-size:11px;color:var(--clay-d);margin-top:8px">${a.greek} · ${a.korean}</div>` : ''}
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:14px">
+            <button class="btn btn-sm" data-q="0" style="background:#c84a3a;color:#fff;font-size:11px;padding:8px 4px">다시</button>
+            <button class="btn btn-sm btn-o" data-q="3" style="font-size:11px;padding:8px 4px">어려움</button>
+            <button class="btn btn-sm" data-q="4" style="font-size:11px;padding:8px 4px">보통</button>
+            <button class="btn btn-sm btn-g" data-q="5" style="font-size:11px;padding:8px 4px">쉬움</button>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-o" id="srs-show" style="margin-top:8px">정답 보기</button>
+    </div>
+  `;
+  document.getElementById('srs-show').addEventListener('click', () => {
+    document.getElementById('srs-show').style.display = 'none';
+    document.getElementById('srs-answer').style.display = 'block';
+  });
+  host.querySelectorAll('[data-q]').forEach(b => b.addEventListener('click', () => {
+    const q = parseInt(b.dataset.q, 10);
+    srsGrade(w, q);
+    if(q >= 3) _srsCorrect++;
+    _srsIdx++;
+    renderSRSCard();
+  }));
+}
+
+// ===== CSV·TSV(Anki) 익스포트 =====
+function _downloadFile(filename, content, mime){
+  const blob = new Blob([content], {type: mime || 'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+}
+function exportVocabCSV(words, kind){
+  const sep = kind === 'tsv' ? '\t' : ',';
+  const quote = (s) => {
+    if(kind === 'tsv') return (s || '').replace(/\t/g, ' ').replace(/\n/g, ' ');
+    return '"' + (s || '').replace(/"/g, '""') + '"';
+  };
+  const header = ['그리스어','principal_parts','품사','과','한국어','영어'];
+  const rows = [header.join(sep)];
+  for(const w of words){
+    rows.push([w.g, w.r||'', w.pos||'', w.l||'', w.ko||'', w.en||''].map(quote).join(sep));
+  }
+  const filename = `paideia_vocab_${new Date().toISOString().slice(0,10)}.${kind}`;
+  _downloadFile(filename, '\uFEFF' + rows.join('\n'),
+                kind === 'tsv' ? 'text/tab-separated-values' : 'text/csv');
+  if(typeof toast === 'function') toast(`${words.length}개 단어 export됨`);
+}
+
+// ===== 연관 인용·평행 구절 =====
+let _xrefCache = null;
+function computeCrossRefs(){
+  if(_xrefCache) return _xrefCache;
+  if(typeof WORKS === 'undefined') return [];
+  const PHRASE_LEN = 4;
+  const grams = new Map();
+  const norm = (s) => stripAccent(s).toLowerCase();
+  for(const w of WORKS){
+    for(const sec of (w.sections || [])){
+      const tokens = (sec.text || '').split(/[\s\.,;··:!\?\(\)\[\]\—\-\n]+/)
+        .map(t => t.replace(/^[''«»"'·]+|[''«»"'·]+$/g, ''))
+        .filter(t => t && /[\u0370-\u03FF\u1F00-\u1FFF]/.test(t) && t.length >= 3);
+      for(let i = 0; i + PHRASE_LEN <= tokens.length; i++){
+        const slice = tokens.slice(i, i + PHRASE_LEN);
+        const key = slice.map(norm).join(' ');
+        if(!grams.has(key)) grams.set(key, []);
+        grams.get(key).push({
+          workId: w.id, secN: sec.n,
+          original: slice.join(' '),
+          workKo: w.workKo, author: w.authorKo
+        });
+      }
+    }
+  }
+  const xrefs = [];
+  for(const [key, occs] of grams.entries()){
+    const works = new Set(occs.map(o => o.workId));
+    if(works.size >= 2) xrefs.push({phrase: occs[0].original, occurrences: occs});
+  }
+  const filtered = xrefs.filter(x => x.occurrences.length <= 6);
+  filtered.sort((a, b) => b.occurrences.length - a.occurrences.length);
+  _xrefCache = filtered.slice(0, 50);
+  return _xrefCache;
+}
+function renderCrossRefs(){
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="setTab('read')">← 원문</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Παράλληλα</span>연관 인용·평행 구절</h2>
+    <div class="view-sub">두 작품 이상에 동일하게 나타나는 4단어 이상 구절 자동 검출</div>
+    <div class="card" id="xref-loading"><div style="text-align:center;padding:20px;color:var(--clay-d)">분석 중... (시간 약 2초)</div></div>
+    <div id="xref-body"></div>
+  `;
+  setTimeout(() => {
+    const xrefs = computeCrossRefs();
+    const loading = document.getElementById('xref-loading');
+    if(loading) loading.remove();
+    const host = document.getElementById('xref-body');
+    if(!xrefs.length){
+      host.innerHTML = '<div class="card"><div style="font-size:13px;color:var(--clay-d)">평행 구절이 검출되지 않았습니다.</div></div>';
+      return;
+    }
+    host.innerHTML = `
+      <div class="card">
+        <div style="font-size:11px;color:var(--clay-d);margin-bottom:10px">상위 ${Math.min(30, xrefs.length)}개 (총 ${xrefs.length}개) · 빈도 높은 일반 구문 자동 제외</div>
+        ${xrefs.slice(0, 30).map(x => `
+          <div style="padding:10px 0;border-bottom:1px dashed var(--clay)">
+            <div style="font-family:var(--font-grk);font-size:15px;color:var(--terracotta-d);font-weight:600;margin-bottom:6px">${x.phrase}</div>
+            ${x.occurrences.map(o => `
+              <div style="font-size:11px;color:var(--clay-d);margin-left:8px;padding:2px 0">→ ${o.author} · ${o.workKo} · ${o.secN}</div>
+            `).join('')}
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }, 50);
+}
+
 // ===== 인라인 onclick에서 호출되는 함수들을 글로벌 노출 =====
 // (engine.js는 IIFE이므로 명시적 export 없이는 onclick에서 ReferenceError 발생)
 window.renderAccent        = renderAccent;
@@ -5282,6 +6127,18 @@ window.renderCloze         = renderCloze;
 window.startCloze          = startCloze;
 window.renderConversation  = renderConversation;
 window.renderScenario      = renderScenario;
+window.renderGroup         = renderGroup;
+window.renderWordOfDay     = renderWordOfDay;
+window.renderFrequency     = renderFrequency;
+window.renderSearch        = renderSearch;
+window.renderBookmarks     = renderBookmarks;
+window.renderSRS           = renderSRS;
+window.startSRSSession     = startSRSSession;
+window.renderCrossRefs     = renderCrossRefs;
+window.speakGreek          = speakGreek;
+window.stopSpeech          = stopSpeech;
+window.exportVocabCSV      = exportVocabCSV;
+window.toggleBookmark      = toggleBookmark;
 
 init();
 
