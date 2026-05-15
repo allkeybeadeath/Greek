@@ -22,7 +22,11 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Gentium+Book+Plus:ital,wght@0,400;0,700;1,400&family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Google Fonts 비차단 로드: 첫 페인트 차단 방지 (display=swap으로 시스템 폰트 폴백 후 교체) -->
+<link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Gentium+Book+Plus:ital,wght@0,400;0,700;1,400&family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap"
+      media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Gentium+Book+Plus:ital,wght@0,400;0,700;1,400&family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap"></noscript>
 <style>
 /* ============================================================================
    적색상 도기(red-figure) 미학 — terracotta / black-glaze / ivory
@@ -319,6 +323,25 @@ textarea.input{font-family:var(--font-ko);font-size:14px;line-height:1.5;min-hei
     radial-gradient(ellipse 70% 90% at 80% 90%,rgba(196,69,54,.18),transparent 60%),
     repeating-linear-gradient(45deg,transparent 0 7px,rgba(0,0,0,.025) 7px 8px)}
 }
+/* ─── 로딩 스플래시 (데이터 동기 로드 중 표시) ─── */
+.splash-init{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:60vh;padding:32px 20px;text-align:center;
+  font-family:Georgia, 'Times New Roman', serif; /* Google Fonts 로드 전 폴백 */
+}
+.splash-grk{
+  font-size:30px;font-weight:600;color:#9C3F2D;
+  letter-spacing:.01em;margin-bottom:18px;
+  animation: splash-fade 1.4s ease-in-out infinite alternate;
+}
+.splash-meander{
+  width:200px;height:18px;margin-bottom:24px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='18' viewBox='0 0 40 18'><path d='M0 14h6V4h14v6h-6v4h12V4h6v10h6' fill='none' stroke='%23C44536' stroke-width='1.2'/></svg>");
+  background-repeat:repeat-x;opacity:.7;
+}
+.splash-stage{font-size:14px;color:#2a241e;margin-bottom:6px}
+.splash-hint{font-size:11px;color:#8a7a6a;font-style:italic}
+@keyframes splash-fade { from{opacity:.55} to{opacity:1} }
 </style>
 </head>
 <body>
@@ -332,7 +355,12 @@ textarea.input{font-family:var(--font-ko);font-size:14px;line-height:1.5;min-hei
   </header>
   <div class="meander"></div>
 
-  <main id="view"><div class="empty"><div class="grk">⏳</div>로딩 중…</div></main>
+  <main id="view"><div class="splash-init">
+    <div class="splash-grk">Ἑλληνικὴ Παιδεία</div>
+    <div class="splash-meander"></div>
+    <div class="splash-stage" id="splash-stage">데이터 로딩 중…</div>
+    <div class="splash-hint">첫 로드 시 약 1.4 MB · 다음부터 즉시</div>
+  </div></main>
 
   <nav class="bottom-nav">
     <button class="nav-btn active" data-tab="home"><span class="ic">Ἑ</span><span class="lb">홈</span></button>
@@ -2694,7 +2722,9 @@ const READINGS = [
 ];
 
 </script>
+<script>var _splash=document.getElementById('splash-stage');if(_splash)_splash.textContent='본문 데이터 로딩 중… (전집 45편)';</script>
 <script src="data-works.js"></script>
+<script>if(_splash)_splash.textContent='형태분석 데이터 로딩 중… (37,154 키)';</script>
 <script>
 /* data_images.js */
 /* ============================================================================
@@ -2889,6 +2919,7 @@ function imageURL(imgId, width){
 
 </script>
 <script src="data-morph.js"></script>
+<script>if(_splash)_splash.textContent='엔진 초기화 중…';</script>
 
 
 <!-- ===== 엔진 ===== -->
