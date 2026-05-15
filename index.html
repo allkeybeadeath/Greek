@@ -4805,7 +4805,10 @@ function renderDialectTopic(id){
         <div style="padding:12px 14px;border-bottom:${i<t.forms.length-1?'1px solid var(--clay)':'none'};border-left:3px solid ${DIALECT_COLORS[f.dialect]||'var(--clay)'}">
           <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap">
             <div style="font-size:11px;font-weight:700;color:var(--clay-d);text-transform:uppercase;letter-spacing:.08em;min-width:64px">${f.label}</div>
-            <div style="font-family:var(--font-grk);font-size:17px;color:var(--terracotta-d);font-weight:600;flex:1;text-align:right">${f.word}</div>
+            <div style="display:flex;align-items:center;gap:8px;flex:1;justify-content:flex-end">
+              <div lang="grc" style="font-family:var(--font-grk);font-size:17px;color:var(--terracotta-d);font-weight:600">${f.word}</div>
+              <button class="btn btn-sm btn-o" style="padding:4px 8px;font-size:11px;min-width:auto" data-speak-dialect="${f.dialect}" data-speak-text="${f.word.replace(/"/g,'&quot;')}" aria-label="${f.label} 발음 듣기">🔊</button>
+            </div>
           </div>
           ${f.note?`<div style="font-size:12px;color:var(--clay-d);margin-top:6px;line-height:1.6">${f.note}</div>`:''}
         </div>
@@ -4815,19 +4818,35 @@ function renderDialectTopic(id){
     ${t.examples && t.examples.length ? `
       <h3 style="font-family:var(--font-display);font-size:15px;color:var(--terracotta-d);margin:18px 0 8px;text-transform:uppercase;letter-spacing:.08em">예문</h3>
       <div class="card" style="padding:0">
-        ${t.examples.map((ex,i)=>`
+        ${t.examples.map((ex,i)=>{
+          const inferred = _inferDialect(ex.cite) || 'default';
+          return `
           <div style="padding:12px 14px;border-bottom:${i<t.examples.length-1?'1px solid var(--clay)':'none'}">
-            <div class="grk" style="font-size:16px;line-height:1.6;color:var(--black-glaze)">${ex.text}</div>
+            <div style="display:flex;align-items:flex-start;gap:8px">
+              <div class="grk" lang="grc" style="font-size:16px;line-height:1.6;color:var(--black-glaze);flex:1">${ex.text}</div>
+              <button class="btn btn-sm btn-o" style="padding:4px 8px;font-size:11px;min-width:auto;flex-shrink:0" data-speak-dialect="${inferred}" data-speak-text="${ex.text.replace(/"/g,'&quot;')}" aria-label="예문 발음 듣기">🔊</button>
+            </div>
             <div style="font-size:11px;color:var(--clay-d);margin-top:6px;font-style:italic">— ${ex.cite}</div>
-          </div>
-        `).join('')}
+          </div>`;
+        }).join('')}
       </div>
     ` : ''}
 
     <div class="card" style="margin-top:14px;background:var(--ivory-d);border-left:3px solid var(--clay-d)">
       <div style="font-size:11px;color:var(--clay-d);font-style:italic;line-height:1.6">📚 출처: ${t.source}</div>
+      <div style="font-size:11px;color:var(--clay-d);font-style:italic;line-height:1.6;margin-top:6px">🔊 발음은 현재 선택된 발음 시스템(<b>${PRON_SYSTEMS[(S.speech&&S.speech.system)||'modern'].label}</b>)으로 재생됩니다. 방언별 음운 차이는 Erasmian·Restored 시스템에서 가장 잘 드러납니다 (어휘 → 음성 합성 설정에서 변경).</div>
     </div>
   `;
+  // 🔊 버튼 이벤트 — 형태/예문의 방언으로 임시 발화
+  view.querySelectorAll('[data-speak-dialect]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const dia = btn.dataset.speakDialect;
+      const txt = btn.dataset.speakText;
+      stopSpeech();
+      speakGreekDialect(txt, dia);
+    });
+  });
 }
 window.renderDialectTopic = renderDialectTopic;
 
@@ -6886,67 +6905,255 @@ function estimateReadingMinutes(work){
   return Math.max(1, Math.round(words / wpm));
 }
 
-// ===== 음성 합성 (TTS) =====
-let _greekVoice = null;
+// ===== 음성 합성 (TTS) — v34: 다발음체계 ====================================
+// 학술 배경: 브라우저 TTS는 OS가 제공하는 음성만 사용 가능하고, 모든 주요
+// 플랫폼이 그리스어로 제공하는 것은 현대 헬라어(el-GR) 음성뿐이다. 현대
+// 발음은 고전 아티카(5–4c BCE)와 자음·모음 양면에서 크게 다르다 (W.S.
+// Allen, Vox Graeca, 3rd ed., 1987; cf. Ancient Greek phonology, Wikipedia).
+//
+// 우회법: 그리스어 본문을 라틴 문자 음역으로 변환 후, 이탈리아어 음성으로
+// 발화한다. 이탈리아어의 5모음 체계·자음 단순성·'h' 무음·'c+a/o/u=[k]' 등의
+// 음운적 성질이 Erasmian·Restored 음운에 비교적 가깝다. 한계:
+//   ◇ 고저강세(pitch accent) 미재현 — 화자가 stress로 읽음
+//   ◇ 기식음(aspiration) θ/φ/χ는 평이한 [t/p/k]로 약화
+//   ◇ 복원 발음의 υ [y]는 이탈리아어에 없어 [i]로 근사
+//   ◇ rough breathing [h]는 이탈리아 'h' 무음으로 약화
+// 학술적 엄밀함이 필요하면 ScorpioMartianus 등의 학자 녹음을 권장.
+
+const PRON_SYSTEMS = {
+  modern: {
+    label: '현대 그리스어',
+    desc: '브라우저 기본 — 현대 헬라어 음운 (β=v, η=i, υ=i, αι=e 등)',
+    voiceLang: 'el',
+    transliterate: null,
+  },
+  erasmian: {
+    label: '에라스무스식',
+    desc: '르네상스 유럽 학계 관용 — φ=ph, β=b, η=e, υ=u, αι=ai',
+    voiceLang: 'it',
+    transliterate: 'erasmian',
+  },
+  restored: {
+    label: '복원 아티카식',
+    desc: 'W.S. Allen Vox Graeca (1987) · 5–4c BCE — η=ɛː, υ=y, ω=ɔː',
+    voiceLang: 'it',
+    transliterate: 'restored',
+  },
+};
+
+const PRON_DIALECTS = {
+  default: {label:'기본 (Attic 음운)',  psilosis:false},
+  attic:   {label:'Attic · 아테네식',    psilosis:false},
+  ionic:   {label:'Ionic · 이오니아식',  psilosis:true },  // East Ionic — psilosis
+  doric:   {label:'Doric · 도리스식',    psilosis:false},
+  aeolic:  {label:'Aeolic · 아이올리스식',psilosis:true },  // psilosis, recessive accent
+  homeric: {label:'Homeric · 호메로스식',psilosis:false},
+  koine:   {label:'Koine · 코이네',      psilosis:false},
+};
+
+// 그리스어 본문 → Erasmian / Restored 라틴 음역
+function greekToLatin(text, system, dialect){
+  if(!text) return '';
+  const sysCfg = PRON_SYSTEMS[system] || PRON_SYSTEMS.modern;
+  if(!sysCfg.transliterate) return text;
+  const D = PRON_DIALECTS[dialect] || PRON_DIALECTS.default;
+  const isRestored = sysCfg.transliterate === 'restored';
+  // 단어 단위 처리 (rough breathing은 단어 첫 모음 앞에만 'h' 부여)
+  const tokens = text.split(/(\s+|[\.,;··:?!"'·()\[\]\—\-]+)/);
+  return tokens.map(tok => {
+    if(!tok || /^[\s\.,;··:?!"'·()\[\]\—\-]+$/.test(tok)) return tok;
+    return _greekWordToLatin(tok, isRestored, D);
+  }).join('');
+}
+
+function _greekWordToLatin(word, isRestored, D){
+  const nfd = word.normalize('NFD');
+  const ROUGH = '\u0314';
+  // 한 문자 + 결합부호 그룹화
+  const groups = [];
+  for(const c of nfd){
+    if(/\p{M}/u.test(c) && groups.length){
+      groups[groups.length-1].marks.add(c);
+    } else {
+      groups.push({base: c, marks: new Set()});
+    }
+  }
+  // 초성 모음군 전체에서 rough breathing 검사 (υἱός 등: 두 번째 모음에 rough가 있을 수 있음)
+  let leadingEnd = -1;
+  for(let i = 0; i < groups.length; i++){
+    if(/[αεηιουωΑΕΗΙΟΥΩ]/.test(groups[i].base)){ leadingEnd = i; }
+    else break;
+  }
+  let hasRoughInit = false;
+  let initIsUpper = false;
+  if(leadingEnd >= 0){
+    for(let i = 0; i <= leadingEnd; i++){
+      if(groups[i].marks.has(ROUGH)) hasRoughInit = true;
+    }
+    initIsUpper = /[Α-Ω]/.test(groups[0].base);
+  }
+  let out = '';
+  let firstVowelDone = false;
+  for(let i = 0; i < groups.length; i++){
+    const g = groups[i];
+    const nx = groups[i+1] ? groups[i+1].base : '';
+    let latin = _greekCharToLatin(g.base, nx, isRestored);
+    if(latin == null){ out += g.base; continue; }
+    const isVowel = /^[aeiouyàèìòù]/i.test(latin);
+    if(isVowel && !firstVowelDone){
+      if(hasRoughInit && !D.psilosis){
+        // 대문자 단어면 'H' + 첫 모음 소문자 (Hellenikē 관용표기)
+        if(initIsUpper){ out += 'H'; latin = latin.toLowerCase(); }
+        else out += 'h';
+      }
+      firstVowelDone = true;
+    }
+    out += latin;
+  }
+  // 후처리: ου = [u]
+  out = out.replace(/ou/g, 'u').replace(/OU/g, 'U');
+  return out;
+}
+
+function _greekCharToLatin(ch, nextCh, isRestored){
+  const upper = /[Α-Ω]/.test(ch);
+  const lower = ch.toLowerCase();
+  let r;
+  switch(lower){
+    case 'α': r = 'a'; break;
+    case 'ε': r = 'e'; break;
+    case 'η': r = isRestored ? 'è' : 'e'; break;  // Restored: open long ɛː → it. è=[ɛ]
+    case 'ι': r = 'i'; break;
+    case 'ο': r = 'o'; break;
+    case 'υ': r = isRestored ? 'i' : 'u'; break;  // [y] 없음 → [i] 근사 (Restored)
+    case 'ω': r = isRestored ? 'ò' : 'o'; break;  // Restored: open long ɔː → it. ò=[ɔ]
+    case 'β': r = 'b'; break;
+    case 'γ': {
+      // γγ γκ γχ γξ → [ŋ] (Allen §6, Smyth §19)
+      const nl = (nextCh || '').toLowerCase();
+      r = (nl === 'γ' || nl === 'κ' || nl === 'χ' || nl === 'ξ') ? 'n' : 'g';
+      break;
+    }
+    case 'δ': r = 'd'; break;
+    case 'ζ': r = 'z'; break;  // Erasmian: [z]/[dz], Restored: [zd] — 단순화
+    case 'θ': r = 't'; break;  // 이탈리아 'th'는 [t], 'h' 무음 → 't'로 약화 (한계)
+    case 'κ': r = 'k'; break;
+    case 'λ': r = 'l'; break;
+    case 'μ': r = 'm'; break;
+    case 'ν': r = 'n'; break;
+    case 'ξ': r = 'ks'; break;
+    case 'π': r = 'p'; break;
+    case 'ρ': r = 'r'; break;
+    case 'σ': case 'ς': r = 's'; break;
+    case 'τ': r = 't'; break;
+    case 'φ': r = 'p'; break;  // [pʰ] → 평이한 [p] 약화 (이탈리아 'f'는 fricative라 부적합)
+    case 'χ': r = 'k'; break;  // [kʰ] → [k] 약화
+    case 'ψ': r = 'ps'; break;
+    case 'ϝ': r = 'v'; break;  // digamma [w] — 이탈리아 'v'/'u' 중 'v' 사용
+    default:
+      if(/[a-zA-Z0-9]/.test(ch)) return ch;
+      return null;
+  }
+  return upper ? r.toUpperCase() : r;
+}
+
+// 사용 가능한 음성 캐시: { 'el': voice, 'it': voice, ... }
+let _voiceCache = {};
 let _availableVoices = [];
+function _pickVoiceFor(langPrefix){
+  if(_voiceCache[langPrefix] !== undefined) return _voiceCache[langPrefix];
+  // 사용자가 명시 선택한 음성이 해당 lang 계열이면 우선
+  const preferredName = (S && S.speech && S.speech.voiceName) ? S.speech.voiceName : '';
+  if(preferredName){
+    const v = _availableVoices.find(v => v.name === preferredName && v.lang.toLowerCase().startsWith(langPrefix));
+    if(v){ _voiceCache[langPrefix] = v; return v; }
+  }
+  const v = _availableVoices.find(v => v.lang.toLowerCase().startsWith(langPrefix)) || null;
+  _voiceCache[langPrefix] = v;
+  return v;
+}
+
 function _initVoice(){
   if(!('speechSynthesis' in window)) return;
   const pick = () => {
     _availableVoices = speechSynthesis.getVoices();
-    // 사용자가 명시 선택한 음성 우선, 없으면 자동 el-GR / Greek
-    const preferredName = (S && S.speech && S.speech.voiceName) ? S.speech.voiceName : '';
-    if(preferredName){
-      const v = _availableVoices.find(v => v.name === preferredName);
-      if(v){ _greekVoice = v; return; }
-    }
-    _greekVoice = _availableVoices.find(v => v.lang.startsWith('el')) ||
-                  _availableVoices.find(v => v.lang.toLowerCase().includes('greek')) || null;
+    _voiceCache = {};  // 음성 목록 갱신 시 캐시 무효화
   };
   pick();
-  if(!_greekVoice || _availableVoices.length === 0){
+  if(_availableVoices.length === 0){
     speechSynthesis.onvoiceschanged = pick;
   }
 }
 if(typeof window !== 'undefined'){ _initVoice(); }
-function speakGreek(text){
+
+function speakGreek(text, overrideDialect){
   if(!('speechSynthesis' in window) || !text) return false;
+  const settings = (S && S.speech) ? S.speech : {};
+  const system  = settings.system  || 'modern';
+  const dialect = overrideDialect || settings.dialect || 'default';
+  const sysCfg  = PRON_SYSTEMS[system] || PRON_SYSTEMS.modern;
+  // 본문 정리 (행번호·각주 표시 제거)
   const clean = text.replace(/^\d+\s+/gm, '').replace(/\[\d+[a-z]?\]/g, '');
-  const u = new SpeechSynthesisUtterance(clean);
-  // 사용자 음성 명시 선택 우선
-  const settings = (S && S.speech) ? S.speech : {rate:0.85, pitch:1.0, voiceName:''};
-  if(settings.voiceName){
-    const v = _availableVoices.find(v => v.name === settings.voiceName);
-    if(v) u.voice = v;
-    else if(_greekVoice) u.voice = _greekVoice;
-  } else if(_greekVoice) {
-    u.voice = _greekVoice;
+  // 음역
+  const utterText = greekToLatin(clean, system, dialect);
+  const u = new SpeechSynthesisUtterance(utterText);
+  // 음성 선택: 시스템에 해당하는 lang 음성, 없으면 Spanish→English 폴백 (이탈리아 부재 시), 마지막으로 그리스
+  let voice = _pickVoiceFor(sysCfg.voiceLang);
+  if(!voice && sysCfg.voiceLang === 'it'){
+    voice = _pickVoiceFor('es') || _pickVoiceFor('en');
   }
-  u.lang = 'el-GR';
-  u.rate = (typeof settings.rate === 'number') ? settings.rate : 0.85;
-  u.pitch = (typeof settings.pitch === 'number') ? settings.pitch : 1.0;
+  if(!voice){
+    voice = _pickVoiceFor('el');
+  }
+  if(voice){
+    u.voice = voice;
+    u.lang  = voice.lang;
+  } else {
+    u.lang = sysCfg.voiceLang === 'el' ? 'el-GR' : 'it-IT';
+  }
+  u.rate  = typeof settings.rate  === 'number' ? settings.rate  : 0.85;
+  u.pitch = typeof settings.pitch === 'number' ? settings.pitch : 1.0;
   speechSynthesis.cancel();
   speechSynthesis.speak(u);
   return true;
 }
+
+// 특정 방언의 음운 규칙으로 임시 발화 (사용자 설정 보존)
+function speakGreekDialect(text, dialect){
+  return speakGreek(text, dialect);
+}
+
 function stopSpeech(){ if('speechSynthesis' in window) speechSynthesis.cancel(); }
 
-// ===== 음성 합성 설정 화면 (v24) =====
+window.speakGreek = speakGreek;
+window.speakGreekDialect = speakGreekDialect;
+window.stopSpeech = stopSpeech;
+
+// ===== 음성 합성 설정 화면 (v34: 발음 시스템·방언 선택 추가) =====
 const _SPEECH_DEMO_TEXT = 'Ἐν ἀρχῇ ἦν ὁ λόγος, καὶ ὁ λόγος ἦν πρὸς τὸν θεόν.';
 function _ensureSpeechSettings(){
-  if(!S.speech) S.speech = {rate:0.85, pitch:1.0, voiceName:''};
+  if(!S.speech) S.speech = {};
+  if(typeof S.speech.rate !== 'number')  S.speech.rate  = 0.85;
+  if(typeof S.speech.pitch !== 'number') S.speech.pitch = 1.0;
+  if(typeof S.speech.voiceName !== 'string') S.speech.voiceName = '';
+  if(!S.speech.system)  S.speech.system  = 'modern';
+  if(!S.speech.dialect) S.speech.dialect = 'default';
 }
 function renderSpeechSettings(){
   _ensureSpeechSettings();
-  // 최신 음성 목록 받기 (브라우저는 비동기로 로드)
   if('speechSynthesis' in window){
     _availableVoices = speechSynthesis.getVoices();
+    _voiceCache = {};
   }
   const supported = ('speechSynthesis' in window);
-  // 그리스어 음성 우선, 그 외 영어·라틴어 (학술 발음 대안), 그 후 나머지
-  const greekVoices = _availableVoices.filter(v => v.lang.startsWith('el') || v.lang.toLowerCase().includes('greek'));
-  const altVoices   = _availableVoices.filter(v =>
-    !greekVoices.includes(v) && (v.lang.startsWith('en') || v.lang.startsWith('la') || v.lang.startsWith('it')));
-  const otherVoices = _availableVoices.filter(v => !greekVoices.includes(v) && !altVoices.includes(v));
+  // 사용 가능한 음성 분류: el (현대 그리스어), it (이탈리아어 — Erasmian/Restored용 우회 음성)
+  const greekVoices = _availableVoices.filter(v => v.lang.toLowerCase().startsWith('el'));
+  const italianVoices = _availableVoices.filter(v => v.lang.toLowerCase().startsWith('it'));
+  const spanishVoices = _availableVoices.filter(v => v.lang.toLowerCase().startsWith('es'));
+  const altVoices   = _availableVoices.filter(v => !greekVoices.includes(v) && !italianVoices.includes(v) && !spanishVoices.includes(v));
+  const sys = S.speech.system;
+  const needsItalian = (sys === 'erasmian' || sys === 'restored');
+  const italianAvailable = italianVoices.length > 0 || spanishVoices.length > 0;
 
   const optGrp = (label, list) => list.length === 0 ? '' :
     `<optgroup label="${label}">${list.map(v =>
@@ -6956,7 +7163,7 @@ function renderSpeechSettings(){
   view.innerHTML = `
     <button class="btn btn-sm btn-o" onclick="setTab('vocab')">← 어휘</button>
     <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Φωνή</span>음성 합성 설정</h2>
-    <div class="view-sub">${supported ? '브라우저 Web Speech API 사용' : '⚠ 이 브라우저는 음성 합성을 지원하지 않습니다'}</div>
+    <div class="view-sub">${supported ? '브라우저 Web Speech API · 발음 시스템 선택 가능' : '⚠ 이 브라우저는 음성 합성을 지원하지 않습니다'}</div>
 
     ${!supported ? `
     <div class="card warm">
@@ -6965,17 +7172,45 @@ function renderSpeechSettings(){
     </div>` : `
 
     <div class="card">
+      <div style="font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">발음 시스템</div>
+      <div style="display:grid;grid-template-columns:1fr;gap:6px">
+        ${Object.entries(PRON_SYSTEMS).map(([k, s]) => {
+          const active = S.speech.system === k;
+          return `<button class="btn ${active ? '' : 'btn-o'}" data-sys="${k}" style="text-align:left;padding:10px 12px;line-height:1.4">
+            <div style="font-weight:600;font-size:14px">${s.label}</div>
+            <div style="font-size:11px;opacity:.85;margin-top:2px;font-weight:400">${s.desc}</div>
+          </button>`;
+        }).join('')}
+      </div>
+      ${needsItalian && !italianAvailable ? `
+        <div style="font-size:11px;color:var(--bad);margin-top:10px;line-height:1.6;background:#fbf0ee;padding:8px 10px;border-radius:5px;border-left:3px solid var(--bad)">
+          ⚠ 이탈리아어·스페인어 음성이 기기에 없습니다. Erasmian·Restored는 이탈리아어 음성으로 우회 발화하는데,
+          음성이 없으면 그리스어 음성으로 폴백됩니다 (음역 효과 감소).<br>
+          <b>iOS</b>: 설정 → 손쉬운 사용 → 음성 듣기 → 음성 → Italiano 추가. <b>macOS</b>: 시스템 설정 → 손쉬운 사용 → 음성 콘텐츠 → 시스템 음성.
+        </div>` : ''}
+    </div>
+
+    <div class="card">
+      <div style="font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">방언 음운 (Erasmian·Restored에서만 적용)</div>
+      <select id="dialect-select" style="width:100%;padding:8px 10px;border:1px solid var(--clay);border-radius:6px;background:var(--ivory);font-size:14px;color:var(--black-glaze)">
+        ${Object.entries(PRON_DIALECTS).map(([k, d]) =>
+          `<option value="${k}"${S.speech.dialect===k?' selected':''}>${d.label}${d.psilosis?' · psilosis (rough breathing 무음)':''}</option>`
+        ).join('')}
+      </select>
+      <div style="font-size:11px;color:var(--clay-d);margin-top:8px;font-style:italic;line-height:1.6">
+        주요 차이: <b>Ionic·Aeolic</b>에는 psilosis(거센 호흡 탈락) 적용 — Hdt. ἀπικνέομαι vs Attic ἀφικνέομαι 같은 표기 차이의 발음적 근거.
+        Doric·Aeolic의 ᾱ 보존, Homeric의 -οιο 어미 등 형태 차이는 텍스트 자체에 이미 반영되어 있어 음역에 그대로 따라갑니다.
+      </div>
+    </div>
+
+    <div class="card">
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
         <label style="font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em">속도 (rate)</label>
         <span id="rate-val" style="font-family:var(--font-display);font-size:15px;color:var(--black-glaze);font-weight:600">${S.speech.rate.toFixed(2)}x</span>
       </div>
-      <input type="range" id="rate-slider" min="0.5" max="1.5" step="0.05" value="${S.speech.rate}"
-             style="width:100%;accent-color:var(--terracotta)">
+      <input type="range" id="rate-slider" min="0.5" max="1.5" step="0.05" value="${S.speech.rate}" style="width:100%;accent-color:var(--terracotta)">
       <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--clay-d);margin-top:4px">
         <span>0.5x 매우 느림</span><span>1.0x 정상</span><span>1.5x 빠름</span>
-      </div>
-      <div style="font-size:11px;color:var(--clay-d);margin-top:8px;font-style:italic;line-height:1.5">
-        기본 0.85x — 학습자에게 권장. 음절 식별 우선.
       </div>
     </div>
 
@@ -6984,43 +7219,41 @@ function renderSpeechSettings(){
         <label style="font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em">음높이 (pitch)</label>
         <span id="pitch-val" style="font-family:var(--font-display);font-size:15px;color:var(--black-glaze);font-weight:600">${S.speech.pitch.toFixed(2)}</span>
       </div>
-      <input type="range" id="pitch-slider" min="0.5" max="1.5" step="0.05" value="${S.speech.pitch}"
-             style="width:100%;accent-color:var(--terracotta)">
-      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--clay-d);margin-top:4px">
-        <span>0.5 낮음</span><span>1.0 정상</span><span>1.5 높음</span>
-      </div>
+      <input type="range" id="pitch-slider" min="0.5" max="1.5" step="0.05" value="${S.speech.pitch}" style="width:100%;accent-color:var(--terracotta)">
     </div>
 
     <div class="card">
       <label style="display:block;font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">음성 선택 (${_availableVoices.length}개 사용 가능)</label>
       <select id="voice-select" style="width:100%;padding:8px 10px;border:1px solid var(--clay);border-radius:6px;background:var(--ivory);font-family:var(--font-grk);font-size:14px;color:var(--black-glaze)">
-        <option value=""${S.speech.voiceName===''?' selected':''}>자동 (Greek 음성 우선)</option>
-        ${optGrp('🇬🇷 그리스어 (권장)', greekVoices)}
-        ${optGrp('🌐 대체 (영어·이탈리아어·라틴어)', altVoices)}
-        ${optGrp('기타', otherVoices)}
+        <option value=""${S.speech.voiceName===''?' selected':''}>자동 (현 시스템에 적합한 음성)</option>
+        ${optGrp('🇬🇷 그리스어 (현대 발음)', greekVoices)}
+        ${optGrp('🇮🇹 이탈리아어 (Erasmian·Restored)', italianVoices)}
+        ${optGrp('🇪🇸 스페인어 (이탈리아어 폴백)', spanishVoices)}
+        ${optGrp('기타', altVoices)}
       </select>
-      <div style="font-size:11px;color:var(--clay-d);margin-top:8px;font-style:italic;line-height:1.5">
-        ${greekVoices.length === 0 ?
-          '⚠ 기기에 그리스어 음성이 설치되어 있지 않습니다. 설정 → 손쉬운 사용 → 콘텐츠 말하기 → 음성에서 추가 음성 다운로드할 수 있습니다 (iPad).' :
-          `✓ 그리스어 음성 ${greekVoices.length}개 발견.`}
-        ${_availableVoices.length === 0 ? '<br><b>아직 음성 목록이 로드 중입니다. 잠시 후 새로고침 해 보세요.</b>' : ''}
-      </div>
     </div>
 
     <div class="card">
-      <div style="font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">미리듣기</div>
-      <div class="grk" style="font-size:15px;line-height:1.7;color:var(--black-glaze);background:var(--ivory-d);padding:10px 12px;border-radius:6px;margin-bottom:10px">
+      <div style="font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">미리듣기 — 세 시스템 비교</div>
+      <div lang="grc" style="font-family:var(--font-grk);font-size:15px;line-height:1.7;color:var(--black-glaze);background:var(--ivory-d);padding:10px 12px;border-radius:6px;margin-bottom:10px">
         ${_SPEECH_DEMO_TEXT}
         <div style="font-size:11px;color:var(--clay-d);margin-top:4px;font-style:italic">— John 1:1 (Koine)</div>
       </div>
-      <button class="btn" id="speech-test-btn" style="width:100%">🔊 듣기</button>
+      <div style="display:grid;grid-template-columns:1fr;gap:6px">
+        <button class="btn btn-o btn-sm" data-demo="modern" style="text-align:left">🔊 현대 <span style="font-family:var(--font-grk);opacity:.7">— En arkhí ín o lóghos…</span></button>
+        <button class="btn btn-o btn-sm" data-demo="erasmian" style="text-align:left">🔊 Erasmian <span style="font-family:var(--font-grk);opacity:.7">— En arkhē̂ ēn ho lógos…</span></button>
+        <button class="btn btn-o btn-sm" data-demo="restored" style="text-align:left">🔊 Restored <span style="font-family:var(--font-grk);opacity:.7">— En arkhɛ̂ːi ɛ̂ːn ho lógos…</span></button>
+      </div>
     </div>
 
     <div class="card" style="background:var(--ivory-d);border-left:3px solid var(--clay-d)">
-      <div style="font-size:11px;color:var(--clay-d);line-height:1.7;font-style:italic">
-        ◇ <b>음성 시스템 한계</b>: 현대 그리스어 발음 (Modern Greek)을 사용합니다.
-        고전 발음 (Erasmian, Restored Attic) 음성은 현 시점 브라우저 TTS에 없으며,
-        학술적 정확성을 위해서는 강의 녹음 또는 ScorpioMartianus 등 학자 발음을 권장합니다.<br>
+      <div style="font-size:11.5px;color:var(--clay-d);line-height:1.75">
+        <b style="color:var(--terracotta-d)">학술적 한계 명시</b><br>
+        ◇ <b>고저강세 미재현</b>: 그리스어 acute(´)·grave(\`)·circumflex(῀)는 본래 음정 변화였으나, 우회 음성은 stress로 읽습니다 (이탈리아어 기본 율격).<br>
+        ◇ <b>기식음 약화</b>: θ φ χ는 [tʰ pʰ kʰ] 본래 발음을 [t p k]로 약화. 이탈리아어 음성이 영어식 'th', 'f', 'kh'를 그리스 고전 표준에 맞게 발화하지 못해 평이한 무성 폐쇄음으로 처리.<br>
+        ◇ <b>υ [y] 근사</b>: 복원 발음의 전설원순고모음 [y]는 이탈리아어에 없어 [i]로 근사 (W.S. Allen, <i>Vox Graeca</i>, §1.10).<br>
+        ◇ <b>rough breathing</b>: 이탈리아어 'h'가 무음이라 [h]가 정확히 들리지 않습니다 (음역 문자열에는 'h' 부여).<br>
+        ◇ <b>학술적 정확성</b>은 ScorpioMartianus(Luke Ranieri), Daitz <i>Pronunciation of Ancient Greek</i> 등 학자 녹음 권장.<br>
         ◇ 설정은 기기에 로컬 저장되며 외부 전송되지 않습니다.
       </div>
     </div>
@@ -7033,36 +7266,55 @@ function renderSpeechSettings(){
     const pitchSlider = document.getElementById('pitch-slider');
     const pitchVal = document.getElementById('pitch-val');
     const voiceSelect = document.getElementById('voice-select');
-    const testBtn = document.getElementById('speech-test-btn');
+    const dialectSelect = document.getElementById('dialect-select');
 
     rateSlider.addEventListener('input', () => {
       S.speech.rate = parseFloat(rateSlider.value);
       rateVal.textContent = S.speech.rate.toFixed(2) + 'x';
     });
-    rateSlider.addEventListener('change', () => { saveState(); });
-
+    rateSlider.addEventListener('change', () => saveState());
     pitchSlider.addEventListener('input', () => {
       S.speech.pitch = parseFloat(pitchSlider.value);
       pitchVal.textContent = S.speech.pitch.toFixed(2);
     });
-    pitchSlider.addEventListener('change', () => { saveState(); });
+    pitchSlider.addEventListener('change', () => saveState());
 
     voiceSelect.addEventListener('change', () => {
       S.speech.voiceName = voiceSelect.value;
-      _initVoice();   // 새 선택 즉시 반영
+      _voiceCache = {};
       saveState();
     });
 
-    testBtn.addEventListener('click', () => {
-      stopSpeech();
-      const ok = speakGreek(_SPEECH_DEMO_TEXT);
-      if(!ok) testBtn.textContent = '⚠ 음성 합성 실패';
+    dialectSelect.addEventListener('change', () => {
+      S.speech.dialect = dialectSelect.value;
+      saveState();
     });
 
-    // 음성 목록이 비동기 로드 — 잠시 후 다시 그리기
+    document.querySelectorAll('[data-sys]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        S.speech.system = btn.dataset.sys;
+        _voiceCache = {};
+        saveState();
+        renderSpeechSettings();   // 활성 상태 즉시 반영
+      });
+    });
+
+    document.querySelectorAll('[data-demo]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        stopSpeech();
+        const sysBackup = S.speech.system;
+        S.speech.system = btn.dataset.demo;
+        _voiceCache = {};
+        speakGreek(_SPEECH_DEMO_TEXT);
+        S.speech.system = sysBackup;
+        _voiceCache = {};
+      });
+    });
+
     if(_availableVoices.length === 0 && 'speechSynthesis' in window){
       speechSynthesis.onvoiceschanged = () => {
         _availableVoices = speechSynthesis.getVoices();
+        _voiceCache = {};
         if(view.querySelector('#voice-select')) renderSpeechSettings();
       };
     }
