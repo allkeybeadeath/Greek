@@ -4370,6 +4370,7 @@ const READINGS = [
 <script src="data-works.js"></script>
 <script src="data-dialogues.js"></script>
 <script src="data-translations.js"></script>
+<script src="data-characters.js"></script>
 <script>
 /* data_images.js */
 /* ============================================================================
@@ -4608,7 +4609,7 @@ function imageURL(imgId, width){
 
 // 앱 버전 — sw.js CACHE_VERSION과 동기화 유지. 홈 화면 푸터에 표시되어
 // 사용자가 자신이 어느 버전을 사용 중인지 확인 가능 (캐시 갱신 진단용).
-const APP_VERSION = 'v52';
+const APP_VERSION = 'v53';
 window.__paideiaVersion = APP_VERSION;
 
 // ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
@@ -4979,7 +4980,7 @@ async function renderProfiles(){
     <h3 style="font-family:var(--font-display);font-size:14px;color:var(--terracotta-d);margin:18px 0 6px;text-transform:uppercase;letter-spacing:.08em">내 캐릭터 <span class="grk" style="text-transform:none">Παίγνια</span></h3>
     <button class="card" type="button" id="open-char-picker" style="cursor:pointer;width:100%;text-align:left;border-left:3px solid var(--terracotta);background:var(--ivory-d);padding:12px">
       <div style="display:flex;align-items:center;gap:14px">
-        <div style="flex-shrink:0">${_charMedallion(curChar, 80)}</div>
+        <div style="flex-shrink:0">${(typeof _charPhotoMedallion==='function')? _charPhotoMedallion(curChar, 80) : _charMedallion(curChar, 80)}</div>
         <div style="flex:1;min-width:0">
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:700" lang="grc">${curChar.grk}</div>
           <div style="font-size:14px;color:var(--black-glaze);font-weight:600">${curChar.ko}</div>
@@ -5368,6 +5369,38 @@ function _charMedallion(charOrId, size){
 }
 window._charMedallion = _charMedallion;
 
+// ─── 사진 + 메달리온 하이브리드 (v53) ─────────────────────────────────────
+// 큰 표시 위치 (renderCharacterPicker 96px, renderProfiles 80px,
+// renderHall 88px) 에서 사용. Wikimedia Commons 사진을 우선 표시하고,
+// 로드 실패 시 SVG 메달리온으로 자동 폴백.
+//
+// 반환: HTML div (이미지 + 인라인 SVG 합성). SVG 메달리온만 반환하는
+// _charMedallion 과는 별개. 작은 사이즈 (32/44px) 는 사진 가독성이
+// 떨어지므로 _charMedallion (SVG) 만 사용 권장.
+function _charPhotoMedallion(charOrId, size){
+  const c = (typeof charOrId === 'string') ? CHARACTERS_BY_ID[charOrId] : charOrId;
+  if(!c) return _charMedallion(charOrId, size);
+  // CHARACTER_IMAGES 는 data-characters.js 에서 로드 (없을 수 있음)
+  const imgs = (typeof window !== 'undefined' && window.CHARACTER_IMAGES) || {};
+  const meta = imgs[c.id];
+  // 사진 없음 → 그냥 SVG 메달리온
+  if(!meta || !meta.url) return _charMedallion(c, size);
+  // 사진 + SVG 폴백 합성. id 는 페이지 내 고유성 보장.
+  const uid = 'cpm_' + c.id + '_' + size + '_' + Math.floor(Math.random()*100000).toString(36);
+  const svg = _charMedallion(c, size);
+  const labelEsc = `${c.ko} — ${c.grk}`.replace(/"/g,'&quot;');
+  // 사진은 원형 클리핑 + 이름 띠 (size>=80) — SVG 폴백은 onerror 로 표시
+  // 사진 로드 성공 시 SVG 는 z-index 로 가려짐. 실패 시 img 가 사라져 SVG 가 보임.
+  return `<div id="${uid}" role="img" aria-label="${labelEsc}" title="${labelEsc} · ${meta.caption||''}" style="position:relative;display:inline-block;width:${size}px;height:${size}px;vertical-align:middle">
+    <div style="position:absolute;inset:0">${svg}</div>
+    <img src="${meta.url}" alt="${labelEsc}" loading="lazy" decoding="async"
+         onerror="this.style.display='none'"
+         style="position:absolute;inset:${Math.max(2, Math.round(size*0.04))}px;width:calc(100% - ${Math.max(2, Math.round(size*0.04))*2}px);height:calc(100% - ${Math.max(2, Math.round(size*0.04))*2}px);border-radius:50%;object-fit:cover;border:2px solid ${CHAR_PALETTES[c.cat].ring};box-shadow:0 1px 4px rgba(0,0,0,0.25);background:var(--ivory)">
+    ${size>=80?`<div style="position:absolute;left:0;right:0;bottom:0;padding:3px 4px;background:linear-gradient(to bottom, transparent 0%, rgba(26,22,18,0.95) 60%);color:var(--ivory-w);font-size:${Math.max(8,Math.round(size*0.10))}px;text-align:center;font-family:'Cormorant Garamond',serif;font-weight:600;letter-spacing:0.04em;border-radius:0 0 50% 50%/0 0 100% 100%;pointer-events:none">${c.ko}</div>`:''}
+  </div>`;
+}
+window._charPhotoMedallion = _charPhotoMedallion;
+
 // ─── 상태 헬퍼 ──────────────────────────────────────────────────────────
 function _ensureCharacter(){
   if(typeof S.character !== 'string' || !CHARACTERS_BY_ID[S.character]){
@@ -5414,7 +5447,7 @@ function renderCharacterPicker(){
     <div class="card" style="background:var(--ivory-d);border-left:3px solid var(--terracotta);padding:16px">
       <div style="font-size:11px;color:var(--clay-d);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;text-align:center">현재 캐릭터</div>
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center">
-        <div style="flex-shrink:0">${_charMedallion(current, 96)}</div>
+        <div style="flex-shrink:0">${(typeof _charPhotoMedallion==='function')? _charPhotoMedallion(current, 96) : _charMedallion(current, 96)}</div>
         <div style="text-align:left;max-width:240px;min-width:180px">
           <div style="font-family:var(--font-grk);font-size:22px;color:var(--terracotta-d);font-weight:700" lang="grc">${current.grk}</div>
           <div style="font-size:14px;color:var(--black-glaze);font-weight:600;margin-top:1px">${current.ko}</div>
@@ -5445,7 +5478,7 @@ function renderCharacterPicker(){
             title="${c.ko} (${c.grk}) — ${c.ep}"
             aria-label="${c.ko}, ${c.ep}"
             style="border:${isCur?'2.5px solid var(--terracotta-d)':'1.5px solid var(--clay)'};border-radius:12px;padding:8px 4px;cursor:pointer;transition:transform .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;gap:4px;background:${isCur?'var(--ivory-d)':'var(--ivory)'}">
-            ${_charMedallion(c, 72)}
+            ${(typeof _charPhotoMedallion==='function')? _charPhotoMedallion(c, 72) : _charMedallion(c, 72)}
             <div style="font-size:10.5px;font-weight:${isCur?'700':'500'};color:${isCur?'var(--terracotta-d)':'var(--black-glaze)'};text-align:center;line-height:1.2;margin-top:2px">${c.ko}</div>
             <div style="font-family:var(--font-grk);font-size:10px;color:var(--clay-d);text-align:center;line-height:1" lang="grc">${c.grk}</div>
           </button>`;
@@ -10955,7 +10988,7 @@ function renderHall(){
     ${curChar ? `
     <button class="card" type="button" id="hall-char-change" style="cursor:pointer;width:100%;text-align:left;border-left:3px solid var(--terracotta);background:var(--ivory-d);padding:14px;margin-bottom:10px">
       <div style="display:flex;align-items:center;gap:14px">
-        <div style="flex-shrink:0">${_charMedallion(curChar, 88)}</div>
+        <div style="flex-shrink:0">${(typeof _charPhotoMedallion==='function')? _charPhotoMedallion(curChar, 88) : _charMedallion(curChar, 88)}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:10px;color:var(--clay-d);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">내 캐릭터 · Παίγνια</div>
           <div style="font-family:var(--font-grk);font-size:22px;color:var(--terracotta-d);font-weight:700" lang="grc">${curChar.grk}</div>

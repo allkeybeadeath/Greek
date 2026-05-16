@@ -1,12 +1,12 @@
 # Ἑλληνικὴ Παιδεία — CIM Lab 인수인계
 
-본 문서는 CIM Lab에서 운영하는 고전 그리스어 학습 Progressive Web App (PWA) 의 기술적 인수인계를 위한 자료다. 신규 합류 구성원이 별도 컨텍스트 없이도 코드베이스를 이해하고 유지·확장할 수 있도록 작성했다. 최종 갱신 **v52 (2026년 5월)**.
+본 문서는 CIM Lab에서 운영하는 고전 그리스어 학습 Progressive Web App (PWA) 의 기술적 인수인계를 위한 자료다. 신규 합류 구성원이 별도 컨텍스트 없이도 코드베이스를 이해하고 유지·확장할 수 있도록 작성했다. 최종 갱신 **v53 (2026년 5월)**.
 
-> **다음 작업자에게**: §7 라운드별 changelog 의 *맨 마지막 항목 (v52)* 이 현재 상태다. 그 위 라운드들은 어떻게 여기까지 왔는지의 기록. 새 작업을 시작하기 전에 §7 의 가장 최근 항목과 §0 의 현재 스냅샷을 먼저 읽기.
+> **다음 작업자에게**: §7 라운드별 changelog 의 *맨 마지막 항목 (v53)* 이 현재 상태다. 그 위 라운드들은 어떻게 여기까지 왔는지의 기록. 새 작업을 시작하기 전에 §7 의 가장 최근 항목과 §0 의 현재 스냅샷을 먼저 읽기.
 
-## 0. 현재 상태 스냅샷 (v52, 2026-05)
+## 0. 현재 상태 스냅샷 (v53, 2026-05)
 
-**배포 산출물**: `index.html` (~875 KB, IIFE 약 405K chars, 14.5K lines) · `sw.js` · `data-works.js` (3 MB, 45 작품 545 섹션) · `data-morph.js` (4 MB, AGDT v2.1 37K 어형 11.8K lemma) · `data-dialogues.js` (45 KB, 10 콩트 시나리오) · **`data-translations.js` (35 KB, v52 신규 — 5 발췌 정역 + 12 짧은 발췌 정역)** · `espeakng.worker.js` (760 KB) · `manifest.json` · `reset.html`.
+**배포 산출물**: `index.html` (~895 KB, IIFE 약 410K chars, 14.6K lines) · `sw.js` · `data-works.js` (3 MB, 45 작품 545 섹션) · `data-morph.js` (4 MB, AGDT v2.1 37K 어형 11.8K lemma) · `data-dialogues.js` (45 KB, 10 콩트 시나리오) · **`data-translations.js` (~55 KB, v53 확장 — 19 발췌 정역 ~330 문장 + 34 짧은 발췌 정역)** · **`data-characters.js` (~12 KB, v53 신규 — 50 캐릭터 사진 메타데이터)** · `espeakng.worker.js` (760 KB) · `manifest.json` · `reset.html`.
 
 **기능 카탈로그**:
 - 어휘 학습: 교재 어휘 + DCC 523 + DAILY_W 51 + CIVIC_W 80 + 콩트 vocab 60 = 1142 어휘
@@ -20,7 +20,7 @@
 - 학습 모드: 어휘 quiz (객관식·타이핑) · 받아쓰기 (Ἀκοή) · 악센트 학습 (Τόνος) · 옥시톤 분류 quiz · 검색·콘코던스 (Εὕρεσις) · 변화표 만들기 + 빈칸 채우기 시험 (Παράδειγμα) · 배틀 모드 · 오답함 SRS
 - 변화표: 76 표제어 큐레이션 (55 명사 · 12 형용사 · 9 대명사) — Smyth/Goodwin 표준형, AGDT v2.1 실제 어형과 자동 결합 표시, 빈칸 채우기 시험 모드 (NFD/ς-σ 관용 채점, 액센트 정확 ★ 마킹)
 - **캐릭터 (Παίγνια · v52 신규)**: **50 캐릭터** SVG 메달리온 (12 올림포스 신 · 12 영웅 · 8 여신/여성 영웅 · 10 철학자 · 8 시인·역사가·정치가). 카테고리별 그라데이션 팔레트 · 32 심볼 · 그리스 이니셜 + 한국어 호칭. 홈·프로필·명예의 전당·라이브 순위·멀티 배틀 5 위치에 표시.
-- **원문 해석 (Ἑρμηνεία · v52 신규)**: 본문 읽기에 📖 해석 토글. 큐레이션 정역 5 발췌 (Homer Iliad 1.1-50 · Homer Odyssey 1.1-50 · Plato Apology §17 · Herodotus 1.1 · Hesiod Theogony 1-50) + 짧은 발췌 12편 (`data-translations.js` 별도 파일) + ALL_VOCAB/MORPH_LOOKUP 기반 단어 풀이 폴백. 문장 단위 표시 (.sent[data-sent-idx] 그룹화)
+- **원문 해석 (Ἑρμηνεία · v52 신규, v53 확장)**: 본문 읽기에 📖 해석 토글. 큐레이션 정역 13 발췌 (Iliad 1.1-50/1.51-100 · Odyssey 1.1-50/1.51-100 · Plato Apology §17/§18/§19/§20/§21/§22 · Plato Crito §43 · Herodotus 1.1 · Hesiod Theogony 1-50) + 짧은 발췌 34편 (`data-translations.js` 별도 파일) + ALL_VOCAB/MORPH_LOOKUP 기반 단어 풀이 폴백. 문장 단위 표시 (.sent[data-sent-idx] 그룹화). 모든 발췌의 sentence 카운트가 renderer 의 `[.;·?!]` 정규식과 일치하도록 검증.
 - 접근성: aria-label 35 · title 18 · greek lang attr 자동화
 - 다중 프로필 · 명예의 전당 · 책갈피·메모
 
@@ -42,7 +42,7 @@
 - plato-apology Stratakis cue points 측정 (mp3 길이 미확정으로 보류)
 - PARADIGM_LIB 확장 — 비교급·최상급 형용사, 분사 (현재 명사·형용사·대명사만)
 - μι-동사 가정법/희구법 quiz 통합 (v50 의 5 표는 학습만, Παράδειγμα 시험과 별개)
-- **정역 확장 (v52)**: 현재 5 발췌만 큐레이션 (data-translations.js). 나머지 540 섹션은 단어 풀이 폴백. Apology §18-26, Iliad 후반, Odyssey 후반, Anabasis 1.2 이후 등 다음 우선순위
+- **정역 확장 (v53)**: 현재 13 발췌 큐레이션 (data-translations.js). 나머지 532 섹션은 단어 풀이 폴백. 다음 우선순위: Plato Apology §23-26 (변론 마무리), Iliad 1.101-150 (공개 다툼), Anabasis 1.2 이후 (긴 섹션), Sophocles Antigone 1-100 (안티고네-이스메네 대화)
 - **캐릭터 잠금 시스템 (v52)**: 현재 모든 50 캐릭터 즉시 선택 가능. XP/배지/완독 기반 점진 잠금 해제는 다음 라운드 후보 (학습 동기 부여)
 
 **영구 제외** (사용자 정책):
@@ -821,6 +821,73 @@ defer (다음 라운드):
   · **정역 확장** — 현재 6 발췌 (29 문장) 만 큐레이션. 추가 우선순위: Apology §18-26, Iliad 1 후반, Odyssey 1 후반, Anabasis 1.2+, Plato Euthyphro, Aeschylus Persae 등
   · **캐릭터 잠금/해제 시스템** — 현재 모든 50 캐릭터 즉시 선택. XP/배지/완독 기반 점진 해제로 학습 동기 부여 (예: Heracles 는 5작품 완독 후 해제, Aristotle 은 34 문법 토픽 학습 후 해제)
   · **AI 기반 정역** — Anthropic API 통합으로 임의 섹션을 사용자 요청 시 번역하여 캐시 (큐레이션 한계 보완)
+
+**v53**: 큐레이션 정역 14 발췌 추가 + 50 캐릭터 사진 전체 추가 + 인수인계 동봉 정책 — 사용자 요청 *"정역 확장, 인수인계도 매 세션 같이 보내, 캐릭터 사진도 50 다 추가"* 세 가지 동시 처리.
+
+**(1) 정역 확장** (5 → 19 발췌, 총 ~330 문장):
+  · *Plato Apology §18-22* (5 섹션, 101 문장) — 변론 본론을 *연속 흐름* 으로
+    - §18 (1차 고발자 변호 시작, 13 문장)
+    - §19 (Aristophanes 풍자, 14 문장 — "Σωκράτης ἀδικεῖ καὶ περιεργάζεται..." 옛 고소장)
+    - §20 (소피스트 비판 + 칼리아스 일화 + 자기 지혜 본질, 32 문장)
+    - §21 (델포이 신탁 — 변명의 핵심 장면, 24 문장 — "μηδένα σοφώτερον εἶναι")
+    - §22 (시인·장인 검증 — 무지의 깨달음 확장, 18 문장)
+  · *Homer Iliad 1.51-100* (25 문장) — 칼카스 예언, 분쟁의 진짜 원인 폭로
+  · *Homer Iliad 1.101-150* (16 문장) — 아가멤논의 분노 폭발, 아킬레우스와의 공개 다툼
+  · *Homer Odyssey 1.51-100* (15 문장) — 아테나의 탄원, 제우스의 응답, 텔레마코스 출발 계획
+  · *Xenophon Anabasis 1.1.2* (17 문장) — 퀴로스의 군대 집결, 사르데이스 출발, 콜로사이 도착
+  · *Plato Crito §43* (41 문장) — 감옥에서의 만남, 크리톤의 방문, 델로스 배 소식
+  · *Plato Euthyphro §2* (15 문장) — 법정에서의 만남, 멜레토스 묘사 (변명 직전)
+  · *Hesiod Works and Days §1-50* (21 문장) — 뮤즈 부르기, 두 에리스의 가르침
+  · *Aeschylus Persae §1-100* (14 문장) — 페르시아 원로 합창단 입장 (현존 최고(最古)의 그리스 비극)
+  · *Sophocles Antigone §1-100* (15 문장) — 안티고네-이스메네 첫 대화 (장례 금지 포고)
+
+**번역 기조** (data-translations.js 헤더에 명시): 직역 우선, 자연스러운 한국어 절충. 시문체 (호메로스·헤시오도스·비극) 는 라틴어 운율을 살리려 하지 않고 산문으로 풀어 의미 전달에 집중. 학자 정역 (강대진 일리아스, 천병희 변명·비극 전집, 정암학당 플라톤) 참고하되 본 앱 학습 맥락에 맞게 재번역. 학습용이므로 직역에 가까운 형태.
+
+**(2) 캐릭터 사진 50 전체 추가** — 신규 파일 `data-characters.js`:
+
+`CHARACTER_IMAGES[id] = {url, caption, license}` 매핑. 50 캐릭터 전체에 대해 Wikimedia Commons 공개 도메인 이미지의 `Special:FilePath` URL 수록.
+  · 출처 패턴: `https://commons.wikimedia.org/wiki/Special:FilePath/{FILENAME}?width=240` (해시 계산 없이 작동, 리다이렉트로 실제 파일 도달)
+  · 12 올림포스 신: 박물관 소장 흉상/조각상 (Mattei Athena, Apollo Belvedere, Venus de Milo, Hermes of Praxiteles 등)
+  · 12 영웅: 흉상·조각·도기 그림·고전 회화 (Farnese Hercules, Exekias의 아이아스 자결, Cellini의 페르세우스 등)
+  · 8 여신·여성 영웅: 박물관 조각·도기·회화 (Helene-Paris Louvre K6, Delacroix Medea 등)
+  · 10 철학자: 박물관 소장 흉상 (Plato Silanion, Aristotle Altemps, Socrates Louvre, Pythagoras Capitolini 등)
+  · 8 시인·역사가·정치가: 흉상·프레스코·모자이크 (Sappho Pompeii fresco, Pericles Altes Museum, Anaximander Trier mosaic 등)
+
+**구현 — `_charPhotoMedallion(charOrId, size)` 신규 헬퍼**:
+사진 + SVG 메달리온 *하이브리드* 반환. HTML div 안에 SVG 메달리온을 배경으로 깔고, 그 위에 `<img>` 를 원형 클리핑하여 표시.
+  · `onerror="this.style.display='none'"` — 사진 로드 실패 시 자동으로 SVG 폴백 노출
+  · size>=80 일 때만 하단 이름 띠 표시 (작은 메달리온은 사진의 시각적 가독성을 위해 띠 생략)
+  · 사용 위치 (4 곳): renderProfiles 의 "내 캐릭터" 80px 카드, renderHall 의 88px 카드, renderCharacterPicker 의 96px 현재 선택 카드 + 72px 그리드 카드
+  · 작은 메달리온 (32/44px — 라이브 순위, 멀티 배틀 점수보드) 은 *그대로 SVG only* — 사진은 가독성 떨어짐
+
+**라이선스 정직성**: 대부분의 사진은 *미국 법상 PD* (>1000년 된 고대 유물의 충실한 사진은 저작권 대상 아님 — Bridgeman v. Corel 판결). 일부 (모렐서의 헤라클레이토스 등 17세기 이후 회화의 박물관 사진) 는 PD 또는 CC BY 4.0. caption 필드가 박물관·작가 정보를 명시하므로 *사실상의 attribution* 역할. 향후 라이선스 정밀화는 v54 후보.
+
+**(3) HANDOVER 동봉 정책 (재확인)**: 사용자 지시 *"인수인계도 매 세션 같이 보내"* (v53 라운드 1) + *"인수인계도 매 세션 같이 보내"* (v53 라운드 2, 재강조) → 모든 산출물 패키지에 `HANDOVER.md` 동봉 + `present_files` 로 HANDOVER 별도 노출. CIM Lab 다수 사용자가 본 계정을 공유하므로, 한 세션에서 산출한 zip 만 받아도 다음 세션 작업자가 즉시 컨텍스트 회복 가능.
+
+**구현 사항**:
+  · data-translations.js: ~310 lines 추가 (216 → ~500 lines, 35 KB → 55 KB) — 14 새 발췌
+  · data-characters.js: 신규 파일 (~12 KB, 50 entries)
+  · index.html: `_charPhotoMedallion` 함수 추가 (~30 lines, line 5371 부근), 4 사용 위치 패치, script 로드 라인에 `data-characters.js` 추가
+  · sw.js: DATA_BUNDLE 에 `data-characters.js` 추가
+  · APP_VERSION v52 → v53, CACHE_VERSION v52 → v53
+
+**검증**:
+  · test-v53.js: 20/20 PASS
+    - window.WORK_TRANSLATIONS 19 키 / window.CHARACTER_IMAGES 50 키
+    - _charMedallion + _charPhotoMedallion 양립
+    - 사진 메달리온이 img + onerror + SVG 폴백 포함
+    - 새 7 발췌 (Apology §22, Iliad 1.101-150, Anabasis 1.2, Euthyphro 2, WD 1-50, Persae 1-100, Antigone 1-100) lookup 정확
+    - 알려지지 않은 캐릭터에 대해 graceful fallback
+  · syntax check: 통과 (IIFE 4607~14562)
+
+defer (다음 라운드 후보, v54+):
+  · 정역 추가 — Plato Apology §23-26 (변론 마무리), Iliad 1.151-200+ (외교 시도), Sophocles Oedipus 1-100, Plato Crito §44-47
+  · 캐릭터 잠금 시스템 (XP/배지/완독 기반) — NEXT_TASKS.md 우선순위 2
+  · 캐릭터 사진 라이선스 정밀화 — 일부 CC BY 사진의 attribution 화면 표시
+  · 사진 prefetch (사용자가 picker 열기 전에 다음 50 사진 미리 캐시)
+  · PARADIGM_LIB 분사 확장 (v51 의 defer)
+  · μι-동사 quiz 통합 (v51 의 defer)
+  · AI 기반 정역 (Anthropic API 통합, 사용자 요청 시 번역) — *큐레이션 한계 보완*
 
 영구 제외 (사용자 정책):
   · 다국어 UI (i18n)
