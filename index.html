@@ -3356,6 +3356,761 @@ const TOPICS = [
 
 ];
 
+
+// ============================================================================
+// PARADIGM_LIB — 큐레이션 변화표 라이브러리 (v51)
+// 명사·형용사·대명사 ~40 lemma 의 표준 격변화.
+// 학술 출처: Smyth, Greek Grammar (1956); HQ (Hansen-Quinn) Greek Intensive Course;
+//            Pharr Homeric Greek (호메로스 형태 검증).
+// 액센트는 Smyth §149-179 (recessive · oxytone · perispomenon) 규칙 준수.
+//
+// 데이터 형식:
+//   {
+//     pos: 'noun' | 'adj' | 'pron',
+//     gender: 'm' | 'f' | 'n' | 'm/f',     // 명사만; 형용사/대명사는 항상 3성
+//     type: '...',                          // 변화 유형 (1st, 2nd, 3rd-κ, 3rd-ντ, irreg 등)
+//     gloss: '의미',
+//     source: 'Smyth §...',
+//     // 명사:
+//     sg: {nom:'...', gen:'...', dat:'...', acc:'...', voc:'...'},
+//     pl: {nom:'...', gen:'...', dat:'...', acc:'...'},
+//     dual: {...},   // optional
+//     // 형용사·대명사: gender-by-form
+//     sg: {nom:{m,f,n}, gen:{m,f,n}, ...},
+//     pl: {nom:{m,f,n}, gen:{m,f,n}, ...},
+//   }
+// 호격 복수는 그리스어 표준상 주격 복수와 동일하므로 별도 지정 안 함 (렌더 시 동일 표시).
+// ============================================================================
+
+const PARADIGM_LIB = {
+
+  // ─── 1변화 여성 ────────────────────────────────────────────────────────────
+  // (a) α-pure: 어간 끝 ε·ι·ρ 다음 — 단·복 모두 α 유지
+  'χώρα': {
+    pos:'noun', gender:'f', type:'1변화 여성 (α유지)',
+    gloss:'땅, 나라', source:'Smyth §216',
+    sg:{nom:'χώρα', gen:'χώρας', dat:'χώρᾳ', acc:'χώραν', voc:'χώρα'},
+    pl:{nom:'χῶραι', gen:'χωρῶν', dat:'χώραις', acc:'χώρας'},
+  },
+  'ἡμέρα': {
+    pos:'noun', gender:'f', type:'1변화 여성 (α유지)',
+    gloss:'날, 하루', source:'Smyth §216',
+    sg:{nom:'ἡμέρα', gen:'ἡμέρας', dat:'ἡμέρᾳ', acc:'ἡμέραν', voc:'ἡμέρα'},
+    pl:{nom:'ἡμέραι', gen:'ἡμερῶν', dat:'ἡμέραις', acc:'ἡμέρας'},
+  },
+  'ἀγορά': {
+    pos:'noun', gender:'f', type:'1변화 여성 (α유지, oxytone)',
+    gloss:'시장, 광장', source:'Smyth §216',
+    sg:{nom:'ἀγορά', gen:'ἀγορᾶς', dat:'ἀγορᾷ', acc:'ἀγοράν', voc:'ἀγορά'},
+    pl:{nom:'ἀγοραί', gen:'ἀγορῶν', dat:'ἀγοραῖς', acc:'ἀγοράς'},
+  },
+
+  // (b) η-type: ε·ι·ρ 이외 다음 — 단수에서 α→η
+  'γνώμη': {
+    pos:'noun', gender:'f', type:'1변화 여성 (η)',
+    gloss:'생각, 판단', source:'Smyth §217',
+    sg:{nom:'γνώμη', gen:'γνώμης', dat:'γνώμῃ', acc:'γνώμην', voc:'γνώμη'},
+    pl:{nom:'γνῶμαι', gen:'γνωμῶν', dat:'γνώμαις', acc:'γνώμας'},
+  },
+  'ψυχή': {
+    pos:'noun', gender:'f', type:'1변화 여성 (η, oxytone)',
+    gloss:'영혼, 생명', source:'Smyth §217',
+    sg:{nom:'ψυχή', gen:'ψυχῆς', dat:'ψυχῇ', acc:'ψυχήν', voc:'ψυχή'},
+    pl:{nom:'ψυχαί', gen:'ψυχῶν', dat:'ψυχαῖς', acc:'ψυχάς'},
+  },
+  'ἀρχή': {
+    pos:'noun', gender:'f', type:'1변화 여성 (η, oxytone)',
+    gloss:'시작, 통치', source:'Smyth §217',
+    sg:{nom:'ἀρχή', gen:'ἀρχῆς', dat:'ἀρχῇ', acc:'ἀρχήν', voc:'ἀρχή'},
+    pl:{nom:'ἀρχαί', gen:'ἀρχῶν', dat:'ἀρχαῖς', acc:'ἀρχάς'},
+  },
+  'τέχνη': {
+    pos:'noun', gender:'f', type:'1변화 여성 (η)',
+    gloss:'기술, 예술', source:'Smyth §217',
+    sg:{nom:'τέχνη', gen:'τέχνης', dat:'τέχνῃ', acc:'τέχνην', voc:'τέχνη'},
+    pl:{nom:'τέχναι', gen:'τεχνῶν', dat:'τέχναις', acc:'τέχνας'},
+  },
+  'τιμή': {
+    pos:'noun', gender:'f', type:'1변화 여성 (η, oxytone)',
+    gloss:'명예, 값', source:'Smyth §217',
+    sg:{nom:'τιμή', gen:'τιμῆς', dat:'τιμῇ', acc:'τιμήν', voc:'τιμή'},
+    pl:{nom:'τιμαί', gen:'τιμῶν', dat:'τιμαῖς', acc:'τιμάς'},
+  },
+
+  // (c) 단모음 α: 자음 + α (σσ/ττ/ζ/λλ 등)
+  'θάλαττα': {
+    pos:'noun', gender:'f', type:'1변화 여성 (단α)',
+    gloss:'바다', source:'Smyth §218 (Attic; Ionic θάλασσα)',
+    sg:{nom:'θάλαττα', gen:'θαλάττης', dat:'θαλάττῃ', acc:'θάλατταν', voc:'θάλαττα'},
+    pl:{nom:'θάλατται', gen:'θαλαττῶν', dat:'θαλάτταις', acc:'θαλάττας'},
+  },
+  'μοῦσα': {
+    pos:'noun', gender:'f', type:'1변화 여성 (단α)',
+    gloss:'무사 (시·예술의 여신)', source:'Smyth §218',
+    sg:{nom:'μοῦσα', gen:'μούσης', dat:'μούσῃ', acc:'μοῦσαν', voc:'μοῦσα'},
+    pl:{nom:'μοῦσαι', gen:'μουσῶν', dat:'μούσαις', acc:'μούσας'},
+  },
+
+  // ─── 1변화 남성 ────────────────────────────────────────────────────────────
+  // -ης / -ας — 호격 -α (-ης 형) 또는 -α (-ας 형, 짧음)
+  'πολίτης': {
+    pos:'noun', gender:'m', type:'1변화 남성 (-ης)',
+    gloss:'시민', source:'Smyth §222',
+    sg:{nom:'πολίτης', gen:'πολίτου', dat:'πολίτῃ', acc:'πολίτην', voc:'πολῖτα'},
+    pl:{nom:'πολῖται', gen:'πολιτῶν', dat:'πολίταις', acc:'πολίτας'},
+  },
+  'νεανίας': {
+    pos:'noun', gender:'m', type:'1변화 남성 (-ας)',
+    gloss:'젊은이', source:'Smyth §222',
+    sg:{nom:'νεανίας', gen:'νεανίου', dat:'νεανίᾳ', acc:'νεανίαν', voc:'νεανία'},
+    pl:{nom:'νεανίαι', gen:'νεανιῶν', dat:'νεανίαις', acc:'νεανίας'},
+  },
+  'στρατιώτης': {
+    pos:'noun', gender:'m', type:'1변화 남성 (-ης)',
+    gloss:'병사', source:'Smyth §222',
+    sg:{nom:'στρατιώτης', gen:'στρατιώτου', dat:'στρατιώτῃ', acc:'στρατιώτην', voc:'στρατιῶτα'},
+    pl:{nom:'στρατιῶται', gen:'στρατιωτῶν', dat:'στρατιώταις', acc:'στρατιώτας'},
+  },
+  'ναύτης': {
+    pos:'noun', gender:'m', type:'1변화 남성 (-ης)',
+    gloss:'선원', source:'Smyth §222',
+    sg:{nom:'ναύτης', gen:'ναύτου', dat:'ναύτῃ', acc:'ναύτην', voc:'ναῦτα'},
+    pl:{nom:'ναῦται', gen:'ναυτῶν', dat:'ναύταις', acc:'ναύτας'},
+  },
+
+  // ─── 2변화 남성 ────────────────────────────────────────────────────────────
+  'ἄνθρωπος': {
+    pos:'noun', gender:'m', type:'2변화 남성 (-ος)',
+    gloss:'사람, 인간', source:'Smyth §230',
+    sg:{nom:'ἄνθρωπος', gen:'ἀνθρώπου', dat:'ἀνθρώπῳ', acc:'ἄνθρωπον', voc:'ἄνθρωπε'},
+    pl:{nom:'ἄνθρωποι', gen:'ἀνθρώπων', dat:'ἀνθρώποις', acc:'ἀνθρώπους'},
+  },
+  'λόγος': {
+    pos:'noun', gender:'m', type:'2변화 남성 (-ος)',
+    gloss:'말, 이성', source:'Smyth §230',
+    sg:{nom:'λόγος', gen:'λόγου', dat:'λόγῳ', acc:'λόγον', voc:'λόγε'},
+    pl:{nom:'λόγοι', gen:'λόγων', dat:'λόγοις', acc:'λόγους'},
+  },
+  'θεός': {
+    pos:'noun', gender:'m/f', type:'2변화 (-ος, oxytone)',
+    gloss:'신', source:'Smyth §230, §232',
+    sg:{nom:'θεός', gen:'θεοῦ', dat:'θεῷ', acc:'θεόν', voc:'θεός'},
+    pl:{nom:'θεοί', gen:'θεῶν', dat:'θεοῖς', acc:'θεούς'},
+    note:'호격은 주격과 같음 (예외적). 여성 ἡ θεός 도 가능 (θεά 가 더 흔함).',
+  },
+  'ἵππος': {
+    pos:'noun', gender:'m', type:'2변화 남성 (-ος)',
+    gloss:'말', source:'Smyth §230',
+    sg:{nom:'ἵππος', gen:'ἵππου', dat:'ἵππῳ', acc:'ἵππον', voc:'ἵππε'},
+    pl:{nom:'ἵπποι', gen:'ἵππων', dat:'ἵπποις', acc:'ἵππους'},
+  },
+  'νόμος': {
+    pos:'noun', gender:'m', type:'2변화 남성 (-ος)',
+    gloss:'법, 관습', source:'Smyth §230',
+    sg:{nom:'νόμος', gen:'νόμου', dat:'νόμῳ', acc:'νόμον', voc:'νόμε'},
+    pl:{nom:'νόμοι', gen:'νόμων', dat:'νόμοις', acc:'νόμους'},
+  },
+  'φίλος': {
+    pos:'noun', gender:'m', type:'2변화 남성 (-ος)',
+    gloss:'친구', source:'Smyth §230',
+    sg:{nom:'φίλος', gen:'φίλου', dat:'φίλῳ', acc:'φίλον', voc:'φίλε'},
+    pl:{nom:'φίλοι', gen:'φίλων', dat:'φίλοις', acc:'φίλους'},
+  },
+  'ποταμός': {
+    pos:'noun', gender:'m', type:'2변화 남성 (-ος, oxytone)',
+    gloss:'강', source:'Smyth §230',
+    sg:{nom:'ποταμός', gen:'ποταμοῦ', dat:'ποταμῷ', acc:'ποταμόν', voc:'ποταμέ'},
+    pl:{nom:'ποταμοί', gen:'ποταμῶν', dat:'ποταμοῖς', acc:'ποταμούς'},
+  },
+  'ἀδελφός': {
+    pos:'noun', gender:'m', type:'2변화 남성 (-ος, oxytone)',
+    gloss:'형제', source:'Smyth §234 (호격 anomaly)',
+    sg:{nom:'ἀδελφός', gen:'ἀδελφοῦ', dat:'ἀδελφῷ', acc:'ἀδελφόν', voc:'ἄδελφε'},
+    pl:{nom:'ἀδελφοί', gen:'ἀδελφῶν', dat:'ἀδελφοῖς', acc:'ἀδελφούς'},
+    note:'호격은 강세가 ἀντι로 후퇴 (recessive shift) — ἄδελφε.',
+  },
+
+  // ─── 2변화 여성 ────────────────────────────────────────────────────────────
+  'ὁδός': {
+    pos:'noun', gender:'f', type:'2변화 여성 (-ος, oxytone)',
+    gloss:'길, 여정', source:'Smyth §232',
+    sg:{nom:'ὁδός', gen:'ὁδοῦ', dat:'ὁδῷ', acc:'ὁδόν', voc:'ὁδέ'},
+    pl:{nom:'ὁδοί', gen:'ὁδῶν', dat:'ὁδοῖς', acc:'ὁδούς'},
+  },
+  'νῆσος': {
+    pos:'noun', gender:'f', type:'2변화 여성 (-ος)',
+    gloss:'섬', source:'Smyth §232',
+    sg:{nom:'νῆσος', gen:'νήσου', dat:'νήσῳ', acc:'νῆσον', voc:'νῆσε'},
+    pl:{nom:'νῆσοι', gen:'νήσων', dat:'νήσοις', acc:'νήσους'},
+  },
+  'νόσος': {
+    pos:'noun', gender:'f', type:'2변화 여성 (-ος)',
+    gloss:'병', source:'Smyth §232',
+    sg:{nom:'νόσος', gen:'νόσου', dat:'νόσῳ', acc:'νόσον', voc:'νόσε'},
+    pl:{nom:'νόσοι', gen:'νόσων', dat:'νόσοις', acc:'νόσους'},
+  },
+
+  // ─── 2변화 중성 ────────────────────────────────────────────────────────────
+  'δῶρον': {
+    pos:'noun', gender:'n', type:'2변화 중성 (-ον)',
+    gloss:'선물', source:'Smyth §230',
+    sg:{nom:'δῶρον', gen:'δώρου', dat:'δώρῳ', acc:'δῶρον', voc:'δῶρον'},
+    pl:{nom:'δῶρα', gen:'δώρων', dat:'δώροις', acc:'δῶρα'},
+  },
+  'ἔργον': {
+    pos:'noun', gender:'n', type:'2변화 중성 (-ον)',
+    gloss:'일, 작품', source:'Smyth §230',
+    sg:{nom:'ἔργον', gen:'ἔργου', dat:'ἔργῳ', acc:'ἔργον', voc:'ἔργον'},
+    pl:{nom:'ἔργα', gen:'ἔργων', dat:'ἔργοις', acc:'ἔργα'},
+  },
+  'παιδίον': {
+    pos:'noun', gender:'n', type:'2변화 중성 (-ον)',
+    gloss:'아이 (지소사)', source:'Smyth §230',
+    sg:{nom:'παιδίον', gen:'παιδίου', dat:'παιδίῳ', acc:'παιδίον', voc:'παιδίον'},
+    pl:{nom:'παιδία', gen:'παιδίων', dat:'παιδίοις', acc:'παιδία'},
+  },
+  'ζῷον': {
+    pos:'noun', gender:'n', type:'2변화 중성 (-ον)',
+    gloss:'동물, 생물', source:'Smyth §230',
+    sg:{nom:'ζῷον', gen:'ζῴου', dat:'ζῴῳ', acc:'ζῷον', voc:'ζῷον'},
+    pl:{nom:'ζῷα', gen:'ζῴων', dat:'ζῴοις', acc:'ζῷα'},
+    note:'ω 에 iota subscript — 어간 ζῳ-. 강세 위치에 따라 ῷ/ῴ 가변.',
+  },
+  'τέκνον': {
+    pos:'noun', gender:'n', type:'2변화 중성 (-ον)',
+    gloss:'자녀', source:'Smyth §230',
+    sg:{nom:'τέκνον', gen:'τέκνου', dat:'τέκνῳ', acc:'τέκνον', voc:'τέκνον'},
+    pl:{nom:'τέκνα', gen:'τέκνων', dat:'τέκνοις', acc:'τέκνα'},
+  },
+  'ὅπλον': {
+    pos:'noun', gender:'n', type:'2변화 중성 (-ον)',
+    gloss:'무기 (보통 복수)', source:'Smyth §230',
+    sg:{nom:'ὅπλον', gen:'ὅπλου', dat:'ὅπλῳ', acc:'ὅπλον', voc:'ὅπλον'},
+    pl:{nom:'ὅπλα', gen:'ὅπλων', dat:'ὅπλοις', acc:'ὅπλα'},
+  },
+
+  // ─── 3변화 자음어간 ────────────────────────────────────────────────────────
+  'φύλαξ': {
+    pos:'noun', gender:'m', type:'3변화 (κ-어간)',
+    gloss:'파수꾼', source:'Smyth §255',
+    sg:{nom:'φύλαξ', gen:'φύλακος', dat:'φύλακι', acc:'φύλακα', voc:'φύλαξ'},
+    pl:{nom:'φύλακες', gen:'φυλάκων', dat:'φύλαξι(ν)', acc:'φύλακας'},
+  },
+  'ἄρχων': {
+    pos:'noun', gender:'m', type:'3변화 (ντ-어간)',
+    gloss:'지도자, 아르콘', source:'Smyth §263',
+    sg:{nom:'ἄρχων', gen:'ἄρχοντος', dat:'ἄρχοντι', acc:'ἄρχοντα', voc:'ἄρχον'},
+    pl:{nom:'ἄρχοντες', gen:'ἀρχόντων', dat:'ἄρχουσι(ν)', acc:'ἄρχοντας'},
+    note:'복수 여격 ντ+σι → 보상장음: ἀρχοντ-σι → ἄρχουσι.',
+  },
+  'γέρων': {
+    pos:'noun', gender:'m', type:'3변화 (ντ-어간)',
+    gloss:'노인', source:'Smyth §263',
+    sg:{nom:'γέρων', gen:'γέροντος', dat:'γέροντι', acc:'γέροντα', voc:'γέρον'},
+    pl:{nom:'γέροντες', gen:'γερόντων', dat:'γέρουσι(ν)', acc:'γέροντας'},
+  },
+  'χάρις': {
+    pos:'noun', gender:'f', type:'3변화 (τ-어간)',
+    gloss:'은혜, 감사', source:'Smyth §256',
+    sg:{nom:'χάρις', gen:'χάριτος', dat:'χάριτι', acc:'χάριν', voc:'χάρι'},
+    pl:{nom:'χάριτες', gen:'χαρίτων', dat:'χάρισι(ν)', acc:'χάριτας'},
+    note:'단수 대격 χάριν 은 어간 χαριτ + α 의 단축형 (어간말 ι 보존).',
+  },
+  'ἀσπίς': {
+    pos:'noun', gender:'f', type:'3변화 (δ-어간)',
+    gloss:'방패', source:'Smyth §256',
+    sg:{nom:'ἀσπίς', gen:'ἀσπίδος', dat:'ἀσπίδι', acc:'ἀσπίδα', voc:'ἀσπί'},
+    pl:{nom:'ἀσπίδες', gen:'ἀσπίδων', dat:'ἀσπίσι(ν)', acc:'ἀσπίδας'},
+  },
+  'ἐλπίς': {
+    pos:'noun', gender:'f', type:'3변화 (δ-어간)',
+    gloss:'희망', source:'Smyth §256',
+    sg:{nom:'ἐλπίς', gen:'ἐλπίδος', dat:'ἐλπίδι', acc:'ἐλπίδα', voc:'ἐλπί'},
+    pl:{nom:'ἐλπίδες', gen:'ἐλπίδων', dat:'ἐλπίσι(ν)', acc:'ἐλπίδας'},
+  },
+  'παῖς': {
+    pos:'noun', gender:'m/f', type:'3변화 (δ-어간, 양성)',
+    gloss:'아이, 노예', source:'Smyth §256, §285',
+    sg:{nom:'παῖς', gen:'παιδός', dat:'παιδί', acc:'παῖδα', voc:'παῖ'},
+    pl:{nom:'παῖδες', gen:'παίδων', dat:'παισί(ν)', acc:'παῖδας'},
+    note:'복수 속격 παίδων (perispomenon 어간 παιδ-, ι 단음 처리).',
+  },
+  'νύξ': {
+    pos:'noun', gender:'f', type:'3변화 (κτ-어간)',
+    gloss:'밤', source:'Smyth §261',
+    sg:{nom:'νύξ', gen:'νυκτός', dat:'νυκτί', acc:'νύκτα', voc:'νύξ'},
+    pl:{nom:'νύκτες', gen:'νυκτῶν', dat:'νυξί(ν)', acc:'νύκτας'},
+  },
+
+  // ─── 3변화 중성 ────────────────────────────────────────────────────────────
+  // -μα/-ματος (-ματ- 어간)
+  'σῶμα': {
+    pos:'noun', gender:'n', type:'3변화 중성 (-μα/-ματος)',
+    gloss:'몸', source:'Smyth §258',
+    sg:{nom:'σῶμα', gen:'σώματος', dat:'σώματι', acc:'σῶμα', voc:'σῶμα'},
+    pl:{nom:'σώματα', gen:'σωμάτων', dat:'σώμασι(ν)', acc:'σώματα'},
+  },
+  'πρᾶγμα': {
+    pos:'noun', gender:'n', type:'3변화 중성 (-μα/-ματος)',
+    gloss:'일, 사실', source:'Smyth §258',
+    sg:{nom:'πρᾶγμα', gen:'πράγματος', dat:'πράγματι', acc:'πρᾶγμα', voc:'πρᾶγμα'},
+    pl:{nom:'πράγματα', gen:'πραγμάτων', dat:'πράγμασι(ν)', acc:'πράγματα'},
+  },
+  'ὄνομα': {
+    pos:'noun', gender:'n', type:'3변화 중성 (-μα/-ματος)',
+    gloss:'이름', source:'Smyth §258',
+    sg:{nom:'ὄνομα', gen:'ὀνόματος', dat:'ὀνόματι', acc:'ὄνομα', voc:'ὄνομα'},
+    pl:{nom:'ὀνόματα', gen:'ὀνομάτων', dat:'ὀνόμασι(ν)', acc:'ὀνόματα'},
+  },
+  'χρῆμα': {
+    pos:'noun', gender:'n', type:'3변화 중성 (-μα/-ματος)',
+    gloss:'물건; 복수=돈, 재산', source:'Smyth §258',
+    sg:{nom:'χρῆμα', gen:'χρήματος', dat:'χρήματι', acc:'χρῆμα', voc:'χρῆμα'},
+    pl:{nom:'χρήματα', gen:'χρημάτων', dat:'χρήμασι(ν)', acc:'χρήματα'},
+  },
+  // -ος/-ους (σ-어간, 축약)
+  'γένος': {
+    pos:'noun', gender:'n', type:'3변화 중성 (σ-어간)',
+    gloss:'종족, 출신', source:'Smyth §263',
+    sg:{nom:'γένος', gen:'γένους', dat:'γένει', acc:'γένος', voc:'γένος'},
+    pl:{nom:'γένη', gen:'γενῶν', dat:'γένεσι(ν)', acc:'γένη'},
+    note:'σ-어간 축약: γενεσ+ος → γένους, γενεσ+ι → γένει, γενεσ+α → γένη.',
+  },
+  'τέλος': {
+    pos:'noun', gender:'n', type:'3변화 중성 (σ-어간)',
+    gloss:'끝, 목적', source:'Smyth §263',
+    sg:{nom:'τέλος', gen:'τέλους', dat:'τέλει', acc:'τέλος', voc:'τέλος'},
+    pl:{nom:'τέλη', gen:'τελῶν', dat:'τέλεσι(ν)', acc:'τέλη'},
+  },
+
+  // ─── 3변화 모음어간 ────────────────────────────────────────────────────────
+  // ι-어간
+  'πόλις': {
+    pos:'noun', gender:'f', type:'3변화 (ι-어간)',
+    gloss:'폴리스, 도시국가', source:'Smyth §268',
+    sg:{nom:'πόλις', gen:'πόλεως', dat:'πόλει', acc:'πόλιν', voc:'πόλι'},
+    pl:{nom:'πόλεις', gen:'πόλεων', dat:'πόλεσι(ν)', acc:'πόλεις'},
+    note:'특수: 속격 -εως (예외적 강세 — Attic quantitative metathesis). 복수 주격·대격 동일 (πόλεις).',
+  },
+  'δύναμις': {
+    pos:'noun', gender:'f', type:'3변화 (ι-어간)',
+    gloss:'능력, 힘', source:'Smyth §268',
+    sg:{nom:'δύναμις', gen:'δυνάμεως', dat:'δυνάμει', acc:'δύναμιν', voc:'δύναμι'},
+    pl:{nom:'δυνάμεις', gen:'δυνάμεων', dat:'δυνάμεσι(ν)', acc:'δυνάμεις'},
+  },
+  // ευ-어간
+  'βασιλεύς': {
+    pos:'noun', gender:'m', type:'3변화 (ευ-어간)',
+    gloss:'왕', source:'Smyth §275',
+    sg:{nom:'βασιλεύς', gen:'βασιλέως', dat:'βασιλεῖ', acc:'βασιλέα', voc:'βασιλεῦ'},
+    pl:{nom:'βασιλεῖς', gen:'βασιλέων', dat:'βασιλεῦσι(ν)', acc:'βασιλέας'},
+    note:'복수 주격 βασιλεῖς 는 -ηες 축약 (-η+ε→ε ι의 결합). 복수 대격 βασιλέας 는 비축약.',
+  },
+  'ἱππεύς': {
+    pos:'noun', gender:'m', type:'3변화 (ευ-어간)',
+    gloss:'기사, 기병', source:'Smyth §275',
+    sg:{nom:'ἱππεύς', gen:'ἱππέως', dat:'ἱππεῖ', acc:'ἱππέα', voc:'ἱππεῦ'},
+    pl:{nom:'ἱππεῖς', gen:'ἱππέων', dat:'ἱππεῦσι(ν)', acc:'ἱππέας'},
+  },
+
+  // 친족 명사 (불규칙)
+  'πατήρ': {
+    pos:'noun', gender:'m', type:'3변화 불규칙 (ρ-어간, 모음 교체)',
+    gloss:'아버지', source:'Smyth §285a',
+    sg:{nom:'πατήρ', gen:'πατρός', dat:'πατρί', acc:'πατέρα', voc:'πάτερ'},
+    pl:{nom:'πατέρες', gen:'πατέρων', dat:'πατράσι(ν)', acc:'πατέρας'},
+    note:'어간 πατερ- (긴) / πατρ- (단축) 교체. 복수 여격 -ασι 는 별도 어미.',
+  },
+  'μήτηρ': {
+    pos:'noun', gender:'f', type:'3변화 불규칙 (ρ-어간, 모음 교체)',
+    gloss:'어머니', source:'Smyth §285a',
+    sg:{nom:'μήτηρ', gen:'μητρός', dat:'μητρί', acc:'μητέρα', voc:'μῆτερ'},
+    pl:{nom:'μητέρες', gen:'μητέρων', dat:'μητράσι(ν)', acc:'μητέρας'},
+  },
+  'θυγάτηρ': {
+    pos:'noun', gender:'f', type:'3변화 불규칙 (ρ-어간, 모음 교체)',
+    gloss:'딸', source:'Smyth §285a',
+    sg:{nom:'θυγάτηρ', gen:'θυγατρός', dat:'θυγατρί', acc:'θυγατέρα', voc:'θύγατερ'},
+    pl:{nom:'θυγατέρες', gen:'θυγατέρων', dat:'θυγατράσι(ν)', acc:'θυγατέρας'},
+  },
+  'ἀνήρ': {
+    pos:'noun', gender:'m', type:'3변화 불규칙 (ρ-어간, 모음 탈락)',
+    gloss:'남자, 남편', source:'Smyth §285b',
+    sg:{nom:'ἀνήρ', gen:'ἀνδρός', dat:'ἀνδρί', acc:'ἄνδρα', voc:'ἄνερ'},
+    pl:{nom:'ἄνδρες', gen:'ἀνδρῶν', dat:'ἀνδράσι(ν)', acc:'ἄνδρας'},
+    note:'어간 ἀνερ- / ἀνδρ- (ε 탈락 + δ 삽입). 단어가 가장 흔한 친족·인물 명사.',
+  },
+  'γυνή': {
+    pos:'noun', gender:'f', type:'3변화 불규칙 (혼합 어간)',
+    gloss:'여자, 아내', source:'Smyth §285d',
+    sg:{nom:'γυνή', gen:'γυναικός', dat:'γυναικί', acc:'γυναῖκα', voc:'γύναι'},
+    pl:{nom:'γυναῖκες', gen:'γυναικῶν', dat:'γυναιξί(ν)', acc:'γυναῖκας'},
+    note:'주격 γυνή (어간 γυν-) vs 사격 γυναικ-. 복수 여격 γυναιξί 는 κ+σι=ξι.',
+  },
+  'Ζεύς': {
+    pos:'noun', gender:'m', type:'3변화 불규칙 (고유명사)',
+    gloss:'제우스', source:'Smyth §285c',
+    sg:{nom:'Ζεύς', gen:'Διός', dat:'Διί', acc:'Δία', voc:'Ζεῦ'},
+    pl:{},  // 고유명사 — 복수 없음
+    note:'주격·호격 어간 Ζ- vs 사격 Δι-. 본래 *dyē-와 *di-의 패러다임이 혼합되었다.',
+  },
+
+  // ─── 1·2변화 형용사 (3성) ──────────────────────────────────────────────────
+  // ἀγαθός 형 — 여성은 ε/ι/ρ 없으므로 -η
+  'ἀγαθός': {
+    pos:'adj', type:'1·2변화 형용사 (-ός, -ή, -όν)',
+    gloss:'좋은, 선한', source:'Smyth §287',
+    sg:{
+      nom:{m:'ἀγαθός', f:'ἀγαθή', n:'ἀγαθόν'},
+      gen:{m:'ἀγαθοῦ', f:'ἀγαθῆς', n:'ἀγαθοῦ'},
+      dat:{m:'ἀγαθῷ', f:'ἀγαθῇ', n:'ἀγαθῷ'},
+      acc:{m:'ἀγαθόν', f:'ἀγαθήν', n:'ἀγαθόν'},
+      voc:{m:'ἀγαθέ', f:'ἀγαθή', n:'ἀγαθόν'},
+    },
+    pl:{
+      nom:{m:'ἀγαθοί', f:'ἀγαθαί', n:'ἀγαθά'},
+      gen:{m:'ἀγαθῶν', f:'ἀγαθῶν', n:'ἀγαθῶν'},
+      dat:{m:'ἀγαθοῖς', f:'ἀγαθαῖς', n:'ἀγαθοῖς'},
+      acc:{m:'ἀγαθούς', f:'ἀγαθάς', n:'ἀγαθά'},
+    },
+  },
+  'καλός': {
+    pos:'adj', type:'1·2변화 형용사 (-ός, -ή, -όν)',
+    gloss:'아름다운, 좋은', source:'Smyth §287',
+    sg:{
+      nom:{m:'καλός', f:'καλή', n:'καλόν'},
+      gen:{m:'καλοῦ', f:'καλῆς', n:'καλοῦ'},
+      dat:{m:'καλῷ', f:'καλῇ', n:'καλῷ'},
+      acc:{m:'καλόν', f:'καλήν', n:'καλόν'},
+      voc:{m:'καλέ', f:'καλή', n:'καλόν'},
+    },
+    pl:{
+      nom:{m:'καλοί', f:'καλαί', n:'καλά'},
+      gen:{m:'καλῶν', f:'καλῶν', n:'καλῶν'},
+      dat:{m:'καλοῖς', f:'καλαῖς', n:'καλοῖς'},
+      acc:{m:'καλούς', f:'καλάς', n:'καλά'},
+    },
+  },
+  'σοφός': {
+    pos:'adj', type:'1·2변화 형용사 (-ός, -ή, -όν)',
+    gloss:'지혜로운', source:'Smyth §287',
+    sg:{
+      nom:{m:'σοφός', f:'σοφή', n:'σοφόν'},
+      gen:{m:'σοφοῦ', f:'σοφῆς', n:'σοφοῦ'},
+      dat:{m:'σοφῷ', f:'σοφῇ', n:'σοφῷ'},
+      acc:{m:'σοφόν', f:'σοφήν', n:'σοφόν'},
+      voc:{m:'σοφέ', f:'σοφή', n:'σοφόν'},
+    },
+    pl:{
+      nom:{m:'σοφοί', f:'σοφαί', n:'σοφά'},
+      gen:{m:'σοφῶν', f:'σοφῶν', n:'σοφῶν'},
+      dat:{m:'σοφοῖς', f:'σοφαῖς', n:'σοφοῖς'},
+      acc:{m:'σοφούς', f:'σοφάς', n:'σοφά'},
+    },
+  },
+  // ἄξιος — ε/ι/ρ 다음 여성은 -α 유지
+  'ἄξιος': {
+    pos:'adj', type:'1·2변화 형용사 (-ος, -α, -ον; ι 다음 α유지)',
+    gloss:'가치 있는, 합당한', source:'Smyth §288',
+    sg:{
+      nom:{m:'ἄξιος', f:'ἀξία', n:'ἄξιον'},
+      gen:{m:'ἀξίου', f:'ἀξίας', n:'ἀξίου'},
+      dat:{m:'ἀξίῳ', f:'ἀξίᾳ', n:'ἀξίῳ'},
+      acc:{m:'ἄξιον', f:'ἀξίαν', n:'ἄξιον'},
+      voc:{m:'ἄξιε', f:'ἀξία', n:'ἄξιον'},
+    },
+    pl:{
+      nom:{m:'ἄξιοι', f:'ἄξιαι', n:'ἄξια'},
+      gen:{m:'ἀξίων', f:'ἀξίων', n:'ἀξίων'},
+      dat:{m:'ἀξίοις', f:'ἀξίαις', n:'ἀξίοις'},
+      acc:{m:'ἀξίους', f:'ἀξίας', n:'ἄξια'},
+    },
+  },
+  'μικρός': {
+    pos:'adj', type:'1·2변화 형용사 (-ός, -ά, -όν; ρ 다음 α유지)',
+    gloss:'작은', source:'Smyth §288',
+    sg:{
+      nom:{m:'μικρός', f:'μικρά', n:'μικρόν'},
+      gen:{m:'μικροῦ', f:'μικρᾶς', n:'μικροῦ'},
+      dat:{m:'μικρῷ', f:'μικρᾷ', n:'μικρῷ'},
+      acc:{m:'μικρόν', f:'μικράν', n:'μικρόν'},
+      voc:{m:'μικρέ', f:'μικρά', n:'μικρόν'},
+    },
+    pl:{
+      nom:{m:'μικροί', f:'μικραί', n:'μικρά'},
+      gen:{m:'μικρῶν', f:'μικρῶν', n:'μικρῶν'},
+      dat:{m:'μικροῖς', f:'μικραῖς', n:'μικροῖς'},
+      acc:{m:'μικρούς', f:'μικράς', n:'μικρά'},
+    },
+  },
+
+  // 불규칙 형용사
+  'μέγας': {
+    pos:'adj', type:'불규칙 형용사 (어간 교체)',
+    gloss:'큰', source:'Smyth §311',
+    sg:{
+      nom:{m:'μέγας', f:'μεγάλη', n:'μέγα'},
+      gen:{m:'μεγάλου', f:'μεγάλης', n:'μεγάλου'},
+      dat:{m:'μεγάλῳ', f:'μεγάλῃ', n:'μεγάλῳ'},
+      acc:{m:'μέγαν', f:'μεγάλην', n:'μέγα'},
+      voc:{m:'μεγάλε', f:'μεγάλη', n:'μέγα'},
+    },
+    pl:{
+      nom:{m:'μεγάλοι', f:'μεγάλαι', n:'μεγάλα'},
+      gen:{m:'μεγάλων', f:'μεγάλων', n:'μεγάλων'},
+      dat:{m:'μεγάλοις', f:'μεγάλαις', n:'μεγάλοις'},
+      acc:{m:'μεγάλους', f:'μεγάλας', n:'μεγάλα'},
+    },
+    note:'단수 주격·대격 (남성), 주격·대격 (중성) 만 μεγ- 어간. 그 외 μεγαλ-.',
+  },
+  'πολύς': {
+    pos:'adj', type:'불규칙 형용사 (어간 교체)',
+    gloss:'많은, 큰', source:'Smyth §311',
+    sg:{
+      nom:{m:'πολύς', f:'πολλή', n:'πολύ'},
+      gen:{m:'πολλοῦ', f:'πολλῆς', n:'πολλοῦ'},
+      dat:{m:'πολλῷ', f:'πολλῇ', n:'πολλῷ'},
+      acc:{m:'πολύν', f:'πολλήν', n:'πολύ'},
+      voc:{m:'—', f:'—', n:'—'},
+    },
+    pl:{
+      nom:{m:'πολλοί', f:'πολλαί', n:'πολλά'},
+      gen:{m:'πολλῶν', f:'πολλῶν', n:'πολλῶν'},
+      dat:{m:'πολλοῖς', f:'πολλαῖς', n:'πολλοῖς'},
+      acc:{m:'πολλούς', f:'πολλάς', n:'πολλά'},
+    },
+    note:'단수 주격·대격 (남성), 주격·대격 (중성) 만 πολυ- 어간. 그 외 πολλ-. 호격 사용 안 함.',
+  },
+
+  // ─── 3변화 형용사 (3-ending: -υς, -εια, -υ) ────────────────────────────────
+  'ἡδύς': {
+    pos:'adj', type:'3변화 형용사 (-υς, -εια, -υ)',
+    gloss:'달콤한, 즐거운', source:'Smyth §305',
+    sg:{
+      nom:{m:'ἡδύς', f:'ἡδεῖα', n:'ἡδύ'},
+      gen:{m:'ἡδέος', f:'ἡδείας', n:'ἡδέος'},
+      dat:{m:'ἡδεῖ', f:'ἡδείᾳ', n:'ἡδεῖ'},
+      acc:{m:'ἡδύν', f:'ἡδεῖαν', n:'ἡδύ'},
+      voc:{m:'ἡδύ', f:'ἡδεῖα', n:'ἡδύ'},
+    },
+    pl:{
+      nom:{m:'ἡδεῖς', f:'ἡδεῖαι', n:'ἡδέα'},
+      gen:{m:'ἡδέων', f:'ἡδειῶν', n:'ἡδέων'},
+      dat:{m:'ἡδέσι(ν)', f:'ἡδείαις', n:'ἡδέσι(ν)'},
+      acc:{m:'ἡδεῖς', f:'ἡδείας', n:'ἡδέα'},
+    },
+    note:'남·중성은 3변화 υ-어간 (사격 ἡδε-), 여성은 1변화 ἡδεια-.',
+  },
+  'ταχύς': {
+    pos:'adj', type:'3변화 형용사 (-υς, -εια, -υ)',
+    gloss:'빠른', source:'Smyth §305',
+    sg:{
+      nom:{m:'ταχύς', f:'ταχεῖα', n:'ταχύ'},
+      gen:{m:'ταχέος', f:'ταχείας', n:'ταχέος'},
+      dat:{m:'ταχεῖ', f:'ταχείᾳ', n:'ταχεῖ'},
+      acc:{m:'ταχύν', f:'ταχεῖαν', n:'ταχύ'},
+      voc:{m:'ταχύ', f:'ταχεῖα', n:'ταχύ'},
+    },
+    pl:{
+      nom:{m:'ταχεῖς', f:'ταχεῖαι', n:'ταχέα'},
+      gen:{m:'ταχέων', f:'ταχειῶν', n:'ταχέων'},
+      dat:{m:'ταχέσι(ν)', f:'ταχείαις', n:'ταχέσι(ν)'},
+      acc:{m:'ταχεῖς', f:'ταχείας', n:'ταχέα'},
+    },
+  },
+  // 2-ending 형용사 (σ-어간 ἀληθής 류)
+  'ἀληθής': {
+    pos:'adj', type:'3변화 형용사 (σ-어간, 2어미)',
+    gloss:'참된, 진실한', source:'Smyth §300',
+    sg:{
+      nom:{m:'ἀληθής', f:'ἀληθής', n:'ἀληθές'},
+      gen:{m:'ἀληθοῦς', f:'ἀληθοῦς', n:'ἀληθοῦς'},
+      dat:{m:'ἀληθεῖ', f:'ἀληθεῖ', n:'ἀληθεῖ'},
+      acc:{m:'ἀληθῆ', f:'ἀληθῆ', n:'ἀληθές'},
+      voc:{m:'ἀληθές', f:'ἀληθές', n:'ἀληθές'},
+    },
+    pl:{
+      nom:{m:'ἀληθεῖς', f:'ἀληθεῖς', n:'ἀληθῆ'},
+      gen:{m:'ἀληθῶν', f:'ἀληθῶν', n:'ἀληθῶν'},
+      dat:{m:'ἀληθέσι(ν)', f:'ἀληθέσι(ν)', n:'ἀληθέσι(ν)'},
+      acc:{m:'ἀληθεῖς', f:'ἀληθεῖς', n:'ἀληθῆ'},
+    },
+    note:'2어미 — 남·여성 동형. σ-어간 모음간 σ 탈락 + 축약.',
+  },
+  // ν-어간 (εὐδαίμων 류)
+  'εὐδαίμων': {
+    pos:'adj', type:'3변화 형용사 (ν-어간, 2어미)',
+    gloss:'행복한, 운 좋은', source:'Smyth §303',
+    sg:{
+      nom:{m:'εὐδαίμων', f:'εὐδαίμων', n:'εὔδαιμον'},
+      gen:{m:'εὐδαίμονος', f:'εὐδαίμονος', n:'εὐδαίμονος'},
+      dat:{m:'εὐδαίμονι', f:'εὐδαίμονι', n:'εὐδαίμονι'},
+      acc:{m:'εὐδαίμονα', f:'εὐδαίμονα', n:'εὔδαιμον'},
+      voc:{m:'εὔδαιμον', f:'εὔδαιμον', n:'εὔδαιμον'},
+    },
+    pl:{
+      nom:{m:'εὐδαίμονες', f:'εὐδαίμονες', n:'εὐδαίμονα'},
+      gen:{m:'εὐδαιμόνων', f:'εὐδαιμόνων', n:'εὐδαιμόνων'},
+      dat:{m:'εὐδαίμοσι(ν)', f:'εὐδαίμοσι(ν)', n:'εὐδαίμοσι(ν)'},
+      acc:{m:'εὐδαίμονας', f:'εὐδαίμονας', n:'εὐδαίμονα'},
+    },
+  },
+  // πᾶς — 매우 빈도 높은 불규칙
+  'πᾶς': {
+    pos:'adj', type:'3변화 형용사 (-ντ어간, 불규칙)',
+    gloss:'모든, 전체의', source:'Smyth §309',
+    sg:{
+      nom:{m:'πᾶς', f:'πᾶσα', n:'πᾶν'},
+      gen:{m:'παντός', f:'πάσης', n:'παντός'},
+      dat:{m:'παντί', f:'πάσῃ', n:'παντί'},
+      acc:{m:'πάντα', f:'πᾶσαν', n:'πᾶν'},
+      voc:{m:'—', f:'—', n:'—'},
+    },
+    pl:{
+      nom:{m:'πάντες', f:'πᾶσαι', n:'πάντα'},
+      gen:{m:'πάντων', f:'πασῶν', n:'πάντων'},
+      dat:{m:'πᾶσι(ν)', f:'πάσαις', n:'πᾶσι(ν)'},
+      acc:{m:'πάντας', f:'πάσας', n:'πάντα'},
+    },
+    note:'단수 oxytone (παντός·παντί), 복수 attributive 시 강세 recessive (πάντες). 호격 사용 안 함.',
+  },
+
+  // ─── 대명사 ────────────────────────────────────────────────────────────────
+  'αὐτός': {
+    pos:'pron', type:'3성 대명사 (지시·강조·3인칭)',
+    gloss:'자기 자신; 바로 그; (사격) 그/그녀/그것', source:'Smyth §327',
+    sg:{
+      nom:{m:'αὐτός', f:'αὐτή', n:'αὐτό'},
+      gen:{m:'αὐτοῦ', f:'αὐτῆς', n:'αὐτοῦ'},
+      dat:{m:'αὐτῷ', f:'αὐτῇ', n:'αὐτῷ'},
+      acc:{m:'αὐτόν', f:'αὐτήν', n:'αὐτό'},
+    },
+    pl:{
+      nom:{m:'αὐτοί', f:'αὐταί', n:'αὐτά'},
+      gen:{m:'αὐτῶν', f:'αὐτῶν', n:'αὐτῶν'},
+      dat:{m:'αὐτοῖς', f:'αὐταῖς', n:'αὐτοῖς'},
+      acc:{m:'αὐτούς', f:'αὐτάς', n:'αὐτά'},
+    },
+    note:'형용사 ἀγαθός 와 같은 변화이지만 중성 단수 -ο (대신 -ον). 호격 없음.',
+  },
+  'οὗτος': {
+    pos:'pron', type:'지시대명사 (이/이것)',
+    gloss:'이, 이것 (이미 언급된 것)', source:'Smyth §333',
+    sg:{
+      nom:{m:'οὗτος', f:'αὕτη', n:'τοῦτο'},
+      gen:{m:'τούτου', f:'ταύτης', n:'τούτου'},
+      dat:{m:'τούτῳ', f:'ταύτῃ', n:'τούτῳ'},
+      acc:{m:'τοῦτον', f:'ταύτην', n:'τοῦτο'},
+    },
+    pl:{
+      nom:{m:'οὗτοι', f:'αὗται', n:'ταῦτα'},
+      gen:{m:'τούτων', f:'τούτων', n:'τούτων'},
+      dat:{m:'τούτοις', f:'ταύταις', n:'τούτοις'},
+      acc:{m:'τούτους', f:'ταύτας', n:'ταῦτα'},
+    },
+    note:'첫 글자는 거친숨표 또는 τ-. 모음 첫소리는 격 형태에 따라 ου ↔ αυ ↔ ου 또는 αυ ↔ αυ ↔ αυ.',
+  },
+  'ἐκεῖνος': {
+    pos:'pron', type:'지시대명사 (저/저것)',
+    gloss:'저, 저것 (멀리 있는 것)', source:'Smyth §333',
+    sg:{
+      nom:{m:'ἐκεῖνος', f:'ἐκείνη', n:'ἐκεῖνο'},
+      gen:{m:'ἐκείνου', f:'ἐκείνης', n:'ἐκείνου'},
+      dat:{m:'ἐκείνῳ', f:'ἐκείνῃ', n:'ἐκείνῳ'},
+      acc:{m:'ἐκεῖνον', f:'ἐκείνην', n:'ἐκεῖνο'},
+    },
+    pl:{
+      nom:{m:'ἐκεῖνοι', f:'ἐκεῖναι', n:'ἐκεῖνα'},
+      gen:{m:'ἐκείνων', f:'ἐκείνων', n:'ἐκείνων'},
+      dat:{m:'ἐκείνοις', f:'ἐκείναις', n:'ἐκείνοις'},
+      acc:{m:'ἐκείνους', f:'ἐκείνας', n:'ἐκεῖνα'},
+    },
+    note:'형용사 ἀγαθός 변화와 같음 (αὐτός 처럼 중성 단수 -ο).',
+  },
+  'ὅδε': {
+    pos:'pron', type:'지시대명사 (이/다음의)',
+    gloss:'이, 다음의 (앞으로 말할 것)', source:'Smyth §333',
+    sg:{
+      nom:{m:'ὅδε', f:'ἥδε', n:'τόδε'},
+      gen:{m:'τοῦδε', f:'τῆσδε', n:'τοῦδε'},
+      dat:{m:'τῷδε', f:'τῇδε', n:'τῷδε'},
+      acc:{m:'τόνδε', f:'τήνδε', n:'τόδε'},
+    },
+    pl:{
+      nom:{m:'οἵδε', f:'αἵδε', n:'τάδε'},
+      gen:{m:'τῶνδε', f:'τῶνδε', n:'τῶνδε'},
+      dat:{m:'τοῖσδε', f:'ταῖσδε', n:'τοῖσδε'},
+      acc:{m:'τούσδε', f:'τάσδε', n:'τάδε'},
+    },
+    note:'정관사 ὁ, ἡ, τό + 후접어 -δε. 강세는 관사 부분에.',
+  },
+
+  // 인칭 대명사
+  'ἐγώ': {
+    pos:'pron', type:'1인칭 인칭대명사',
+    gloss:'나, 우리', source:'Smyth §325',
+    sg:{nom:'ἐγώ', gen:'ἐμοῦ / μου', dat:'ἐμοί / μοι', acc:'ἐμέ / με'},
+    pl:{nom:'ἡμεῖς', gen:'ἡμῶν', dat:'ἡμῖν', acc:'ἡμᾶς'},
+    note:'단수 사격의 두 형태 — 강조형 (ἐμοῦ) vs 전접형 (μου, 강세 없음).',
+  },
+  'σύ': {
+    pos:'pron', type:'2인칭 인칭대명사',
+    gloss:'너, 너희', source:'Smyth §325',
+    sg:{nom:'σύ', gen:'σοῦ / σου', dat:'σοί / σοι', acc:'σέ / σε'},
+    pl:{nom:'ὑμεῖς', gen:'ὑμῶν', dat:'ὑμῖν', acc:'ὑμᾶς'},
+    note:'단수 사격 전접형은 강세 없음.',
+  },
+
+  // 의문·부정 대명사 (τίς / τις)
+  'τίς': {
+    pos:'pron', type:'의문대명사·형용사 (3변화)',
+    gloss:'누구? 무엇? 어느?', source:'Smyth §334',
+    sg:{
+      nom:{m:'τίς', f:'τίς', n:'τί'},
+      gen:{m:'τίνος', f:'τίνος', n:'τίνος'},
+      dat:{m:'τίνι', f:'τίνι', n:'τίνι'},
+      acc:{m:'τίνα', f:'τίνα', n:'τί'},
+    },
+    pl:{
+      nom:{m:'τίνες', f:'τίνες', n:'τίνα'},
+      gen:{m:'τίνων', f:'τίνων', n:'τίνων'},
+      dat:{m:'τίσι(ν)', f:'τίσι(ν)', n:'τίσι(ν)'},
+      acc:{m:'τίνας', f:'τίνας', n:'τίνα'},
+    },
+    note:'2어미 — 남·여 동형. 의문대명사는 강세 항상 ί (oxytone 으로 유지, grave 되지 않음).',
+  },
+  'τις': {
+    pos:'pron', type:'부정대명사·형용사 (3변화, 전접어)',
+    gloss:'어떤 (사람·것), 누군가, 어떤이', source:'Smyth §334',
+    sg:{
+      nom:{m:'τις', f:'τις', n:'τι'},
+      gen:{m:'τινός', f:'τινός', n:'τινός'},
+      dat:{m:'τινί', f:'τινί', n:'τινί'},
+      acc:{m:'τινά', f:'τινά', n:'τι'},
+    },
+    pl:{
+      nom:{m:'τινές', f:'τινές', n:'τινά'},
+      gen:{m:'τινῶν', f:'τινῶν', n:'τινῶν'},
+      dat:{m:'τισί(ν)', f:'τισί(ν)', n:'τισί(ν)'},
+      acc:{m:'τινάς', f:'τινάς', n:'τινά'},
+    },
+    note:'τίς (의문) 와 동일 형태이나 *enclitic* (전접어) — 보통 강세 없음, 앞 단어에 붙음.',
+  },
+  'οὐδείς': {
+    pos:'pron', type:'부정대명사 (οὐδέ + εἷς)',
+    gloss:'아무도/어떤 것도 ~않다', source:'Smyth §349',
+    sg:{
+      nom:{m:'οὐδείς', f:'οὐδεμία', n:'οὐδέν'},
+      gen:{m:'οὐδενός', f:'οὐδεμιᾶς', n:'οὐδενός'},
+      dat:{m:'οὐδενί', f:'οὐδεμιᾷ', n:'οὐδενί'},
+      acc:{m:'οὐδένα', f:'οὐδεμίαν', n:'οὐδέν'},
+    },
+    pl:{},
+    note:'εἷς (하나) + οὐδέ 합성. 보통 단수만 사용. μηδείς (μή + εἷς) 는 부정사절·명령 등에서 쓰는 변형.',
+  },
+
+};
+
 </script>
 <script>
 /* data_readings.js */
@@ -3852,7 +4607,7 @@ function imageURL(imgId, width){
 
 // 앱 버전 — sw.js CACHE_VERSION과 동기화 유지. 홈 화면 푸터에 표시되어
 // 사용자가 자신이 어느 버전을 사용 중인지 확인 가능 (캐시 갱신 진단용).
-const APP_VERSION = 'v50';
+const APP_VERSION = 'v51';
 window.__paideiaVersion = APP_VERSION;
 
 // ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
@@ -4772,6 +5527,17 @@ function renderVocab(){
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Εὕρεσις</div>
           <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">검색·콘코던스 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:6px;margin-left:4px;vertical-align:middle">new</span></div>
           <div style="font-size:11px;color:var(--clay-d);margin-top:3px">어형·표제어로 본문 검색 · 작품·섹션별 등장 위치 · 형태분석 통합 (AGDT v2.1)</div>
+        </div>
+        <div style="font-size:22px;color:var(--terracotta)">→</div>
+      </div>
+    </button>
+
+    <button class="card" type="button" data-render="renderParadigmBuilder" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Παράδειγμα</div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">변화표 만들기 — 명사·형용사·대명사 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:6px;margin-left:4px;vertical-align:middle">new</span></div>
+          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">76 표제어 큐레이션 (Smyth/Goodwin 표준형) + AGDT 실제 출현 어형 · 빈칸 채우기 시험 모드</div>
         </div>
         <div style="font-size:22px;color:var(--terracotta)">→</div>
       </div>
@@ -6098,6 +6864,702 @@ function renderInflectionQuiz(questions, idx, score){
     });
   });
 }
+
+// ===== Παράδειγμα — 변화표 만들기 (v51) =====================================
+// PARADIGM_LIB (76 lemma · Smyth/Goodwin 표준형) 큐레이션 표 + AGDT v2.1 실제
+// 출현 어형을 결합 표시. 학습자는 (a) 표준 패러다임을 한 화면에서 학습하고,
+// (b) 실제 코퍼스 (Iliad·Odyssey·Persae·Plato·Plutarch·NT) 에서 *어떤 형태가 몇 번*
+// 나오는지 확인할 수 있다. 패러다임 셀과 일치하는 어형은 attested 표시,
+// 그 외 (Homeric -οιο, Doric ματ-, 비교급, crasis, 지시 -ί 등) 는 별도 그룹.
+// 큐레이션 미매칭 시 AGDT 만으로 fallback 표시.
+
+let _paradigmQuery = '';      // 재진입 보존 (탭 전환 후 돌아와도 마지막 쿼리 복원)
+let _paradigmIdx = null;      // PARADIGM_LIB 키 정규화 인덱스 (lazy)
+
+function _paradigmNormalize(s){
+  // _searchNormalize 와 동일 규칙 (NFD + ς→σ + lowercase). 의존성 회피 위해 인라인.
+  if(!s) return '';
+  return s.normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/ς/g, 'σ')
+          .toLowerCase()
+          .trim();
+}
+
+function _buildParadigmIdx(){
+  if(_paradigmIdx) return _paradigmIdx;
+  const idx = new Map();
+  if(typeof PARADIGM_LIB !== 'undefined'){
+    for(const k in PARADIGM_LIB) idx.set(_paradigmNormalize(k), k);
+  }
+  _paradigmIdx = idx;
+  return idx;
+}
+
+// query → PARADIGM_LIB hit. (1) 직접 키 매칭 → (2) 정규화 매칭 → (3) 어형으로
+// 입력된 경우 MORPH_LOOKUP 으로 표제어 환원 후 재매칭. 환원되면 viaForm 부착.
+function _lookupParadigmLib(query){
+  if(typeof PARADIGM_LIB === 'undefined' || !query) return null;
+  if(PARADIGM_LIB[query]) return {key:query, entry:PARADIGM_LIB[query]};
+  const norm = _paradigmNormalize(query);
+  if(!norm) return null;
+  const idx = _buildParadigmIdx();
+  const orig = idx.get(norm);
+  if(orig) return {key:orig, entry:PARADIGM_LIB[orig]};
+  // 어형으로 입력했을 가능성 — MORPH_LOOKUP 로 표제어 환원
+  if(typeof MORPH_LOOKUP !== 'undefined'){
+    const tries = [query, query.replace(/σ$/, 'ς'), norm, norm.replace(/σ$/, 'ς')];
+    for(const t of tries){
+      const ml = MORPH_LOOKUP[t];
+      if(!ml || !ml.length) continue;
+      for(const an of ml){
+        const orig2 = idx.get(_paradigmNormalize(an.l));
+        if(orig2) return {key:orig2, entry:PARADIGM_LIB[orig2], viaForm:query, viaLemma:an.l};
+      }
+    }
+  }
+  return null;
+}
+
+// AGDT lemmaForms 에서 해당 표제어 어형 + 빈도 추출. 인덱스 미구축이면 null.
+function _collectAGDTFormsForLemma(lemmaKey){
+  if(!_searchIdx || !_searchIdx.lemmaForms) return null;
+  const norm = _paradigmNormalize(lemmaKey);
+  const formsSet = _searchIdx.lemmaForms.get(norm);
+  if(!formsSet) return null;
+  const result = [];
+  for(const f of formsSet){
+    const surface = (_searchIdx.surface && _searchIdx.surface.get(f)) || f;
+    const positions = _searchIdx.occ && _searchIdx.occ.get(f);
+    const count = positions ? positions.length : 0;
+    result.push({normalized:f, surface:surface, count:count});
+  }
+  result.sort((a,b) => b.count - a.count);
+  return result;
+}
+
+// 큐레이션 표의 모든 어형을 정규화 set 으로 (AGDT 와 매칭용).
+function _collectParadigmFormSet(entry){
+  const set = new Set();
+  const add = (s) => { if(s) set.add(_paradigmNormalize(s)); };
+  for(const num of ['sg','pl']){
+    if(!entry[num]) continue;
+    for(const c in entry[num]){
+      const v = entry[num][c];
+      if(typeof v === 'string') add(v);
+      else if(v && typeof v === 'object'){
+        for(const g in v) add(v[g]);
+      }
+    }
+  }
+  return set;
+}
+
+function _esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// 패러다임의 sg.nom (또는 임의 셀) 이 문자열이면 flat (성 구분 없음),
+// 객체면 3-gender (m/f/n). 명사 + 인칭대명사 (ἐγώ, σύ) 가 flat, 형용사 + 다른 대명사가 3-gender.
+function _paradigmIsThreeGender(entry){
+  for(const num of ['sg','pl']){
+    if(!entry[num]) continue;
+    for(const c in entry[num]){
+      const v = entry[num][c];
+      if(v == null) continue;
+      return (typeof v === 'object');  // 첫 non-null 셀로 결정
+    }
+  }
+  return false;
+}
+
+function _paradigmMeta(entry){
+  // 표 caption 우측 메타라벨
+  const posLbl = entry.pos === 'noun' ? '명사'
+              : entry.pos === 'adj'  ? '형용사'
+              : entry.pos === 'pron' ? '대명사' : '';
+  const genLbl = entry.gender ? ({m:'남성',f:'여성',n:'중성'}[entry.gender] || entry.gender) : '';
+  const parts = [entry.type || '', posLbl, genLbl].filter(Boolean);
+  // type 에 이미 pos/gender 가 녹아있을 수 있으므로 중복 피해 *type 만* 표시,
+  // 단 gender 가 type 에 없으면 부착
+  let s = entry.type || posLbl;
+  if(genLbl && entry.pos === 'noun' && entry.type && !entry.type.includes(genLbl)) s += ' · ' + genLbl;
+  return s;
+}
+
+function _paradigmFooter(entry){
+  let html = '';
+  if(entry.gloss)  html += '<div style="font-size:12px;color:var(--clay-d);margin-top:6px">의미: ' + _esc(entry.gloss) + '</div>';
+  if(entry.note)   html += '<div style="font-size:11px;color:var(--black-glaze-l);margin-top:4px;line-height:1.55;padding:6px 8px;background:var(--ivory-d);border-left:2px solid var(--clay);border-radius:3px"><b>주:</b> ' + _esc(entry.note) + '</div>';
+  if(entry.source) html += '<div style="font-size:11px;color:var(--clay-d);margin-top:4px">출처: ' + _esc(entry.source) + '</div>';
+  return html;
+}
+
+// flat 표 — 단·복 2열, 5격 (호격 없으면 생략). 명사 + 인칭대명사 ἐγώ/σύ 공용.
+function _renderCuratedFlat(key, entry){
+  const cases = ['nom','gen','dat','acc','voc'];
+  const labels = {nom:'주격', gen:'속격', dat:'여격', acc:'대격', voc:'호격'};
+  let html = '<table class="paradigm"><caption>' + _esc(key) +
+    ' <span style="font-size:11px;color:var(--clay-d);font-weight:400;font-style:normal">— ' +
+    _esc(_paradigmMeta(entry)) + '</span></caption>';
+  html += '<thead><tr><th></th><th>단수</th><th>복수</th></tr></thead><tbody>';
+  for(const c of cases){
+    const s = entry.sg && entry.sg[c];
+    const p = entry.pl && entry.pl[c];
+    if(!s && !p) continue;
+    html += '<tr><td class="lbl">' + labels[c] + '</td>';
+    html += '<td class="grk">' + _esc(s || '—') + '</td>';
+    html += '<td class="grk">' + _esc(p || '—') + '</td></tr>';
+  }
+  html += '</tbody></table>';
+  html += _paradigmFooter(entry);
+  return html;
+}
+
+// 3-gender 표 — 단·복 각각 5격×3성
+function _renderCuratedThreeGender(key, entry){
+  const cases = ['nom','gen','dat','acc','voc'];
+  const labels = {nom:'주격', gen:'속격', dat:'여격', acc:'대격', voc:'호격'};
+  let html = '';
+  for(const num of ['sg','pl']){
+    if(!entry[num]) continue;
+    const numLbl = num === 'sg' ? '단수' : '복수';
+    html += '<table class="paradigm" style="margin-bottom:10px"><caption>' + _esc(key) + ' — ' + numLbl +
+      ' <span style="font-size:11px;color:var(--clay-d);font-weight:400;font-style:normal">' +
+      _esc(_paradigmMeta(entry)) + '</span></caption>';
+    html += '<thead><tr><th></th><th>m</th><th>f</th><th>n</th></tr></thead><tbody>';
+    for(const c of cases){
+      const row = entry[num][c];
+      if(!row) continue;
+      const m = (row && typeof row === 'object') ? (row.m || '') : '';
+      const f = (row && typeof row === 'object') ? (row.f || '') : '';
+      const n = (row && typeof row === 'object') ? (row.n || '') : '';
+      if(!m && !f && !n) continue;
+      html += '<tr><td class="lbl">' + labels[c] + '</td>';
+      html += '<td class="grk">' + _esc(m || '—') + '</td>';
+      html += '<td class="grk">' + _esc(f || '—') + '</td>';
+      html += '<td class="grk">' + _esc(n || '—') + '</td></tr>';
+    }
+    html += '</tbody></table>';
+  }
+  html += _paradigmFooter(entry);
+  return html;
+}
+
+function _renderCuratedTable(key, entry){
+  if(_paradigmIsThreeGender(entry)) return _renderCuratedThreeGender(key, entry);
+  return _renderCuratedFlat(key, entry);
+}
+
+// AGDT attestation — 표준 패러다임 셀과 일치하는 어형은 단단 테두리 + 빨강,
+// 그 외 어형 (Homeric/Doric/축약/비교급/지시 -ί 등) 은 점선 테두리 + 무채색.
+function _renderAGDTAttestations(key, entry){
+  const forms = _collectAGDTFormsForLemma(key);
+  if(!forms){
+    return '<div style="font-size:12px;color:var(--clay-d);padding:8px;background:var(--ivory-d);border-radius:6px">AGDT 형태분석 인덱스에서 표제어 매칭 없음 (인덱스 미구축이거나 본 자료군 외 표제어).</div>';
+  }
+  if(!forms.length){
+    return '<div style="font-size:12px;color:var(--clay-d);padding:8px;background:var(--ivory-d);border-radius:6px">표제어 등록은 됐으나 본문 출현 0회 (AGDT 어휘목록만 보유).</div>';
+  }
+  const paradigmSet = _collectParadigmFormSet(entry);
+  const inParadigm = [];
+  const extra = [];
+  for(const f of forms){
+    if(paradigmSet.has(f.normalized)) inParadigm.push(f);
+    else extra.push(f);
+  }
+  const total = forms.reduce((a,f)=>a+f.count, 0);
+  let html = '<div style="font-size:12px;color:var(--clay-d);margin-bottom:6px">AGDT v2.1 형태분석 · 본 표제어로 총 <b>' + total + '</b>회 출현 (' + forms.length + ' 어형)</div>';
+  if(inParadigm.length){
+    html += '<div style="font-size:12px;color:var(--terracotta-d);font-weight:600;margin:8px 0 4px 0">표준 패러다임 attested (' + inParadigm.length + '/' + paradigmSet.size + ' 매칭)</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:4px">';
+    for(const f of inParadigm){
+      html += '<span style="font-family:var(--font-grk);font-size:14px;background:var(--ivory-d);border:1px solid var(--terracotta);padding:3px 8px;border-radius:6px;color:var(--terracotta-d);font-weight:600">' +
+        _esc(f.surface) + ' <span style="font-size:10px;color:var(--clay-d);font-weight:400">×' + f.count + '</span></span>';
+    }
+    html += '</div>';
+  }
+  if(extra.length){
+    html += '<div style="font-size:12px;color:var(--clay-d);font-weight:600;margin:10px 0 4px 0">패러다임 외 어형 (' + extra.length + ') ' +
+      '<span style="font-weight:400;font-style:italic">— 방언/시문체/축약/비교급/지시 -ί 등</span></div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:4px">';
+    const top = extra.slice(0, 40);
+    for(const f of top){
+      html += '<span style="font-family:var(--font-grk);font-size:13px;background:var(--ivory-d);border:1px dashed var(--clay);padding:2px 7px;border-radius:6px;color:var(--black-glaze-l)">' +
+        _esc(f.surface) + ' <span style="font-size:10px;color:var(--clay-d)">×' + f.count + '</span></span>';
+    }
+    if(extra.length > 40){
+      html += '<span style="font-size:11px;color:var(--clay-d);align-self:center;margin-left:4px">… 외 ' + (extra.length - 40) + '개</span>';
+    }
+    html += '</div>';
+  }
+  return html;
+}
+
+// AGDT only fallback — 큐레이션 미매칭 시. 정확한 lemma 일치면 AGDT 어형 나열,
+// 아니면 MORPH_LOOKUP 으로 어형→표제어 후보 제시.
+function _renderAGDTOnlyFallback(query){
+  if(!_searchIdx || !_searchIdx.lemmaForms){
+    return '<div style="padding:12px;background:var(--ivory-d);border-radius:8px;font-size:13px">' +
+      '<div style="margin-bottom:8px">AGDT 인덱스 미구축 — 구축 후 다시 시도하세요.</div>' +
+      '<button class="btn btn-sm" id="paradigm-build-idx">인덱스 구축 (~1-2초)</button>' +
+      '<div id="paradigm-build-progress" style="font-size:11px;color:var(--clay-d);margin-top:6px"></div></div>';
+  }
+  const norm = _paradigmNormalize(query);
+  const exactForms = _searchIdx.lemmaForms.get(norm);
+  if(exactForms){
+    const surface = (_searchIdx.lemmaSurface && _searchIdx.lemmaSurface.get(norm)) || query;
+    const forms = _collectAGDTFormsForLemma(query) || [];
+    const total = forms.reduce((a,f)=>a+f.count, 0);
+    let html = '<div style="padding:10px 12px;background:var(--ivory-d);border-radius:8px;margin-bottom:10px">' +
+      '<div style="font-size:12px;color:var(--clay-d)">큐레이션 패러다임은 없습니다 — AGDT 형태분석만 표시</div>' +
+      '<div style="font-family:var(--font-grk);font-size:22px;color:var(--terracotta-d);font-weight:600;margin-top:4px">' +
+      _esc(surface) + '</div></div>';
+    html += '<div style="font-size:12px;color:var(--clay-d);margin-bottom:6px">총 ' + total + '회 출현 · ' + forms.length + ' 어형</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:4px">';
+    for(const f of forms.slice(0, 80)){
+      html += '<span style="font-family:var(--font-grk);font-size:14px;background:var(--ivory-d);border:1px solid var(--clay);padding:3px 8px;border-radius:6px;color:var(--terracotta-d);font-weight:600">' +
+        _esc(f.surface) + ' <span style="font-size:10px;color:var(--clay-d);font-weight:400">×' + f.count + '</span></span>';
+    }
+    if(forms.length > 80){
+      html += '<span style="font-size:11px;color:var(--clay-d);align-self:center;margin-left:4px">… 외 ' + (forms.length - 80) + '개</span>';
+    }
+    html += '</div>';
+    return html;
+  }
+  if(typeof MORPH_LOOKUP !== 'undefined'){
+    const ml = MORPH_LOOKUP[query] || MORPH_LOOKUP[query.replace(/σ$/, 'ς')];
+    if(ml && ml.length){
+      let html = '<div style="padding:12px;background:var(--ivory-d);border-radius:8px"><div style="font-size:13px;color:var(--black-glaze)">"' +
+        _esc(query) + '"는 어형으로 보입니다. 가능한 표제어:</div><div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">';
+      const seen = new Set();
+      for(const an of ml){
+        if(seen.has(an.l)) continue;
+        seen.add(an.l);
+        html += '<button class="btn btn-sm" data-paradigm-lemma="' + _esc(an.l) + '" style="font-family:var(--font-grk)">' + _esc(an.l) + '</button>';
+      }
+      html += '</div></div>';
+      return html;
+    }
+  }
+  return '<div style="padding:12px;background:var(--ivory-d);border-radius:8px;font-size:13px;color:var(--clay-d)">' +
+    '매칭 없음 — 표제어로 입력했는지 확인하세요. 예시: ' +
+    '<button class="btn btn-sm" data-paradigm-lemma="ἄνθρωπος" style="font-family:var(--font-grk);margin:2px">ἄνθρωπος</button>' +
+    '<button class="btn btn-sm" data-paradigm-lemma="πατήρ" style="font-family:var(--font-grk);margin:2px">πατήρ</button>' +
+    '<button class="btn btn-sm" data-paradigm-lemma="αὐτός" style="font-family:var(--font-grk);margin:2px">αὐτός</button>' +
+    '</div>';
+}
+
+// 큐레이션 목차 — 카테고리별로 details 펼침
+function _renderParadigmSuggestions(){
+  if(typeof PARADIGM_LIB === 'undefined') return '';
+  // 카테고리 분류 — type 문자열 첫 부분 (예 "3변화 자음 (κ)" → "3변화 자음")
+  const groups = {};
+  const order = [];
+  for(const k in PARADIGM_LIB){
+    const e = PARADIGM_LIB[k];
+    const posLbl = e.pos === 'noun' ? '명사' : (e.pos === 'adj' ? '형용사' : '대명사');
+    const typBase = (e.type || '').replace(/\s*\([^)]*\)\s*$/, '').trim() || '기타';
+    const cat = posLbl + ' · ' + typBase;
+    if(!groups[cat]){ groups[cat] = []; order.push(cat); }
+    groups[cat].push(k);
+  }
+  let html = '<div><div style="font-size:12px;color:var(--clay-d);margin-bottom:6px">PARADIGM_LIB 수록 ' +
+    Object.keys(PARADIGM_LIB).length + ' 표제어</div>';
+  for(const cat of order){
+    html += '<details style="margin-bottom:4px"><summary style="cursor:pointer;font-size:12px;color:var(--black-glaze-l);padding:4px 0">' +
+      _esc(cat) + ' <span style="color:var(--clay-d)">(' + groups[cat].length + ')</span></summary>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:4px;padding:4px 0 8px 12px">';
+    for(const k of groups[cat]){
+      html += '<button class="btn btn-sm btn-o" data-paradigm-lemma="' + _esc(k) + '" style="font-family:var(--font-grk);font-size:13px">' + _esc(k) + '</button>';
+    }
+    html += '</div></details>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function renderParadigmBuilder(){
+  const haveLib = (typeof PARADIGM_LIB !== 'undefined');
+  const libCount = haveLib ? Object.keys(PARADIGM_LIB).length : 0;
+
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="setTab('vocab')">← 어휘</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Παράδειγμα</span> 변화표 만들기</h2>
+    <div class="view-sub">큐레이션 ${libCount} 표제어 (Smyth/Goodwin 표준형) + AGDT v2.1 실제 출현 어형</div>
+
+    <div class="card" style="margin-top:14px">
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
+        <input type="text" id="paradigm-input" placeholder="표제어 입력 (예: ἄνθρωπος, πατήρ, αὐτός)" value="${_esc(_paradigmQuery)}"
+               style="flex:1;padding:8px 10px;border:1px solid var(--clay);border-radius:6px;font-family:var(--font-grk);font-size:16px;background:var(--ivory-w);min-width:0">
+        <button class="btn btn-sm" id="paradigm-go">조회</button>
+      </div>
+      <div style="font-size:11px;color:var(--clay-d);line-height:1.5">
+        표제어로 입력 (어형도 받지만 자동으로 표제어 환원) · 다이아크리틱·대소문자 무관 · ς/σ 동일 처리.<br>
+        큐레이션 표는 명사 5격×2수, 형용사·대명사 5격×2수×3성. AGDT 인덱스 구축 후 실제 출현 어형이 함께 표시됩니다.
+      </div>
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--clay)">
+        <button class="btn btn-sm" onclick="startParadigmQuiz(null)" style="font-size:12px">🎯 무작위 표제어 시험</button>
+        <span style="font-size:11px;color:var(--clay-d);margin-left:8px">표 외우기 — 빈칸 채우기 quiz (active recall)</span>
+      </div>
+    </div>
+
+    <div id="paradigm-result" style="margin-top:12px"></div>
+
+    <div class="card" id="paradigm-suggest" style="margin-top:14px">
+      ${_renderParadigmSuggestions()}
+    </div>
+  `;
+
+  const input  = document.getElementById('paradigm-input');
+  const goBtn  = document.getElementById('paradigm-go');
+  const result = document.getElementById('paradigm-result');
+
+  function attachLemmaButtons(scope){
+    if(!scope) return;
+    scope.querySelectorAll('[data-paradigm-lemma]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const v = btn.getAttribute('data-paradigm-lemma');
+        if(input){ input.value = v; }
+        _paradigmQuery = v;
+        doLookup();
+        // 결과로 스크롤 — UX
+        if(result) result.scrollIntoView({behavior:'smooth', block:'start'});
+      });
+    });
+  }
+
+  async function buildIdxThenRefresh(btn){
+    btn.disabled = true;
+    const prog = document.getElementById('paradigm-build-progress');
+    const origText = btn.textContent;
+    btn.textContent = '구축 중…';
+    try {
+      if(typeof ensureMorph === 'function') await ensureMorph();
+      await _buildSearchIndex(p => {
+        if(prog) prog.textContent = Math.round(p*100) + '%';
+      });
+      doLookup();
+    } catch(err) {
+      btn.disabled = false;
+      btn.textContent = origText;
+      if(prog) prog.textContent = '구축 실패: ' + (err && err.message ? err.message : err);
+    }
+  }
+
+  function doLookup(){
+    const q = input.value.trim();
+    _paradigmQuery = q;
+    if(!q){ result.innerHTML = ''; return; }
+    const hit = _lookupParadigmLib(q);
+    if(hit){
+      let html = '';
+      if(hit.viaForm){
+        html += '<div style="font-size:12px;color:var(--clay-d);margin-bottom:6px">"' + _esc(hit.viaForm) +
+                '" → 표제어 <span style="font-family:var(--font-grk);font-weight:600;color:var(--terracotta-d)">' +
+                _esc(hit.key) + '</span></div>';
+      }
+      html += '<div class="card">' + _renderCuratedTable(hit.key, hit.entry) +
+        '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' +
+        '<button class="btn btn-sm" onclick="startParadigmQuiz(' + JSON.stringify(hit.key).replace(/"/g, '&quot;') + ')">🎯 이 표 시험 보기</button>' +
+        '<button class="btn btn-sm btn-o" onclick="startParadigmQuiz(null)">🎲 무작위 시험</button>' +
+        '</div></div>';
+      html += '<div class="card" style="margin-top:10px">';
+      if(_searchIdx && _searchIdx.lemmaForms){
+        html += _renderAGDTAttestations(hit.key, hit.entry);
+      } else {
+        html += '<div style="font-size:12px;color:var(--clay-d);margin-bottom:8px">AGDT 어형 인덱스 미구축 — 실제 출현 어형을 보려면 인덱스 구축이 필요합니다 (45 작품, 약 1-2초).</div>' +
+                '<button class="btn btn-sm" id="paradigm-build-idx">인덱스 구축</button>' +
+                '<div id="paradigm-build-progress" style="font-size:11px;color:var(--clay-d);margin-top:6px"></div>';
+      }
+      html += '</div>';
+      result.innerHTML = html;
+    } else {
+      result.innerHTML = '<div class="card">' + _renderAGDTOnlyFallback(q) + '</div>';
+    }
+    const buildBtn = document.getElementById('paradigm-build-idx');
+    if(buildBtn) buildBtn.addEventListener('click', () => buildIdxThenRefresh(buildBtn));
+    attachLemmaButtons(result);
+  }
+
+  goBtn.addEventListener('click', doLookup);
+  input.addEventListener('keydown', e => { if(e.key === 'Enter') doLookup(); });
+
+  // suggestion 목차의 lemma 버튼
+  attachLemmaButtons(document.getElementById('paradigm-suggest'));
+
+  // 초기 쿼리 복원
+  if(_paradigmQuery) doLookup();
+}
+
+window.renderParadigmBuilder = renderParadigmBuilder;
+
+
+// ===== Paradigm Quiz — 변화표 빈칸 채우기 =====
+// 큐레이션 표제어의 격변화 셀 중 무작위 N개를 가리고 입력 → 채점.
+// 학습 가치: 수동적 표 읽기 → 능동적 회상 (active recall, testing effect).
+// 채점 규칙:
+//   · NFD 정규화 후 다이아크리틱 무시 (휴머니티 — acute/grave 자체 학습은 Τόνος 모드 별도)
+//   · ς/σ 동일 처리 (Greek typography quirk)
+//   · 액센트가 일치하면 정답에 별도 마킹 (★) — 액센트까지 맞춰서 학습한 학습자 인정
+// sg.nom 은 표제어 hint 로 유지 (가리지 않음). 명사는 voc 도 자주 = nom 이라 제외.
+
+function _paradigmQuizNormalize(s){
+  if(!s) return '';
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ς/g,'σ').toLowerCase().trim();
+}
+
+// 셀 좌표 인벤토리 — { num:'sg'|'pl', case:'nom'|..., gender:undefined|'m'|'f'|'n', expected:string }
+function _paradigmQuizCells(entry){
+  const cases = ['nom','gen','dat','acc','voc'];
+  const cells = [];
+  const is3G = _paradigmIsThreeGender(entry);
+  for(const num of ['sg','pl']){
+    if(!entry[num]) continue;
+    for(const c of cases){
+      const v = entry[num][c];
+      if(v == null) continue;
+      if(is3G){
+        if(typeof v !== 'object') continue;
+        for(const g of ['m','f','n']){
+          if(v[g]) cells.push({num, case:c, gender:g, expected:v[g]});
+        }
+      } else {
+        if(typeof v === 'string' && v) cells.push({num, case:c, gender:undefined, expected:v});
+      }
+    }
+  }
+  return cells;
+}
+
+// 가릴 셀 후보 — sg.nom 제외 (모든 성에서), 명사면 voc 도 제외
+function _paradigmQuizCandidates(cells, entry){
+  return cells.filter(cell => {
+    if(cell.num === 'sg' && cell.case === 'nom') return false;
+    if(entry.pos === 'noun' && cell.case === 'voc') return false;
+    return true;
+  });
+}
+
+// 무작위 N개 선택. 표 크기가 작으면 50%.
+function _paradigmQuizPickBlanks(candidates){
+  const target = Math.max(3, Math.min(7, Math.ceil(candidates.length * 0.4)));
+  const shuffled = candidates.slice();
+  for(let i = shuffled.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i+1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled.slice(0, Math.min(target, shuffled.length));
+}
+
+// 빈칸 셀이 무엇인지 체크. 좌표 일치.
+function _isBlank(blanks, num, c, gender){
+  return blanks.some(b => b.num === num && b.case === c && b.gender === gender);
+}
+
+// 빈칸 input 의 id — 좌표로 안정적 식별.
+function _quizInputId(num, c, gender){
+  return 'pq-' + num + '-' + c + (gender ? '-' + gender : '');
+}
+
+// quiz 표 (flat) — 빈칸은 input, 그 외는 정답 노출
+function _renderQuizFlat(key, entry, blanks){
+  const cases = ['nom','gen','dat','acc','voc'];
+  const labels = {nom:'주격', gen:'속격', dat:'여격', acc:'대격', voc:'호격'};
+  let html = '<table class="paradigm"><caption>' + _esc(key) +
+    ' <span style="font-size:11px;color:var(--clay-d);font-weight:400;font-style:normal">— ' +
+    _esc(_paradigmMeta(entry)) + ' · 시험</span></caption>';
+  html += '<thead><tr><th></th><th>단수</th><th>복수</th></tr></thead><tbody>';
+  for(const c of cases){
+    const s = entry.sg && entry.sg[c];
+    const p = entry.pl && entry.pl[c];
+    if(!s && !p) continue;
+    html += '<tr><td class="lbl">' + labels[c] + '</td>';
+    for(const [num, val] of [['sg', s], ['pl', p]]){
+      if(!val){ html += '<td class="grk">—</td>'; continue; }
+      if(_isBlank(blanks, num, c, undefined)){
+        const id = _quizInputId(num, c, undefined);
+        html += '<td><input type="text" id="' + id +
+          '" class="pq-blank" data-num="' + num + '" data-case="' + c +
+          '" style="width:100%;font-family:var(--font-grk);font-size:15px;padding:4px 6px;border:1px dashed var(--terracotta);border-radius:4px;background:var(--ivory-w);box-sizing:border-box"></td>';
+      } else {
+        html += '<td class="grk">' + _esc(val) + '</td>';
+      }
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  return html;
+}
+
+// quiz 표 (3-gender) — 단·복 각 표, 셀이 m/f/n 분리
+function _renderQuizThreeGender(key, entry, blanks){
+  const cases = ['nom','gen','dat','acc','voc'];
+  const labels = {nom:'주격', gen:'속격', dat:'여격', acc:'대격', voc:'호격'};
+  let html = '';
+  for(const num of ['sg','pl']){
+    if(!entry[num]) continue;
+    const numLbl = num === 'sg' ? '단수' : '복수';
+    html += '<table class="paradigm" style="margin-bottom:10px"><caption>' + _esc(key) + ' — ' + numLbl +
+      ' <span style="font-size:11px;color:var(--clay-d);font-weight:400;font-style:normal">' +
+      _esc(_paradigmMeta(entry)) + ' · 시험</span></caption>';
+    html += '<thead><tr><th></th><th>m</th><th>f</th><th>n</th></tr></thead><tbody>';
+    for(const c of cases){
+      const row = entry[num][c];
+      if(!row || typeof row !== 'object') continue;
+      const cells = ['m','f','n'].map(g => row[g] || '');
+      if(!cells.some(x => x)) continue;
+      html += '<tr><td class="lbl">' + labels[c] + '</td>';
+      for(const g of ['m','f','n']){
+        const val = row[g];
+        if(!val){ html += '<td class="grk">—</td>'; continue; }
+        if(_isBlank(blanks, num, c, g)){
+          const id = _quizInputId(num, c, g);
+          html += '<td><input type="text" id="' + id +
+            '" class="pq-blank" data-num="' + num + '" data-case="' + c + '" data-gender="' + g +
+            '" style="width:100%;font-family:var(--font-grk);font-size:14px;padding:4px 5px;border:1px dashed var(--terracotta);border-radius:4px;background:var(--ivory-w);box-sizing:border-box"></td>';
+        } else {
+          html += '<td class="grk">' + _esc(val) + '</td>';
+        }
+      }
+      html += '</tr>';
+    }
+    html += '</tbody></table>';
+  }
+  return html;
+}
+
+function _renderQuizTable(key, entry, blanks){
+  if(_paradigmIsThreeGender(entry)) return _renderQuizThreeGender(key, entry, blanks);
+  return _renderQuizFlat(key, entry, blanks);
+}
+
+// quiz 한 라운드 — key 지정 시 그 lemma, 미지정 시 무작위 (PARADIGM_LIB 에서)
+function startParadigmQuiz(key){
+  if(typeof PARADIGM_LIB === 'undefined') return;
+  const result = document.getElementById('paradigm-result');
+  if(!result) return;
+
+  // key 없으면 무작위 — 명사·형용사·대명사 중 cell 수 충분한 것
+  if(!key || !PARADIGM_LIB[key]){
+    const candidates = [];
+    for(const k in PARADIGM_LIB){
+      const e = PARADIGM_LIB[k];
+      const cands = _paradigmQuizCandidates(_paradigmQuizCells(e), e);
+      if(cands.length >= 4) candidates.push(k);
+    }
+    if(!candidates.length) return;
+    key = candidates[Math.floor(Math.random() * candidates.length)];
+  }
+  const entry = PARADIGM_LIB[key];
+  const cells = _paradigmQuizCells(entry);
+  const cands = _paradigmQuizCandidates(cells, entry);
+  const blanks = _paradigmQuizPickBlanks(cands);
+
+  let html = '<div class="card" style="border-left:3px solid var(--terracotta)">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px">' +
+    '<div style="font-size:12px;color:var(--clay-d)">🎯 시험 모드 · 빈칸 ' + blanks.length + '개 · 정답 입력 후 채점</div>' +
+    '<div style="display:flex;gap:6px">' +
+    '<button class="btn btn-sm btn-o" id="pq-back">← 학습 모드</button>' +
+    '<button class="btn btn-sm" id="pq-grade">채점</button>' +
+    '</div></div>';
+  html += _renderQuizTable(key, entry, blanks);
+  html += '<div id="pq-result-summary" style="margin-top:8px;font-size:13px"></div>';
+  html += '<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">' +
+    '<button class="btn btn-sm" id="pq-retry">🎲 다른 빈칸 (같은 표제어)</button>' +
+    '<button class="btn btn-sm btn-o" id="pq-random">🎲 무작위 표제어</button>' +
+    '<button class="btn btn-sm btn-o" id="pq-reveal">정답 보기</button>' +
+    '</div>';
+  html += '</div>';
+  result.innerHTML = html;
+
+  // 첫 빈칸 포커스
+  const firstInput = result.querySelector('input.pq-blank');
+  if(firstInput) firstInput.focus();
+
+  // Enter 키로 빈칸 간 이동, 마지막 빈칸에서 채점
+  const inputs = Array.from(result.querySelectorAll('input.pq-blank'));
+  inputs.forEach((inp, i) => {
+    inp.addEventListener('keydown', e => {
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        if(i < inputs.length - 1) inputs[i+1].focus();
+        else grade();
+      }
+    });
+  });
+
+  function grade(){
+    let correctExact = 0, correctIgnoreDiac = 0, total = blanks.length;
+    const summary = [];
+    for(const b of blanks){
+      const id = _quizInputId(b.num, b.case, b.gender);
+      const inp = document.getElementById(id);
+      if(!inp) continue;
+      const userRaw = inp.value.trim();
+      const userNorm = _paradigmQuizNormalize(userRaw);
+      const expNorm = _paradigmQuizNormalize(b.expected);
+      // td 부모에 결과 마킹
+      const td = inp.parentElement;
+      if(userNorm && userNorm === expNorm){
+        // 다이아크리틱까지 일치하는지
+        const exactMatch = userRaw === b.expected || userRaw.normalize('NFC') === b.expected.normalize('NFC');
+        if(exactMatch){
+          correctExact++;
+          td.innerHTML = '<span class="grk" style="color:#2d5016;font-weight:600">' + _esc(b.expected) + ' ★</span>';
+        } else {
+          correctIgnoreDiac++;
+          td.innerHTML = '<span class="grk" style="color:#2d5016">' + _esc(b.expected) +
+            ' <span style="font-size:10px;color:var(--clay-d)">(액센트 ≠)</span></span>';
+        }
+      } else {
+        const userDisp = userRaw ? '<span style="text-decoration:line-through;color:var(--clay-d)">' + _esc(userRaw) + '</span> ' : '';
+        td.innerHTML = '<span class="grk" style="color:#7a1a1a">' + userDisp + _esc(b.expected) + '</span>';
+      }
+    }
+    const correct = correctExact + correctIgnoreDiac;
+    const pct = Math.round(100 * correct / total);
+    const sum = document.getElementById('pq-result-summary');
+    if(sum){
+      let msg = '<b>채점</b>: ' + correct + ' / ' + total + ' (' + pct + '%)';
+      if(correctExact > 0) msg += ' · ★ 액센트까지 정확 ' + correctExact;
+      if(correctIgnoreDiac > 0) msg += ' · 액센트 무시하면 정답 ' + correctIgnoreDiac;
+      const wrong = total - correct;
+      if(wrong > 0) msg += ' · 오답 ' + wrong;
+      sum.innerHTML = '<div style="padding:8px;background:var(--ivory-d);border-radius:6px">' + msg + '</div>';
+    }
+    // grade 버튼 비활성화
+    const gradeBtn = document.getElementById('pq-grade');
+    if(gradeBtn){ gradeBtn.disabled = true; gradeBtn.style.opacity = 0.5; }
+  }
+
+  function reveal(){
+    for(const b of blanks){
+      const id = _quizInputId(b.num, b.case, b.gender);
+      const inp = document.getElementById(id);
+      if(!inp) continue;
+      const td = inp.parentElement;
+      td.innerHTML = '<span class="grk" style="color:var(--terracotta-d)">' + _esc(b.expected) + '</span>';
+    }
+    const sum = document.getElementById('pq-result-summary');
+    if(sum) sum.innerHTML = '<div style="padding:8px;background:var(--ivory-d);border-radius:6px;font-size:12px;color:var(--clay-d)">정답 노출 — 다음 라운드를 시도하세요</div>';
+    const gradeBtn = document.getElementById('pq-grade');
+    if(gradeBtn){ gradeBtn.disabled = true; gradeBtn.style.opacity = 0.5; }
+  }
+
+  document.getElementById('pq-grade').addEventListener('click', grade);
+  document.getElementById('pq-reveal').addEventListener('click', reveal);
+  document.getElementById('pq-retry').addEventListener('click', () => startParadigmQuiz(key));
+  document.getElementById('pq-random').addEventListener('click', () => startParadigmQuiz(null));
+  document.getElementById('pq-back').addEventListener('click', () => {
+    // 학습 모드로 돌아가기 — doLookup 트리거를 위해 input 재설정 후 renderParadigmBuilder 재진입
+    _paradigmQuery = key;
+    renderParadigmBuilder();
+  });
+}
+window.startParadigmQuiz = startParadigmQuiz;
+
 
 // ===== Cloze deletion (빈칸 채우기) =====
 // 실제 본문(WORKS)에서 임의 구절 추출 → 한 단어 빈칸 → 같은 구절 + 길이 비슷 단어로 4지선다.

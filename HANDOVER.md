@@ -1,23 +1,24 @@
 # Ἑλληνικὴ Παιδεία — CIM Lab 인수인계
 
-본 문서는 CIM Lab에서 운영하는 고전 그리스어 학습 Progressive Web App (PWA) 의 기술적 인수인계를 위한 자료다. 신규 합류 구성원이 별도 컨텍스트 없이도 코드베이스를 이해하고 유지·확장할 수 있도록 작성했다. 최종 갱신 **v50 (2026년 5월)**.
+본 문서는 CIM Lab에서 운영하는 고전 그리스어 학습 Progressive Web App (PWA) 의 기술적 인수인계를 위한 자료다. 신규 합류 구성원이 별도 컨텍스트 없이도 코드베이스를 이해하고 유지·확장할 수 있도록 작성했다. 최종 갱신 **v51 (2026년 5월)**.
 
-> **다음 작업자에게**: §7 라운드별 changelog 의 *맨 마지막 항목 (v50)* 이 현재 상태다. 그 위 라운드들은 어떻게 여기까지 왔는지의 기록. 새 작업을 시작하기 전에 §7 의 가장 최근 항목과 §0 의 현재 스냅샷을 먼저 읽기.
+> **다음 작업자에게**: §7 라운드별 changelog 의 *맨 마지막 항목 (v51)* 이 현재 상태다. 그 위 라운드들은 어떻게 여기까지 왔는지의 기록. 새 작업을 시작하기 전에 §7 의 가장 최근 항목과 §0 의 현재 스냅샷을 먼저 읽기.
 
-## 0. 현재 상태 스냅샷 (v50, 2026-05)
+## 0. 현재 상태 스냅샷 (v51, 2026-05)
 
-**배포 산출물**: `index.html` (~712 KB, IIFE 389K chars) · `sw.js` · `data-works.js` (3 MB, 45 작품 545 섹션) · `data-morph.js` (4 MB, AGDT v2.1 37K 어형 11.8K lemma) · `data-dialogues.js` (45 KB, 10 콩트 시나리오) · `espeakng.worker.js` (760 KB) · `manifest.json` · `reset.html`.
+**배포 산출물**: `index.html` (~796 KB, IIFE 약 405K chars, 13.5K lines) · `sw.js` · `data-works.js` (3 MB, 45 작품 545 섹션) · `data-morph.js` (4 MB, AGDT v2.1 37K 어형 11.8K lemma) · `data-dialogues.js` (45 KB, 10 콩트 시나리오) · `espeakng.worker.js` (760 KB) · `manifest.json` · `reset.html`.
 
 **기능 카탈로그**:
 - 어휘 학습: 교재 어휘 + DCC 523 + DAILY_W 51 + CIVIC_W 80 + 콩트 vocab 60 = 1142 어휘
-- 문법 토픽: **42개** (decl/verb/particle/prep 4 카테고리)
+- 문법 토픽: **41개** (decl/verb/particle/prep 4 카테고리) — *§0 v50 까지 표기 "42" 는 문서 오기, v51 검증으로 정정*
 - 콩트 시나리오: 10편 · 84 turns
 - 원문 읽기: 45 작품 545 섹션, AGDT 형태분석은 Iliad 1 · Odyssey 1 · Persae 만
 - 학자 낭독 매칭: 본문 **7 작품** (plato-apology · xenophon-anabasis-1 · hesiod-theogony · herodotus-1 · homer-iliad-1 · homer-odyssey-1 · plato-euthyphro)
 - 학자 낭독 도서관 (Ἀκρόασις): **20 자료 · 9 카테고리** (본문 외 작가·작품)
 - **본문-학자 낭독 시간 동기**: 3 자료 (Anabasis 11 단락, Theogony 21 행, Herodotus 14 단락 × 4 섹션) · 정확도 ±3-5초
 - 발음 모드: 4종 (eSpeak NG · 현대 헬라어 · Erasmian · 복원 Attic) + Stratakis/SORGLL/Projet Homere/Ariphron 학자 발음 비교
-- 학습 모드: 어휘 quiz (객관식·타이핑) · 받아쓰기 (Ἀκοή) · 악센트 학습 (Τόνος) · 옥시톤 분류 quiz · 검색·콘코던스 (Εὕρεσις) · 배틀 모드 · 오답함 SRS
+- 학습 모드: 어휘 quiz (객관식·타이핑) · 받아쓰기 (Ἀκοή) · 악센트 학습 (Τόνος) · 옥시톤 분류 quiz · 검색·콘코던스 (Εὕρεσις) · **변화표 만들기 + 빈칸 채우기 시험 (Παράδειγμα · v51 신규)** · 배틀 모드 · 오답함 SRS
+- 변화표 (v51): **76 표제어** 큐레이션 (55 명사 · 12 형용사 · 9 대명사) — Smyth/Goodwin 표준형, AGDT v2.1 실제 어형과 자동 결합 표시, **빈칸 채우기 시험 모드** (NFD/ς-σ 관용 채점, 액센트 정확 ★ 마킹, 75/76 lemma quizzable — Ζεύς 만 단수 3 cell 로 무작위 후보 제외)
 - 접근성: aria-label 35 · title 18 · greek lang attr 자동화
 - 다중 프로필 · 명예의 전당 · 책갈피·메모
 
@@ -25,16 +26,18 @@
 - 어휘: `TEXTBOOK_W`, `DCC_W`, `DAILY_W`, `CIVIC_W` + `ALL_VOCAB` 통합
 - 작품·섹션: `WORKS` (data-works.js 에서 정의)
 - 형태분석: `MORPH_LOOKUP` (data-morph.js, 비동기 lazy-load)
-- 문법 토픽: `TOPICS` 배열 (42)
+- 문법 토픽: `TOPICS` 배열 (41)
+- **변화표 라이브러리 (v51)**: `PARADIGM_LIB` 객체 (76 표제어, index.html line 3385~)
 - 콩트: `DIALOGUES` (data-dialogues.js)
 - 학자 낭독: `SCHOLAR_AUDIO` (본문 매칭) + `SCHOLAR_LIBRARY` (도서관)
 - 악센트 분류: `_classifyAccent()` 함수 (NFD 기반 다이아크리틱 분석)
 
-**현재 미해결·defer 상태** (§7 의 v49 끝 defer 블록 참조):
+**현재 미해결·defer 상태** (§7 의 v51 끝 defer 블록 참조):
 - 외부 의존 3 항목 (SoundCloud slugs · Plato Crito sample · ScorpioMartianus) — 새 정보 없음
-- 명사·형용사 변화표 시각화 도구 (큰 신규 작업)
 - 단어 단위 시간 동기 (현재 행/단락 — 더 정밀은 큰 측정 부담)
 - plato-apology Stratakis cue points 측정 (mp3 길이 미확정으로 v50 보류)
+- PARADIGM_LIB 확장 — 비교급·최상급 형용사, 분사 (현재 명사·형용사·대명사만)
+- μι-동사 가정법/희구법 quiz 통합 (v50 의 5 표는 학습만, Παράδειγμα 시험과 별개)
 
 **영구 제외** (사용자 정책):
 - 다국어 UI (i18n)
@@ -584,6 +587,112 @@ defer (다음 라운드):
   · 단어 단위 시간 동기 (현재는 행/단락 — 측정 부담 큼)
   · plato-apology cue points (mp3 길이 확정 시)
   · 추가 학자 자료 매칭 (외부 발견 시)
+
+영구 제외 (사용자 정책):
+  · 다국어 UI (i18n)
+
+**v51**: 명사·형용사 변화표 시각화 도구 (Παράδειγμα) — v50 까지 defer 였던 *가장 학습 가치 높은* 신규 모듈. 큐레이션 표준 패러다임 (Smyth/Goodwin) + AGDT 실제 출현 어형의 *결합 표시* 가 핵심 설계.
+
+**(1) PARADIGM_LIB — 76 표제어 큐레이션** (index.html line 3385~4112, ~750 lines, ~40 KB).
+
+객체 구조 (명사 / 인칭대명사 ἐγώ·σύ — flat):
+```js
+'ἄνθρωπος': {
+  pos:'noun', gender:'m', type:'2변화 남성 (-ος)',
+  gloss:'사람, 인간', source:'Smyth §230',
+  sg:{nom:'ἄνθρωπος', gen:'ἀνθρώπου', dat:'ἀνθρώπῳ', acc:'ἄνθρωπον', voc:'ἄνθρωπε'},
+  pl:{nom:'ἄνθρωποι', gen:'ἀνθρώπων', dat:'ἀνθρώποις', acc:'ἀνθρώπους'},
+}
+```
+
+객체 구조 (형용사·3-gender 대명사):
+```js
+'ἀγαθός': {
+  pos:'adj', type:'1·2변화 형용사 (-ός, -ή, -όν)',
+  gloss:'좋은, 선한', source:'Smyth §287',
+  sg:{
+    nom:{m:'ἀγαθός', f:'ἀγαθή', n:'ἀγαθόν'},
+    gen:{m:'ἀγαθοῦ', f:'ἀγαθῆς', n:'ἀγαθοῦ'},
+    ...
+  },
+  pl:{...}
+}
+```
+
+수록 분류 (구조 분포: flat 57 + 3-gender 19):
+  · **1변화 여성** 10: α-pure (χώρα, ἡμέρα, ἀγορά), η-type (γνώμη, ψυχή, ἀρχή, τέχνη, τιμή), 단α (θάλαττα, μοῦσα)
+  · **1변화 남성** 4: πολίτης, στρατιώτης, ναύτης, νεανίας
+  · **2변화 남성** 8: ἄνθρωπος, λόγος, θεός, ἵππος, νόμος, φίλος, ποταμός, ἀδελφός
+  · **2변화 여성** 3 / 중성** 6: ὁδός, νῆσος, νόσος / δῶρον, ἔργον, παιδίον, ζῷον, τέκνον, ὅπλον
+  · **3변화 자음 어간** 7: φύλαξ (κ), χάρις/ἀσπίς/ἐλπίς/παῖς (δ-τ), ἄρχων/γέρων (ντ), νύξ (κτ)
+  · **3변화 중성 -μα·σ-stem** 6: σῶμα, πρᾶγμα, ὄνομα, χρῆμα · γένος, τέλος
+  · **3변화 모음 어간** 4: πόλις, δύναμις (ι) · βασιλεύς, ἱππεύς (ευ)
+  · **친족·불규칙 명사** 6: πατήρ, μήτηρ, θυγάτηρ, ἀνήρ, γυνή, Ζεύς
+  · **1·2변화 형용사** 5: ἀγαθός, καλός, σοφός, ἄξιος, μικρός
+  · **불규칙·3변화 형용사** 7: μέγας, πολύς · ἡδύς, ταχύς (3-ending) · ἀληθής, εὐδαίμων (2-ending) · πᾶς
+  · **대명사** 9: αὐτός, οὗτος, ἐκεῖνος, ὅδε · ἐγώ, σύ · τίς, τις, οὐδείς
+
+검증 — TOPICS 데이터와 *0 불일치*: 198 form 비교 (λόγος, δῶρον, χώρα, γνώμη, θάλαττα, φύλαξ, χάρις, ἄρχων, σῶμα, γένος, ἀνήρ, πατήρ, μήτηρ, γυνή, ἀγαθός, αὐτός, οὗτος 등). AGDT v2.1 와 80-95% 어형 일치 — 비일치 부분은 Homeric -οιο/-οισι/-εσσι, Doric ματ-/Δωρ-, elision φίλ̓/ἔργ̓, 비교급 μέγιστος/ἥδιστος/πλέον, crasis κἀγὼ/τοὔνομα, 지시 -ί 옑조사 (οὑτοσί) 로 *모두 정당한 변이*. 이들은 패러다임 외 그룹으로 별도 표시.
+
+**(2) renderParadigmBuilder 모듈** (index.html line 7140~7245, ~106 lines).
+
+UI 흐름:
+  · vocab 탭의 Εὕρεσις (검색) 와 Ἀκρόασις (학자낭독) 사이에 카드 진입점
+  · 입력 텍스트 → `_paradigmNormalize` (NFD + ς→σ + lowercase) → `_lookupParadigmLib`
+  · Lookup 우선순위: (a) 직접 키, (b) 정규화 키, (c) MORPH_LOOKUP 어형→표제어 환원
+  · 매칭 시: 큐레이션 표 + AGDT attestation (인덱스 미구축이면 lazy build 버튼)
+  · 미매칭 시: AGDT-only fallback (lemma 일치하면 어형 나열, 어형이면 후보 lemma 버튼)
+  · 카테고리별 details 펼침 목차 — 학습자가 PARADIGM_LIB 전체를 brouse 가능
+
+핵심 dispatch 패턴 — pos 가 아닌 *셀 shape* 으로 flat vs 3-gender 결정:
+```js
+function _paradigmIsThreeGender(entry){
+  for(const num of ['sg','pl']) for(const c in (entry[num]||{})){
+    const v = entry[num][c]; if(v==null) continue;
+    return (typeof v === 'object');
+  }
+  return false;
+}
+```
+이로 인해 인칭대명사 ἐγώ·σύ (flat) 와 3-gender 대명사 (αὐτός, οὗτος 등) 가 자동 분기. pos=='pron' 으로 분기하지 않은 이유다.
+
+AGDT attestation 분리 — 큐레이션 셀과 일치하면 *표준 패러다임 attested*, 아니면 *패러다임 외 어형* (방언/시문체/축약/비교급/지시 -ί). 빈도 상위 40개씩 표시. `_searchIdx.lemmaForms/surface/occ` 재사용.
+
+**(3) 학술적 정당화**: PARADIGM_LIB 의 표준형이 AGDT 실제 출현과 80-95% 일치한다는 사실 자체가 *Attic 표준화의 경험적 근거*. 5% 의 비일치가 코퍼스의 *방언적 다양성* 과 *시대적 변이* — 학습자는 표준형을 익히면서 동시에 실제 텍스트의 변이 패턴을 볼 수 있다. 이는 "표준 패러다임 vs 실제 코퍼스" 의 *통합 학습* 으로, 단순 표 암기보다 학습 효과가 크다.
+
+**(4) 빈칸 채우기 시험 모드** (`startParadigmQuiz` + 9 헬퍼, ~200 lines). 변화표 카드 하단 + 진입 화면 양쪽에 진입 버튼. *Active recall* (인출 학습) 의 testing effect — 단순 표 읽기 (수동 인식) 보다 변화 셀을 *능동적으로 회상*하는 게 장기 기억 형성에 결정적이라는 인지과학적 근거 (Roediger & Karpicke, 2006).
+
+핵심 알고리즘:
+  · `_paradigmQuizCells` — flat/3-gender 패러다임을 좌표 ({num, case, gender, expected}) 리스트로 평탄화
+  · `_paradigmQuizCandidates` — 가릴 후보 선별. sg.nom 은 표제어 hint 라 *항상 유지*; 명사는 voc 도 자주 = sg.nom 이라 제외
+  · `_paradigmQuizPickBlanks` — Fisher-Yates 셔플 후 max(3, min(7, 40%)) 개 선택
+  · `_renderQuizFlat` / `_renderQuizThreeGender` — `_renderCuratedFlat` / `_renderCuratedThreeGender` 와 동일 골격, 빈칸 셀만 `<input>` 으로 치환
+  · 채점: `_paradigmQuizNormalize` (NFD + 다이아크리틱 제거 + ς/σ 통일 + lowercase) → 비교. 액센트까지 NFC 일치하면 ★ 표시 (정확도 별도 카운트)
+
+학습자 UX:
+  · Enter 키로 다음 빈칸 → 마지막에서 자동 채점
+  · 결과: 정답 녹색, 액센트 차이만 있을 때는 표시 + (액센트 ≠) 부가 라벨, 오답은 사용자 입력 strikethrough + 정답 적색
+  · 컨트롤: 🎲 다른 빈칸 (같은 표제어) · 🎲 무작위 표제어 · 정답 보기 · ← 학습 모드
+
+검증 (`test-quiz.js`):
+  · syntax + 10 quiz 함수 정의 + window dispatch
+  · 76/76 lemma 가 quiz 가능 (Ζεύς 만 단수 3 cell 로 무작위 후보에서 제외 — 고유명사 의도된 한계)
+  · 정규화 5/5 케이스 통과 (다이아크리틱·ς/σ·동일·다른 격·여러 변형)
+  · 런타임 시뮬레이션 76/76 OK, 0 에러
+
+**(5) 부수 발견 — TOPICS 카운트 정정**: §0 이 v47 부터 "42개" 로 표기했으나 v51 검증에서 `TOPICS.length === 41` 확인. v47 changelog 의 "39 → 42" 표기 자체가 오기였던 것으로 보임 (v47-v50 사이 토픽 추가/제거 changelog 없음). 코드 내 모든 카운트는 `TOPICS.length` 동적 참조라 사용자에게 표시되는 수치는 항상 41 이었음. §0 만 정정.
+
+**라운드 분담** (인계자 참고용 — v51 은 *두 세션 통합* 라운드):
+  · 이전 세션 (paradigm-lib-draft.js·xref·validate 파일이 작업 디렉토리에 남아 있는 시점) — PARADIGM_LIB 76 표제어 큐레이션, index.html 통합, 검증 인프라 작성, 진입 카드 추가, 헬퍼 16 함수 (lookup/render/AGDT attest/fallback/suggestions)
+  · 다음 세션 (본 entry 작성 시점) — 변화표 빈칸 채우기 quiz 모듈 (10 함수, ~200 lines), 학습 카드에 quiz 진입 버튼, 진입 화면 무작위 quiz, TOPICS 카운트 정정, §0/§7/NEXT_TASKS 갱신
+
+defer (다음 라운드):
+  · 외부 의존 3 항목 (SoundCloud slugs, Plato Crito, ScorpioMartianus) — 정보 없음
+  · 단어 단위 시간 동기 (현재는 행/단락 — 측정 부담 큼)
+  · plato-apology cue points (mp3 길이 확정 시)
+  · 추가 학자 자료 매칭 (외부 발견 시)
+  · **PARADIGM_LIB 확장** — 비교급·최상급 형용사 (μείζων, ἥδιστος), 분사 (현재분사 m/f/n, 부정과거 분사), 추가 3변화 (πούς, χείρ 등 신체 명사)
+  · **μι-동사 가정법/희구법 quiz 통합** — v50 의 5 표 (mi-verbs 토픽의 extraParadigms) 는 학습 표만 있고 quiz 없음. PARADIGM_LIB 구조와 다른 *동사 패러다임* 이라 startParadigmQuiz 와 직접 호환은 안 됨 — 별도 진입로 또는 라이브러리 통합 설계 필요
 
 영구 제외 (사용자 정책):
   · 다국어 UI (i18n)
