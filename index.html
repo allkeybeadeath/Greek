@@ -4607,7 +4607,7 @@ function imageURL(imgId, width){
 
 // 앱 버전 — sw.js CACHE_VERSION과 동기화 유지. 홈 화면 푸터에 표시되어
 // 사용자가 자신이 어느 버전을 사용 중인지 확인 가능 (캐시 갱신 진단용).
-const APP_VERSION = 'v51';
+const APP_VERSION = 'v52';
 window.__paideiaVersion = APP_VERSION;
 
 // ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
@@ -4951,6 +4951,370 @@ function getCurrentProfileName(){
 }
 window.getCurrentProfileName = getCurrentProfileName;
 
+// ===== 캐릭터 (v52) ==========================================================
+// 50 명의 그리스 신화·역사 인물 — 프로필 아바타.
+// 7 카테고리: hero(10) / heroine(5) / god(8) / goddess(7) / philosopher(8)
+//             / historical(6) / poet(6) = 50.
+// 표시: 홈, 프로필 관리, 명예의 전당 라이브 순위, 배틀 (로비·점수판·결과).
+//
+// 이미지: Wikimedia Commons Special:FilePath (캐시는 SW 의 wikimedia.org
+// cache-first 분기로 자동 처리됨 — sw.js 80~93). 누락된 항목 또는 onerror 시
+// _charImgFallback 이 SVG 아바타로 in-place 교체. 따라서 네트워크 부재나
+// 파일명 변경에도 시각적 정체성은 항상 보존된다.
+//
+// 데이터 출처: 본 항목들은 모두 Public Domain 또는 CC 라이선스의 박물관·
+// 갤러리 소장 유물(고대 조각·도기, 르네상스·신고전·19세기 회화). 본 PWA 는
+// 어떤 이미지도 재배포하지 않으며 Wikimedia 호스트로부터 스트리밍한다.
+const CHARACTERS = [
+  // ── 영웅 hero (10) ────────────────────────────────────────────────────────
+  {id:'achilles',   grk:'Ἀχιλλεύς',  ko:'아킬레우스',  en:'Achilles',   cat:'hero', init:'Α',
+   img:'Akhilleus Aias Staatliche Antikensammlungen 1482 n2.jpg',
+   desc:'트로이아 전쟁의 그리스 최강 전사'},
+  {id:'heracles',   grk:'Ἡρακλῆς',   ko:'헤라클레스',  en:'Heracles',   cat:'hero', init:'Η',
+   img:'Herakles Farnese MAN Napoli Inv6001 n01.jpg',
+   desc:'12 과업의 반신 영웅'},
+  {id:'odysseus',   grk:'Ὀδυσσεύς',  ko:'오뒷세우스',  en:'Odysseus',   cat:'hero', init:'Ὀ',
+   img:'Head Odysseus MAR Sperlonga.jpg',
+   desc:'10년 표류한 이타카의 왕'},
+  {id:'perseus',    grk:'Περσεύς',   ko:'페르세우스',  en:'Perseus',    cat:'hero', init:'Π',
+   img:'Cellini Perseus.jpg',
+   desc:'메두사를 베고 안드로메다를 구한 영웅'},
+  {id:'theseus',    grk:'Θησεύς',    ko:'테세우스',    en:'Theseus',    cat:'hero', init:'Θ',
+   img:'Theseus Minotaur Ramey Tuileries.jpg',
+   desc:'미노타우로스를 무찌른 아테네의 왕'},
+  {id:'jason',      grk:'Ἰάσων',     ko:'이아손',      en:'Jason',      cat:'hero', init:'Ἰ',
+   img:'Jason Pio-Clementino Inv685.jpg',
+   desc:'아르고호의 선장, 황금 양털을 찾아 떠난 자'},
+  {id:'bellerophon',grk:'Βελλεροφῶν',ko:'벨레로폰',    en:'Bellerophon',cat:'hero', init:'Β',
+   img:'',
+   desc:'페가소스를 타고 키마이라를 처치한 영웅'},
+  {id:'aeneas',     grk:'Αἰνείας',   ko:'아이네아스',  en:'Aeneas',     cat:'hero', init:'Αἰ',
+   img:'Aeneas\' Flight from Troy by Federico Barocci.jpeg',
+   desc:'트로이아 멸망 후 로마의 시조'},
+  {id:'ajax',       grk:'Αἴας',      ko:'아이아스',    en:'Ajax',       cat:'hero', init:'Αἴ',
+   img:'',
+   desc:'살라미스의 거인 전사, 아킬레우스 다음의 용사'},
+  {id:'hector',     grk:'Ἕκτωρ',     ko:'헥토르',      en:'Hector',     cat:'hero', init:'Ἕ',
+   img:'',
+   desc:'트로이아의 수호자, 프리아모스의 큰아들'},
+
+  // ── 여걸 heroine (5) ──────────────────────────────────────────────────────
+  {id:'helen',      grk:'Ἑλένη',     ko:'헬레네',      en:'Helen',      cat:'heroine', init:'Ἑ',
+   img:'Evelyn De Morgan - Helen of Troy.jpg',
+   desc:'세상에서 가장 아름다운 여인, 전쟁의 원인'},
+  {id:'penelope',   grk:'Πηνελόπη',  ko:'페넬로페',    en:'Penelope',   cat:'heroine', init:'Π',
+   img:'Penelope by Domenico Beccafumi - Galleria Doria Pamphilj - Rome.jpg',
+   desc:'20년을 기다린 오뒷세우스의 정숙한 아내'},
+  {id:'medea',      grk:'Μήδεια',    ko:'메데이아',    en:'Medea',      cat:'heroine', init:'Μ',
+   img:'Frederick Sandys - Medea - Birmingham Museums Trust.jpg',
+   desc:'콜키스의 마녀 공주, 이아손의 동반자'},
+  {id:'atalanta',   grk:'Ἀταλάντη',  ko:'아탈란타',    en:'Atalanta',   cat:'heroine', init:'Ἀ',
+   img:'',
+   desc:'발 빠른 사냥꾼, 칼리돈 멧돼지 사냥의 영웅'},
+  {id:'antigone',   grk:'Ἀντιγόνη',  ko:'안티고네',    en:'Antigone',   cat:'heroine', init:'Ἀ',
+   img:'Antigone in front of the dead Polynices - Project Gutenberg eText 14994.jpg',
+   desc:'법보다 의를 따른 오이디푸스의 딸'},
+
+  // ── 남신 god (8) ──────────────────────────────────────────────────────────
+  {id:'zeus',       grk:'Ζεύς',      ko:'제우스',      en:'Zeus',       cat:'god', init:'Ζ',
+   img:'Otricoli Zeus Pio-Clementino Inv257.jpg',
+   desc:'올림포스의 주신, 천둥과 번개의 신'},
+  {id:'poseidon',   grk:'Ποσειδῶν',  ko:'포세이돈',    en:'Poseidon',   cat:'god', init:'Π',
+   img:'Posidone bronzo da capo artemisio.JPG',
+   desc:'바다와 지진의 신, 삼지창의 주인'},
+  {id:'apollo',     grk:'Ἀπόλλων',   ko:'아폴론',      en:'Apollo',     cat:'god', init:'Ἀ',
+   img:'Belvedere Apollo Pio-Clementino Inv1015.jpg',
+   desc:'태양·음악·신탁의 신, 키타라의 명수'},
+  {id:'ares',       grk:'Ἄρης',      ko:'아레스',      en:'Ares',       cat:'god', init:'Ἄ',
+   img:'Ares Ludovisi Altemps Inv8602.jpg',
+   desc:'전쟁의 신, 광폭한 살육의 화신'},
+  {id:'hermes',     grk:'Ἑρμῆς',     ko:'헤르메스',    en:'Hermes',     cat:'god', init:'Ἑ',
+   img:'Hermes di Prassitele, fronte 02.JPG',
+   desc:'전령의 신, 여행자와 도둑의 수호자'},
+  {id:'hephaestus', grk:'Ἥφαιστος',  ko:'헤파이스토스',en:'Hephaestus', cat:'god', init:'Ἥ',
+   img:'',
+   desc:'대장간의 신, 신들의 무구를 만드는 장인'},
+  {id:'dionysus',   grk:'Διόνυσος',  ko:'디오뉘소스',  en:'Dionysus',   cat:'god', init:'Δ',
+   img:'Bacchus by Caravaggio.jpg',
+   desc:'포도주와 광기의 신, 비극의 수호신'},
+  {id:'hades',      grk:'Ἅιδης',     ko:'하데스',      en:'Hades',      cat:'god', init:'Ἅ',
+   img:'Bernini Pluto and Proserpina.jpg',
+   desc:'저승의 왕, 죽은 자들의 지배자'},
+
+  // ── 여신 goddess (7) ──────────────────────────────────────────────────────
+  {id:'hera',       grk:'Ἥρα',       ko:'헤라',        en:'Hera',       cat:'goddess', init:'Ἥ',
+   img:'Hera Campana Louvre Ma2283.jpg',
+   desc:'올림포스의 왕비, 결혼과 가정의 여신'},
+  {id:'athena',     grk:'Ἀθηνᾶ',     ko:'아테나',      en:'Athena',     cat:'goddess', init:'Ἀ',
+   img:'Mattei Athena Louvre Ma530 n2.jpg',
+   desc:'지혜와 전쟁 기예의 여신, 아테네의 수호신'},
+  {id:'artemis',    grk:'Ἄρτεμις',   ko:'아르테미스',  en:'Artemis',    cat:'goddess', init:'Ἄ',
+   img:'Diane de Versailles Leochares.jpg',
+   desc:'사냥과 달의 여신, 처녀의 수호신'},
+  {id:'aphrodite',  grk:'Ἀφροδίτη',  ko:'아프로디테',  en:'Aphrodite',  cat:'goddess', init:'Ἀ',
+   img:'Venus de Milo Louvre Ma399 n4.jpg',
+   desc:'사랑과 미의 여신, 키프로스 출생'},
+  {id:'demeter',    grk:'Δημήτηρ',   ko:'데메테르',    en:'Demeter',    cat:'goddess', init:'Δ',
+   img:'',
+   desc:'곡식과 풍요의 여신, 페르세포네의 어머니'},
+  {id:'hestia',     grk:'Ἑστία',     ko:'헤스티아',    en:'Hestia',     cat:'goddess', init:'Ἑ',
+   img:'',
+   desc:'화롯불과 가정의 여신, 처녀신'},
+  {id:'persephone', grk:'Περσεφόνη', ko:'페르세포네',  en:'Persephone', cat:'goddess', init:'Π',
+   img:'',
+   desc:'저승의 왕비, 봄과 죽음의 양면'},
+
+  // ── 철학자 philosopher (8) ────────────────────────────────────────────────
+  {id:'socrates',   grk:'Σωκράτης',  ko:'소크라테스',  en:'Socrates',   cat:'philosopher', init:'Σ',
+   img:'Marble bust of Socrates. Roman copy (2nd century CE) of an original (330 BCE). Altes Museum, Berlin.jpg',
+   desc:'논박법의 창시자, 서양 철학의 아버지'},
+  {id:'plato',      grk:'Πλάτων',    ko:'플라톤',      en:'Plato',      cat:'philosopher', init:'Π',
+   img:'Plato Silanion Musei Capitolini MC1377.jpg',
+   desc:'이데아론의 창시자, 아카데메이아의 설립자'},
+  {id:'aristotle',  grk:'Ἀριστοτέλης',ko:'아리스토텔레스',en:'Aristotle',cat:'philosopher', init:'Ἀ',
+   img:'Aristotle Altemps Inv8575.jpg',
+   desc:'뤼케이온의 설립자, 학문의 백과사전'},
+  {id:'pythagoras', grk:'Πυθαγόρας', ko:'퓌타고라스',  en:'Pythagoras', cat:'philosopher', init:'Π',
+   img:'Kapitolinischer Pythagoras adjusted.jpg',
+   desc:'수의 철학자, 음악·우주의 조화'},
+  {id:'heraclitus', grk:'Ἡράκλειτος',ko:'헤라클레이토스',en:'Heraclitus',cat:'philosopher', init:'Ἡ',
+   img:'Hendrick ter Brugghen - Heraclitus.jpg',
+   desc:'만물 유전의 사상가, "πάντα ῥεῖ"'},
+  {id:'diogenes',   grk:'Διογένης',  ko:'디오게네스',  en:'Diogenes',   cat:'philosopher', init:'Δ',
+   img:'Jean-Léon Gérôme - Diogenes - Walters 37131.jpg',
+   desc:'견유학파, 통 속의 철학자'},
+  {id:'epicurus',   grk:'Ἐπίκουρος', ko:'에피쿠로스',  en:'Epicurus',   cat:'philosopher', init:'Ἐ',
+   img:'Epikouros BM 1843.jpg',
+   desc:'쾌락주의의 창시자, 정원의 철학자'},
+  {id:'parmenides', grk:'Παρμενίδης',ko:'파르메니데스',en:'Parmenides', cat:'philosopher', init:'Π',
+   img:'',
+   desc:'존재의 일자(τὸ ἕν) 철학자'},
+
+  // ── 역사 인물 historical (6) ──────────────────────────────────────────────
+  {id:'alexander',  grk:'Ἀλέξανδρος',ko:'알렉산드로스',en:'Alexander',  cat:'historical', init:'Ἀ',
+   img:'Alexander the Great mosaic.jpg',
+   desc:'마케도니아의 대왕, 동방원정의 정복자'},
+  {id:'pericles',   grk:'Περικλῆς',  ko:'페리클레스',  en:'Pericles',   cat:'historical', init:'Π',
+   img:'Pericles Pio-Clementino Inv269 n2.jpg',
+   desc:'아테네 황금기의 정치가, 민주주의의 지도자'},
+  {id:'leonidas',   grk:'Λεωνίδας',  ko:'레오니다스',  en:'Leonidas',   cat:'historical', init:'Λ',
+   img:'Statue Leonidas Spartes.jpg',
+   desc:'스파르타의 왕, 테르모필라이 결사대의 지휘관'},
+  {id:'themistocles',grk:'Θεμιστοκλῆς',ko:'테미스토클레스',en:'Themistocles',cat:'historical', init:'Θ',
+   img:'Themistocles2.JPG',
+   desc:'살라미스 해전의 영웅, 아테네 해군의 건설자'},
+  {id:'solon',      grk:'Σόλων',     ko:'솔론',        en:'Solon',      cat:'historical', init:'Σ',
+   img:'',
+   desc:'아테네의 입법가, 일곱 현인의 하나'},
+  {id:'lycurgus',   grk:'Λυκοῦργος', ko:'뤼쿠르고스',  en:'Lycurgus',   cat:'historical', init:'Λ',
+   img:'',
+   desc:'스파르타의 전설적 입법가'},
+
+  // ── 시인·작가 poet (6) ────────────────────────────────────────────────────
+  {id:'homer',      grk:'Ὅμηρος',    ko:'호메로스',    en:'Homer',      cat:'poet', init:'Ὅ',
+   img:'Homer British Museum.jpg',
+   desc:'서사시의 시조, 일리아스·오뒷세이아의 작자'},
+  {id:'hesiod',     grk:'Ἡσίοδος',   ko:'헤시오도스',  en:'Hesiod',     cat:'poet', init:'Ἡ',
+   img:'',
+   desc:'신통기와 노동과 나날의 시인'},
+  {id:'sappho',     grk:'Σαπφώ',     ko:'사포',        en:'Sappho',     cat:'poet', init:'Σ',
+   img:'Sappho Charles Mengin (1877).jpg',
+   desc:'레스보스의 여류 서정시인, "열 번째 무사"'},
+  {id:'pindar',     grk:'Πίνδαρος',  ko:'핀다로스',    en:'Pindar',     cat:'poet', init:'Π',
+   img:'',
+   desc:'송가(epinikion)의 대가, 올림피아 송가의 작자'},
+  {id:'sophocles',  grk:'Σοφοκλῆς',  ko:'소포클레스',  en:'Sophocles',  cat:'poet', init:'Σ',
+   img:'Sophocles pushkin.jpg',
+   desc:'오이디푸스·안티고네의 비극 작가'},
+  {id:'euripides',  grk:'Εὐριπίδης', ko:'에우리피데스',en:'Euripides',  cat:'poet', init:'Εὐ',
+   img:'Euripides Pio-Clementino Inv302.jpg',
+   desc:'메데이아·박코스 여신도의 비극 작가'},
+];
+
+// 카테고리 색상 — SVG 아바타 그라데이션 + 텍스트 색상
+const CHAR_CATS = {
+  hero:        {ko:'영웅',     grk:'Ἥρως',         g1:'#C44536', g2:'#7a1f12', text:'#fff5e0'},
+  heroine:     {ko:'여걸',     grk:'Ἡρωΐς',        g1:'#C2406E', g2:'#6b1838', text:'#fff5e8'},
+  god:         {ko:'남신',     grk:'Θεός',         g1:'#D4953A', g2:'#7a4d10', text:'#fff5d8'},
+  goddess:     {ko:'여신',     grk:'Θεά',          g1:'#3F8C8A', g2:'#13474a', text:'#e8fbfa'},
+  philosopher: {ko:'철학자',   grk:'Φιλόσοφος',    g1:'#4A5A8C', g2:'#1c2750', text:'#e9eefc'},
+  historical:  {ko:'역사인물', grk:'Πολίτης',      g1:'#6B8C42', g2:'#2c4612', text:'#f1faea'},
+  poet:        {ko:'시인',     grk:'Ποιητής',      g1:'#7E4596', g2:'#3a1656', text:'#f5e9fa'},
+};
+const CHAR_CAT_ORDER = ['hero','heroine','god','goddess','philosopher','historical','poet'];
+
+// XSS-safe SVG 내부 텍스트 이스케이프
+function _chrEsc(s){
+  return String(s||'').replace(/[<>&"']/g, ch => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'})[ch]);
+}
+
+function _characterById(id){
+  if(!id) return null;
+  for(const c of CHARACTERS){ if(c.id === id) return c; }
+  return null;
+}
+window._characterById = _characterById;
+
+// 인라인 SVG 아바타 — 네트워크 무관 항상 작동.
+// 카테고리별 그라데이션 원 + 그리스어 이니셜 (EB Garamond 세리프).
+function _characterAvatarSVG(c, size){
+  const sz = size || 48;
+  const cat = (c && CHAR_CATS[c.cat]) || CHAR_CATS.hero;
+  const init = (c && c.init) ? c.init : '?';
+  const initLen = [...init].length;   // surrogate-safe length
+  const baseFont = sz * (initLen >= 2 ? 0.45 : 0.55);
+  const cy = sz * 0.62;
+  const gid = 'cg' + Math.random().toString(36).slice(2, 8);   // 동일 페이지 충돌 방지
+  const cx = sz / 2, ry = sz / 2 - 1;
+  const strokeW = Math.max(0.5, sz/64);
+  return `<svg viewBox="0 0 ${sz} ${sz}" width="${sz}" height="${sz}" xmlns="http://www.w3.org/2000/svg" style="display:block;border-radius:50%" aria-label="${_chrEsc(c ? c.ko : '캐릭터')}">
+    <defs><radialGradient id="${gid}" cx="35%" cy="35%" r="75%">
+      <stop offset="0" stop-color="${cat.g1}"/>
+      <stop offset="1" stop-color="${cat.g2}"/>
+    </radialGradient></defs>
+    <circle cx="${cx}" cy="${cx}" r="${ry}" fill="url(#${gid})"/>
+    <circle cx="${cx}" cy="${cx}" r="${ry}" fill="none" stroke="#000" stroke-width="${strokeW}" opacity="0.18"/>
+    <text x="${cx}" y="${cy}" text-anchor="middle" font-family="EB Garamond, Cardo, serif" font-size="${baseFont}" font-weight="600" fill="${cat.text}" style="letter-spacing:-.01em">${_chrEsc(init)}</text>
+  </svg>`;
+}
+window._characterAvatarSVG = _characterAvatarSVG;
+
+// 이미지 우선 + onerror SVG 폴백 HTML.
+// idOrC: 문자열(id) 또는 객체. size: px. opts: {round:bool, title:string, frame:bool}
+function _characterAvatarHTML(idOrC, size, opts){
+  const c = (typeof idOrC === 'string') ? _characterById(idOrC) : idOrC;
+  const sz = size || 48;
+  const o = opts || {};
+  const round = o.round !== false;
+  const radius = round ? '50%' : `${Math.max(2, sz*0.12)}px`;
+  if(!c){
+    // 캐릭터 미선택 — 점선 원 placeholder
+    return `<span aria-label="캐릭터 미선택" title="캐릭터를 선택하세요" style="display:inline-flex;align-items:center;justify-content:center;width:${sz}px;height:${sz}px;border-radius:${radius};border:1.5px dashed var(--clay-d);background:var(--ivory-d);color:var(--clay-d);font-size:${Math.max(10, sz*0.36)}px;line-height:1;font-family:var(--font-grk);vertical-align:middle">⌀</span>`;
+  }
+  const title = o.title || (c.ko + ' · ' + c.grk);
+  if(c.img){
+    // Wikimedia Special:FilePath 썸네일 — retina 대응 2x, 최소 96px
+    const w = Math.max(96, sz * 2);
+    const url = `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(c.img)}?width=${w}`;
+    return `<img src="${url}" width="${sz}" height="${sz}" alt="${_chrEsc(c.ko)}" title="${_chrEsc(title)}" data-cid="${c.id}" data-size="${sz}" loading="lazy" onerror="window._charImgFallback&&window._charImgFallback(this)" style="display:inline-block;width:${sz}px;height:${sz}px;border-radius:${radius};object-fit:cover;background:var(--ivory-d);border:1px solid var(--clay);vertical-align:middle">`;
+  }
+  // 이미지 없는 항목 — 바로 SVG
+  return `<span title="${_chrEsc(title)}" aria-label="${_chrEsc(title)}" style="display:inline-block;border-radius:${radius};overflow:hidden;line-height:0;width:${sz}px;height:${sz}px;vertical-align:middle">${_characterAvatarSVG(c, sz)}</span>`;
+}
+window._characterAvatarHTML = _characterAvatarHTML;
+
+// img onerror 핸들러 — 이미지를 SVG span 으로 in-place 교체.
+// 한 번 fail 한 URL 은 SW 가 캐시하지 않으므로 다음 방문 시 재시도됨 (자동 복구).
+window._charImgFallback = function(img){
+  try {
+    const cid = img.getAttribute('data-cid');
+    const sz = parseInt(img.getAttribute('data-size') || '48', 10);
+    const c = _characterById(cid);
+    if(!c){ img.style.display = 'none'; return; }
+    const span = document.createElement('span');
+    span.title = c.ko + ' · ' + c.grk;
+    span.setAttribute('aria-label', c.ko + ' · ' + c.grk);
+    span.style.cssText = `display:inline-block;border-radius:50%;overflow:hidden;line-height:0;width:${sz}px;height:${sz}px;vertical-align:middle`;
+    span.innerHTML = _characterAvatarSVG(c, sz);
+    img.parentNode && img.parentNode.replaceChild(span, img);
+  } catch(e){ /* graceful no-op */ }
+};
+
+// 상태 마이그레이션 — 이전 버전 사용자에 character 필드 보장 (절대 덮어쓰지 않음).
+function _ensureCharacter(){
+  if(!('character' in S)) S.character = null;   // 명시적 미선택 상태
+}
+
+// 캐릭터 선택 화면 — 카테고리별 그리드, 클릭 시 즉시 저장 후 프로필 페이지로 복귀.
+function renderCharacterPicker(){
+  _ensureCharacter();
+  const cur = _characterById(S.character);
+  // 필터 상태 (모듈 외부 노출 없이 클로저 단위)
+  if(typeof window._charFilter === 'undefined') window._charFilter = 'all';
+  const flt = window._charFilter;
+  const visible = flt === 'all' ? CHARACTERS : CHARACTERS.filter(c => c.cat === flt);
+
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="renderProfiles()">← 프로필</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Παιδεία</span>캐릭터 선택</h2>
+    <div class="view-sub">멀티 배틀·명예의 전당에 표시될 그리스 인물을 고르세요 · 총 ${CHARACTERS.length}명</div>
+
+    <div class="card" style="background:var(--ivory-d);border-left:3px solid var(--terracotta)">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="flex-shrink:0">${_characterAvatarHTML(cur, 72)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:11px;color:var(--clay-d);text-transform:uppercase;letter-spacing:.06em">현재 선택</div>
+          ${cur ? `
+            <div style="font-family:var(--font-grk);font-size:22px;color:var(--terracotta-d);font-weight:600;line-height:1.2;margin-top:2px" lang="grc">${_chrEsc(cur.grk)}</div>
+            <div style="font-size:13px;color:var(--black-glaze);font-weight:600;margin-top:1px">${_chrEsc(cur.ko)} <span style="font-size:11px;color:var(--clay-d);font-weight:400">· ${_characterCatLabel(cur.cat)}</span></div>
+            <div style="font-size:11.5px;color:var(--clay-d);margin-top:4px;line-height:1.5;font-style:italic">${_chrEsc(cur.desc)}</div>
+          ` : `
+            <div style="font-family:var(--font-grk);font-size:20px;color:var(--clay-d);margin-top:2px">— 미선택 —</div>
+            <div style="font-size:12px;color:var(--clay-d);margin-top:4px;line-height:1.5">아래에서 좋아하는 인물을 선택하세요. 선택은 언제든 바꿀 수 있습니다.</div>
+          `}
+        </div>
+        ${cur ? `<button class="btn btn-sm btn-o" id="char-clear" style="font-size:11px;flex-shrink:0">해제</button>` : ''}
+      </div>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 4px">
+      <button class="btn btn-sm ${flt==='all'?'':'btn-o'}" data-flt="all" style="font-size:11.5px;padding:5px 11px">전체 (${CHARACTERS.length})</button>
+      ${CHAR_CAT_ORDER.map(cat => {
+        const m = CHAR_CATS[cat];
+        const n = CHARACTERS.filter(c => c.cat === cat).length;
+        return `<button class="btn btn-sm ${flt===cat?'':'btn-o'}" data-flt="${cat}" style="font-size:11.5px;padding:5px 11px">${_chrEsc(m.ko)} (${n})</button>`;
+      }).join('')}
+    </div>
+
+    <div class="card" style="padding:12px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(96px, 1fr));gap:10px">
+        ${visible.map(c => {
+          const sel = c.id === S.character;
+          return `<button type="button" class="char-tile" data-pick="${c.id}" style="cursor:pointer;background:${sel?'var(--ivory-d)':'transparent'};border:1.5px solid ${sel?'var(--terracotta)':'var(--clay)'};border-radius:10px;padding:8px 6px;display:flex;flex-direction:column;align-items:center;gap:5px;transition:transform .08s,border-color .15s" aria-label="${_chrEsc(c.ko)} 선택">
+            ${_characterAvatarHTML(c, 56)}
+            <div style="font-family:var(--font-grk);font-size:13px;color:${sel?'var(--terracotta-d)':'var(--black-glaze)'};font-weight:${sel?'700':'600'};line-height:1.1;text-align:center" lang="grc">${_chrEsc(c.grk)}</div>
+            <div style="font-size:10.5px;color:var(--clay-d);line-height:1.1;text-align:center">${_chrEsc(c.ko)}</div>
+          </button>`;
+        }).join('')}
+      </div>
+      ${visible.length === 0 ? `<div style="text-align:center;color:var(--clay-d);font-size:13px;padding:18px">이 카테고리에 등록된 인물이 없습니다.</div>` : ''}
+    </div>
+
+    <div style="font-size:11px;color:var(--clay-d);margin-top:10px;line-height:1.6;font-style:italic;text-align:center">
+      이미지는 Wikimedia Commons · Public Domain / CC. 네트워크 부재 시 그리스어 이니셜의 도자기풍 아바타로 자동 대체됩니다.
+    </div>
+  `;
+
+  view.querySelectorAll('[data-flt]').forEach(b => b.addEventListener('click', () => {
+    window._charFilter = b.dataset.flt;
+    renderCharacterPicker();
+  }));
+
+  view.querySelectorAll('[data-pick]').forEach(b => b.addEventListener('click', async () => {
+    const id = b.dataset.pick;
+    S.character = id;
+    await saveState();
+    const c = _characterById(id);
+    toast(c ? `${c.ko} 선택됨` : '선택됨');
+    renderCharacterPicker();
+  }));
+
+  const clearBtn = view.querySelector('#char-clear');
+  if(clearBtn) clearBtn.addEventListener('click', async () => {
+    S.character = null;
+    await saveState();
+    toast('캐릭터 선택 해제');
+    renderCharacterPicker();
+  });
+}
+window.renderCharacterPicker = renderCharacterPicker;
+
+// 카테고리 라벨 헬퍼 ('영웅 · Ἥρως')
+function _characterCatLabel(cat){
+  const m = CHAR_CATS[cat]; if(!m) return cat || '';
+  return `${m.ko} · ${m.grk}`;
+}
+
 async function renderProfiles(){
   const meta = await getProfileMeta();
   const profiles = [...meta.profiles].sort((a,b) => {
@@ -4971,6 +5335,27 @@ async function renderProfiles(){
         ◇ 프로필 전환 시 페이지가 새로고침됩니다. 데이터는 기기에 로컬 저장되며 외부 전송되지 않습니다.
       </div>
     </div>
+
+    ${(() => {
+      // v52: 현재 프로필의 캐릭터 표시 카드
+      _ensureCharacter();
+      const cur = _characterById(S.character);
+      return `<h3 style="font-family:var(--font-display);font-size:14px;color:var(--terracotta-d);margin:18px 0 6px;text-transform:uppercase;letter-spacing:.08em">현재 프로필의 캐릭터</h3>
+      <div class="card" style="display:flex;align-items:center;gap:14px;padding:14px">
+        <div style="flex-shrink:0">${_characterAvatarHTML(cur, 56)}</div>
+        <div style="flex:1;min-width:0">
+          ${cur ? `
+            <div style="font-family:var(--font-grk);font-size:18px;color:var(--terracotta-d);font-weight:600;line-height:1.2" lang="grc">${_chrEsc(cur.grk)}</div>
+            <div style="font-size:12.5px;color:var(--black-glaze);margin-top:2px"><b>${_chrEsc(cur.ko)}</b> <span style="color:var(--clay-d);font-size:11px">· ${_characterCatLabel(cur.cat)}</span></div>
+            <div style="font-size:11px;color:var(--clay-d);margin-top:4px;line-height:1.5;font-style:italic">${_chrEsc(cur.desc)}</div>
+          ` : `
+            <div style="font-family:var(--font-grk);font-size:17px;color:var(--clay-d)">— 미선택 —</div>
+            <div style="font-size:12px;color:var(--clay-d);margin-top:4px;line-height:1.5">멀티 배틀·명예의 전당에서 다른 학습자에게 보여질 그리스 인물 아바타입니다.</div>
+          `}
+        </div>
+        <button class="btn btn-sm btn-o" onclick="renderCharacterPicker()" style="font-size:11.5px;padding:6px 11px;flex-shrink:0">${cur ? '변경' : '선택'} →</button>
+      </div>`;
+    })()}
 
     <h3 style="font-family:var(--font-display);font-size:14px;color:var(--terracotta-d);margin:18px 0 6px;text-transform:uppercase;letter-spacing:.08em">프로필 목록</h3>
     ${profiles.map(p => {
@@ -5111,6 +5496,7 @@ let S = {
   joinLeaderboard:false, // 순위 참여 의사 (명시적 동의)
   speech:{rate:0.85, pitch:1.0, voiceName:''},  // 음성 합성 설정 (v24)
   readColorize: true,                            // 원문 품사별 색칠 (v29) — true: 활성, false: 흑색 단일색
+  character: null,                               // 프로필 아바타 캐릭터 id (v52)
 };
 
 function todayStr(){ const d=new Date(); return d.toISOString().slice(0,10); }
@@ -5151,6 +5537,7 @@ function pushLeaderboard(){
         reads: S.readDone.length,
         badges: S.badges.length,
         streak: S.streak,
+        character: S.character || null,    // v52: 캐릭터 id (선택사항)
         lastSeen: Date.now(),
       };
       await STORAGE.setShared('lb:' + S.userId, JSON.stringify(payload));
@@ -5324,16 +5711,21 @@ const DAILY_QUOTES = [
 ];
 function renderHome(){
   updateStreak(); saveState();
+  _ensureCharacter();
   const q = DAILY_QUOTES[new Date().getDate() % DAILY_QUOTES.length];
   const wrongN = Object.keys(S.wrongRoom).length;
   const lvl = LEVELS[levelOf(S.xp)];
   const profileName = getCurrentProfileName();
   const profileCount = _profileMetaCache ? _profileMetaCache.profiles.length : 1;
+  const charObj = _characterById(S.character);
   view.innerHTML = `
     <h2 class="view-title fade-in"><span class="grk">Ἑστία</span>화롯가</h2>
     <div class="view-sub">오늘도 잘 오셨습니다 — 현재 <b>${lvl.grk}</b> (${lvl.ko})</div>
 
-    <div style="display:flex;align-items:center;justify-content:flex-end;margin:-4px 0 8px">
+    <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;margin:-4px 0 8px">
+      <button class="btn btn-sm btn-o" onclick="renderCharacterPicker()" style="font-size:11px;padding:4px 6px;display:inline-flex;align-items:center;gap:6px" aria-label="${charObj ? _chrEsc(charObj.ko) + ' — 캐릭터 변경' : '캐릭터 선택'}" title="${charObj ? _chrEsc(charObj.ko) + ' · ' + _chrEsc(charObj.grk) : '캐릭터 선택'}">
+        ${_characterAvatarHTML(charObj, 22)}<span style="font-family:var(--font-grk);font-size:12px;color:var(--terracotta-d);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" lang="grc">${charObj ? _chrEsc(charObj.grk) : '캐릭터'}</span>
+      </button>
       <button class="btn btn-sm btn-o" onclick="renderProfiles()" style="font-size:11px;padding:4px 10px">
         👤 ${(profileName||'').replace(/</g,'&lt;')}${profileCount>1?` · ${profileCount}명`:''} →
       </button>
@@ -10404,6 +10796,7 @@ function renderHall(){
     if(!S.readAnalysis) S.readAnalysis = {};
     if(!S.worksFinished) S.worksFinished = [];
     if(!S.badges) S.badges = [];
+    if(!('character' in S)) S.character = null;   // v52: 캐릭터 (없으면 null 유지)
     try {
       await saveState();
       refreshBanner();
@@ -10431,7 +10824,8 @@ function renderHall(){
       speech:{rate:0.85, pitch:1.0, voiceName:''},   // v24
       readColorize: true,                              // v29
       bookmarks:{},                                    // v25
-      srs:{}                                           // SRS (이미 사용 중)
+      srs:{},                                          // SRS (이미 사용 중)
+      character: null                                  // v52: 캐릭터 아바타
     };
     if(!S.userId) S.userId = 'u' + Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
     try{ await STORAGE.del(KEY); }catch(e){}
@@ -10484,7 +10878,9 @@ async function loadLeaderboard(){
           name:S.displayName, userId:S.userId, level:levelOf(S.xp), xp:S.xp,
           vocab:S.vocabCorrectCount, topics:S.topicsStudied.length,
           works:S.worksFinished.length, reads:S.readDone.length,
-          badges:S.badges.length, streak:S.streak, lastSeen:Date.now()
+          badges:S.badges.length, streak:S.streak,
+          character: S.character || null,    // v52
+          lastSeen:Date.now()
         }));
       }catch(e){}
       loadLeaderboard();
@@ -10533,10 +10929,11 @@ async function loadLeaderboard(){
         <span style="font-size:11px;color:var(--terracotta-d);font-weight:600">내 순위: ${myRank > 0 ? myRank + '위' : '미참여'}</span>
       </div>
       <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
-      <table style="width:100%;font-size:12.5px;border-collapse:collapse;min-width:340px">
+      <table style="width:100%;font-size:12.5px;border-collapse:collapse;min-width:380px">
         <thead>
           <tr style="background:var(--ivory-d)">
             <th style="text-align:left;padding:6px 8px;border-bottom:1.5px solid var(--clay);font-size:11px">#</th>
+            <th style="text-align:left;padding:6px 4px;border-bottom:1.5px solid var(--clay);font-size:11px;width:28px"></th>
             <th style="text-align:left;padding:6px 8px;border-bottom:1.5px solid var(--clay);font-size:11px">이름</th>
             <th style="text-align:right;padding:6px 4px;border-bottom:1.5px solid var(--clay);font-size:11px">XP</th>
             <th style="text-align:center;padding:6px 4px;border-bottom:1.5px solid var(--clay);font-size:11px">레벨</th>
@@ -10549,9 +10946,11 @@ async function loadLeaderboard(){
         ${entries.map((e,i) => {
           const me = e.userId === S.userId;
           const medal = i===0?'🥇':(i===1?'🥈':(i===2?'🥉':''));
+          const charObj = e.character ? _characterById(e.character) : null;
           return `<tr style="${me ? 'background:linear-gradient(90deg,var(--ivory-d),transparent)' : ''}">
             <td style="padding:7px 8px;border-bottom:1px solid var(--clay);opacity:.7">${medal||(i+1)}</td>
-            <td style="padding:7px 8px;border-bottom:1px solid var(--clay);font-weight:${me?'700':'500'};color:${me?'var(--terracotta-d)':'inherit'}">${escapeHtml(e.name)}${me?' <span style="font-size:10px;opacity:.7">(나)</span>':''}</td>
+            <td style="padding:5px 4px;border-bottom:1px solid var(--clay);line-height:0;vertical-align:middle">${_characterAvatarHTML(charObj, 24)}</td>
+            <td style="padding:7px 6px;border-bottom:1px solid var(--clay);font-weight:${me?'700':'500'};color:${me?'var(--terracotta-d)':'inherit'}">${escapeHtml(e.name)}${charObj?` <span class="grk" style="font-size:11px;color:var(--clay-d);font-weight:400" lang="grc">· ${_chrEsc(charObj.grk)}</span>`:''}${me?' <span style="font-size:10px;opacity:.7">(나)</span>':''}</td>
             <td style="padding:7px 4px;border-bottom:1px solid var(--clay);text-align:right;font-variant-numeric:tabular-nums">${(e.xp||0).toLocaleString()}</td>
             <td style="padding:7px 4px;border-bottom:1px solid var(--clay);text-align:center;font-family:var(--font-grk);color:var(--terracotta-d);font-size:13px">${LEVELS[e.level||0].grk}</td>
             <td style="padding:7px 4px;border-bottom:1px solid var(--clay);text-align:right;font-variant-numeric:tabular-nums">${e.vocab||0}</td>
@@ -10601,6 +11000,7 @@ async function init(){
     if(!S.userId){
       S.userId = 'u' + Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
     }
+    _ensureCharacter();   // v52: 기존 사용자 마이그레이션 (character 필드 보장)
     stage('연속 출석 갱신 중…');
     updateStreak();
     saveState();
@@ -12256,8 +12656,10 @@ async function _battleSaveRoom(code, room){
 // 진입 화면 — 방 만들기 / 입장
 function renderBattle(){
   _battleCleanup();
+  _ensureCharacter();
   const supported = STORAGE.supportsShared;
   const myName = S.displayName || '';
+  const myChar = _characterById(S.character);
 
   view.innerHTML = `
     <button class="btn btn-sm btn-o" onclick="setTab('vocab')">← 어휘</button>
@@ -12291,9 +12693,14 @@ function renderBattle(){
         <button class="btn btn-sm" id="battle-save-name" style="margin-top:8px">저장</button>
       </div>
     ` : `
-      <div class="card" style="background:var(--ivory-d);border-left:3px solid var(--terracotta)">
-        <div style="font-size:12px;color:var(--clay-d)">참가 이름</div>
-        <div style="font-family:var(--font-display);font-size:18px;color:var(--terracotta-d);font-weight:600;margin-top:2px">${myName}</div>
+      <div class="card" style="background:var(--ivory-d);border-left:3px solid var(--terracotta);display:flex;align-items:center;gap:12px;padding:14px">
+        <div style="flex-shrink:0">${_characterAvatarHTML(myChar, 56)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:11px;color:var(--clay-d);text-transform:uppercase;letter-spacing:.06em">참가 정보</div>
+          <div style="font-family:var(--font-display);font-size:18px;color:var(--terracotta-d);font-weight:600;margin-top:2px">${escapeHtml(myName)}</div>
+          ${myChar ? `<div style="font-size:12px;color:var(--black-glaze);margin-top:2px"><span class="grk" style="font-family:var(--font-grk);color:var(--terracotta-d);font-weight:600" lang="grc">${_chrEsc(myChar.grk)}</span> · ${_chrEsc(myChar.ko)} <span style="color:var(--clay-d);font-size:10.5px">(${_chrEsc(CHAR_CATS[myChar.cat]?.ko||'')})</span></div>` : `<div style="font-size:11.5px;color:var(--clay-d);margin-top:2px;font-style:italic">캐릭터 미선택 — 다른 참가자에게 그리스 인물 아바타로 식별되고 싶다면 선택하세요</div>`}
+        </div>
+        <button class="btn btn-sm btn-o" onclick="renderCharacterPicker()" style="font-size:11px;padding:5px 9px;flex-shrink:0">${myChar?'변경':'선택'} →</button>
       </div>
 
       <button class="card" id="battle-create" style="width:100%;text-align:left;cursor:pointer;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-top:10px">
@@ -12364,7 +12771,7 @@ async function renderBattleCreate(){
       currentQuestion: 0,
     },
     players: {
-      [S.userId]: { name: S.displayName || '익명', joinedAt: Date.now(), score: 0, ready: false }
+      [S.userId]: { name: S.displayName || '익명', character: S.character || null, joinedAt: Date.now(), score: 0, ready: false }
     },
   };
   const ok = await _battleSaveRoom(code, room);
@@ -12424,7 +12831,7 @@ function renderBattleJoin(){
       saveState();
     }
     room.players = room.players || {};
-    room.players[S.userId] = { name: S.displayName || '익명', joinedAt: Date.now(), score: 0, ready: false };
+    room.players[S.userId] = { name: S.displayName || '익명', character: S.character || null, joinedAt: Date.now(), score: 0, ready: false };
     const saved = await _battleSaveRoom(code, room);
     if(!saved){
       toast('입장 실패 — 네트워크 확인');
@@ -12497,16 +12904,21 @@ async function renderBattleLobby(){
         <div style="font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">참가자 (${players.length}/6)</div>
         ${players.length === 0 ? `
           <div style="color:var(--clay-d);font-size:13px;text-align:center;padding:10px">아직 참가자가 없습니다.</div>
-        ` : players.map(([uid, p]) => `
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px dashed var(--clay);border-radius:4px;background:${uid===myId?'var(--ivory-d)':'transparent'}">
-            <div>
-              <span style="font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--black-glaze)">${(p.name || '익명').replace(/</g,'&lt;')}</span>
-              ${uid === room.meta.hostId ? '<span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:2px 6px;border-radius:8px;margin-left:6px">호스트</span>' : ''}
-              ${uid === myId ? '<span style="font-size:10px;color:var(--terracotta-d);margin-left:6px">(나)</span>' : ''}
+        ` : players.map(([uid, p]) => {
+          const pChar = p.character ? _characterById(p.character) : null;
+          return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px dashed var(--clay);border-radius:4px;background:${uid===myId?'var(--ivory-d)':'transparent'}">
+            <div style="flex-shrink:0">${_characterAvatarHTML(pChar, 36)}</div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                <span style="font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--black-glaze)">${(p.name || '익명').replace(/</g,'&lt;')}</span>
+                ${uid === room.meta.hostId ? '<span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:2px 6px;border-radius:8px">호스트</span>' : ''}
+                ${uid === myId ? '<span style="font-size:10px;color:var(--terracotta-d)">(나)</span>' : ''}
+              </div>
+              ${pChar ? `<div style="font-family:var(--font-grk);font-size:11.5px;color:var(--clay-d);margin-top:1px" lang="grc">${_chrEsc(pChar.grk)} <span style="font-family:var(--font-body, inherit)">· ${_chrEsc(pChar.ko)}</span></div>` : ''}
             </div>
-            <span style="font-size:11px;color:var(--clay-d)">${p.ready ? '✓ 준비' : '대기 중'}</span>
-          </div>
-        `).join('')}
+            <span style="font-size:11px;color:var(--clay-d);flex-shrink:0">${p.ready ? '✓ 준비' : '대기 중'}</span>
+          </div>`;
+        }).join('')}
       </div>
 
       ${isHost ? `
@@ -12703,12 +13115,14 @@ async function renderBattleGame(code, room){
 }
 
 function _battleScoreboardHTML(players){
-  // players: [[uid, {name, score, currentQ, ready, ...}], ...]
+  // players: [[uid, {name, score, currentQ, ready, character, ...}], ...]
   const myId = S.userId;
-  return `<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(76px, 1fr));gap:6px">
+  return `<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(82px, 1fr));gap:6px">
     ${players.map(([uid, p]) => {
       const mine = uid === myId;
+      const pChar = p.character ? _characterById(p.character) : null;
       return `<div style="text-align:center;padding:8px 6px;background:${mine?'var(--terracotta)':'var(--black-glaze)'};color:var(--ivory-w);border-radius:8px">
+        <div style="display:flex;justify-content:center;margin-bottom:4px">${_characterAvatarHTML(pChar, 28)}</div>
         <div style="font-size:10px;opacity:.85;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(p.name||'').slice(0,12)}${mine?' (나)':''}</div>
         <div style="font-family:var(--font-display);font-size:20px;font-weight:600;margin-top:2px">${p.score||0}</div>
         <div style="font-size:10px;opacity:.85;margin-top:2px">${p.currentQ||0}/${BATTLE_N_Q}${p.finished?' ✓':''}</div>
@@ -12859,9 +13273,11 @@ function renderBattleResult(code, room){
     // v32: correctCount는 별도 필드. 하위 호환 — 구버전 데이터(score=정답수)는 score 폴백.
     correctCount: typeof p.correctCount === 'number' ? p.correctCount : (p.score || 0),
     finished: !!p.finished,
+    character: p.character || null,   // v52
   }));
   players.sort((a, b) => b.score - a.score);
   const me = players.find(p => p.uid === S.userId);
+  const myChar = me && me.character ? _characterById(me.character) : null;
   const myRank = me ? (players.findIndex(p => p.uid === S.userId) + 1) : 0;
   // XP 보상: 1위 30 / 2위 18 / 3위 12 / 그 외 5
   const xpMap = { 1:30, 2:18, 3:12 };
@@ -12899,25 +13315,28 @@ function renderBattleResult(code, room){
 
     <div class="card" style="text-align:center;padding:26px 16px">
       <div style="font-size:54px;line-height:1">${rankIco}</div>
-      <div style="font-family:var(--font-display);font-size:26px;color:${rankColor};font-weight:600;margin-top:4px">${myRank}위</div>
+      ${myChar ? `<div style="display:flex;justify-content:center;margin-top:6px">${_characterAvatarHTML(myChar, 56)}</div><div style="font-family:var(--font-grk);font-size:14px;color:var(--terracotta-d);font-weight:600;margin-top:4px" lang="grc">${_chrEsc(myChar.grk)} · ${_chrEsc(myChar.ko)}</div>` : ''}
+      <div style="font-family:var(--font-display);font-size:26px;color:${rankColor};font-weight:600;margin-top:6px">${myRank}위</div>
       <div style="font-size:13px;color:var(--clay-d);margin-top:8px">정답 <b style="color:var(--black-glaze)">${me ? me.correctCount : 0}/${BATTLE_N_Q}</b> · 점수 <b style="color:var(--terracotta-d)">${me ? me.score : 0}</b></div>
       <div style="font-size:12px;color:var(--clay-d);margin-top:8px">XP +${xpGain} 적립</div>
     </div>
 
     <div class="card">
       <div style="font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">최종 순위</div>
-      ${players.map((p, i) => `
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:${i<players.length-1?'1px solid var(--clay)':'none'};background:${p.uid===S.userId?'var(--ivory-d)':'transparent'};border-radius:4px">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="font-family:var(--font-display);font-size:18px;color:${i===0?'var(--terracotta-d)':'var(--clay-d)'};font-weight:600;min-width:24px">${i+1}</div>
-            <div>
-              <div style="font-family:var(--font-display);font-size:15px;color:var(--black-glaze);font-weight:600">${p.name.replace(/</g,'&lt;').slice(0,20)}${p.uid===S.userId?' (나)':''}</div>
-              <div style="font-size:11px;color:var(--clay-d);margin-top:2px">정답 ${p.correctCount}/${BATTLE_N_Q}${!p.finished ? ' · <span style="color:var(--bad)">미완료</span>' : ''}</div>
+      ${players.map((p, i) => {
+        const pChar = p.character ? _characterById(p.character) : null;
+        return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:${i<players.length-1?'1px solid var(--clay)':'none'};background:${p.uid===S.userId?'var(--ivory-d)':'transparent'};border-radius:4px">
+          <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1">
+            <div style="font-family:var(--font-display);font-size:18px;color:${i===0?'var(--terracotta-d)':'var(--clay-d)'};font-weight:600;min-width:22px;flex-shrink:0">${i+1}</div>
+            <div style="flex-shrink:0">${_characterAvatarHTML(pChar, 36)}</div>
+            <div style="min-width:0;flex:1">
+              <div style="font-family:var(--font-display);font-size:15px;color:var(--black-glaze);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name.replace(/</g,'&lt;').slice(0,20)}${p.uid===S.userId?' (나)':''}</div>
+              <div style="font-size:11px;color:var(--clay-d);margin-top:2px">${pChar ? `<span class="grk" lang="grc">${_chrEsc(pChar.grk)}</span> · ` : ''}정답 ${p.correctCount}/${BATTLE_N_Q}${!p.finished ? ' · <span style="color:var(--bad)">미완료</span>' : ''}</div>
             </div>
           </div>
-          <div style="font-family:var(--font-display);font-size:22px;color:var(--terracotta-d);font-weight:600">${p.score}</div>
-        </div>
-      `).join('')}
+          <div style="font-family:var(--font-display);font-size:22px;color:var(--terracotta-d);font-weight:600;flex-shrink:0;margin-left:8px">${p.score}</div>
+        </div>`;
+      }).join('')}
     </div>
 
     ${myWrong.length > 0 ? `

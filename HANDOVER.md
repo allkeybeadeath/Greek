@@ -1,24 +1,25 @@
 # Ἑλληνικὴ Παιδεία — CIM Lab 인수인계
 
-본 문서는 CIM Lab에서 운영하는 고전 그리스어 학습 Progressive Web App (PWA) 의 기술적 인수인계를 위한 자료다. 신규 합류 구성원이 별도 컨텍스트 없이도 코드베이스를 이해하고 유지·확장할 수 있도록 작성했다. 최종 갱신 **v51 (2026년 5월)**.
+본 문서는 CIM Lab에서 운영하는 고전 그리스어 학습 Progressive Web App (PWA) 의 기술적 인수인계를 위한 자료다. 신규 합류 구성원이 별도 컨텍스트 없이도 코드베이스를 이해하고 유지·확장할 수 있도록 작성했다. 최종 갱신 **v52 (2026년 5월)**.
 
-> **다음 작업자에게**: §7 라운드별 changelog 의 *맨 마지막 항목 (v51)* 이 현재 상태다. 그 위 라운드들은 어떻게 여기까지 왔는지의 기록. 새 작업을 시작하기 전에 §7 의 가장 최근 항목과 §0 의 현재 스냅샷을 먼저 읽기.
+> **다음 작업자에게**: §7 라운드별 changelog 의 *맨 마지막 항목 (v52)* 이 현재 상태다. 그 위 라운드들은 어떻게 여기까지 왔는지의 기록. 새 작업을 시작하기 전에 §7 의 가장 최근 항목과 §0 의 현재 스냅샷을 먼저 읽기.
 
-## 0. 현재 상태 스냅샷 (v51, 2026-05)
+## 0. 현재 상태 스냅샷 (v52, 2026-05)
 
-**배포 산출물**: `index.html` (~796 KB, IIFE 약 405K chars, 13.5K lines) · `sw.js` · `data-works.js` (3 MB, 45 작품 545 섹션) · `data-morph.js` (4 MB, AGDT v2.1 37K 어형 11.8K lemma) · `data-dialogues.js` (45 KB, 10 콩트 시나리오) · `espeakng.worker.js` (760 KB) · `manifest.json` · `reset.html`.
+**배포 산출물**: `index.html` (~836 KB, IIFE 약 425K chars, 14.2K lines) · `sw.js` · `data-works.js` (3 MB, 45 작품 545 섹션) · `data-morph.js` (4 MB, AGDT v2.1 37K 어형 11.8K lemma) · `data-dialogues.js` (45 KB, 10 콩트 시나리오) · `espeakng.worker.js` (760 KB) · `manifest.json` · `reset.html`.
 
 **기능 카탈로그**:
 - 어휘 학습: 교재 어휘 + DCC 523 + DAILY_W 51 + CIVIC_W 80 + 콩트 vocab 60 = 1142 어휘
-- 문법 토픽: **41개** (decl/verb/particle/prep 4 카테고리) — *§0 v50 까지 표기 "42" 는 문서 오기, v51 검증으로 정정*
+- 문법 토픽: **41개** (decl/verb/particle/prep 4 카테고리)
 - 콩트 시나리오: 10편 · 84 turns
 - 원문 읽기: 45 작품 545 섹션, AGDT 형태분석은 Iliad 1 · Odyssey 1 · Persae 만
 - 학자 낭독 매칭: 본문 **7 작품** (plato-apology · xenophon-anabasis-1 · hesiod-theogony · herodotus-1 · homer-iliad-1 · homer-odyssey-1 · plato-euthyphro)
 - 학자 낭독 도서관 (Ἀκρόασις): **20 자료 · 9 카테고리** (본문 외 작가·작품)
 - **본문-학자 낭독 시간 동기**: 3 자료 (Anabasis 11 단락, Theogony 21 행, Herodotus 14 단락 × 4 섹션) · 정확도 ±3-5초
 - 발음 모드: 4종 (eSpeak NG · 현대 헬라어 · Erasmian · 복원 Attic) + Stratakis/SORGLL/Projet Homere/Ariphron 학자 발음 비교
-- 학습 모드: 어휘 quiz (객관식·타이핑) · 받아쓰기 (Ἀκοή) · 악센트 학습 (Τόνος) · 옥시톤 분류 quiz · 검색·콘코던스 (Εὕρεσις) · **변화표 만들기 + 빈칸 채우기 시험 (Παράδειγμα · v51 신규)** · 배틀 모드 · 오답함 SRS
-- 변화표 (v51): **76 표제어** 큐레이션 (55 명사 · 12 형용사 · 9 대명사) — Smyth/Goodwin 표준형, AGDT v2.1 실제 어형과 자동 결합 표시, **빈칸 채우기 시험 모드** (NFD/ς-σ 관용 채점, 액센트 정확 ★ 마킹, 75/76 lemma quizzable — Ζεύς 만 단수 3 cell 로 무작위 후보 제외)
+- 학습 모드: 어휘 quiz (객관식·타이핑) · 받아쓰기 (Ἀκοή) · 악센트 학습 (Τόνος) · 옥시톤 분류 quiz · 검색·콘코던스 (Εὕρεσις) · 변화표 만들기 + 빈칸 채우기 시험 (Παράδειγμα) · 배틀 모드 · 오답함 SRS
+- 변화표: 76 표제어 큐레이션 (55 명사 · 12 형용사 · 9 대명사) + 빈칸 채우기 시험 모드
+- **캐릭터 아바타 (v52 신규 · Παιδεία)**: **50 명** 그리스 신화·역사 인물 (7 카테고리: 영웅 10 · 여걸 5 · 남신 8 · 여신 7 · 철학자 8 · 역사인물 6 · 시인 6). Wikimedia Commons 박물관 소장 미술품 이미지 + 그리스어 이니셜 도자기풍 SVG 폴백. 홈·프로필 관리·라이브 순위·멀티 배틀 (로비·점수판·결과) 4 위치 표시
 - 접근성: aria-label 35 · title 18 · greek lang attr 자동화
 - 다중 프로필 · 명예의 전당 · 책갈피·메모
 
@@ -27,17 +28,19 @@
 - 작품·섹션: `WORKS` (data-works.js 에서 정의)
 - 형태분석: `MORPH_LOOKUP` (data-morph.js, 비동기 lazy-load)
 - 문법 토픽: `TOPICS` 배열 (41)
-- **변화표 라이브러리 (v51)**: `PARADIGM_LIB` 객체 (76 표제어, index.html line 3385~)
+- 변화표 라이브러리: `PARADIGM_LIB` 객체 (76 표제어, index.html line 3385~)
 - 콩트: `DIALOGUES` (data-dialogues.js)
 - 학자 낭독: `SCHOLAR_AUDIO` (본문 매칭) + `SCHOLAR_LIBRARY` (도서관)
+- **캐릭터 (v52)**: `CHARACTERS` 배열 (50, index.html line ~4955), `CHAR_CATS` (7 카테고리 색상), `CHAR_CAT_ORDER` (필터 순서)
 - 악센트 분류: `_classifyAccent()` 함수 (NFD 기반 다이아크리틱 분석)
 
-**현재 미해결·defer 상태** (§7 의 v51 끝 defer 블록 참조):
+**현재 미해결·defer 상태** (§7 의 v52 끝 defer 블록 참조):
 - 외부 의존 3 항목 (SoundCloud slugs · Plato Crito sample · ScorpioMartianus) — 새 정보 없음
 - 단어 단위 시간 동기 (현재 행/단락 — 더 정밀은 큰 측정 부담)
 - plato-apology Stratakis cue points 측정 (mp3 길이 미확정으로 v50 보류)
 - PARADIGM_LIB 확장 — 비교급·최상급 형용사, 분사 (현재 명사·형용사·대명사만)
 - μι-동사 가정법/희구법 quiz 통합 (v50 의 5 표는 학습만, Παράδειγμα 시험과 별개)
+- **CHARACTERS 50→? 확장** (v52: 13/50 이 SVG-only — Bellerophon·Ajax·Hector·Atalanta·Hephaestus·Demeter·Hestia·Persephone·Parmenides·Solon·Lycurgus·Hesiod·Pindar. Wikimedia 검증 후 img 필드 채우면 즉시 사진 표시)
 
 **영구 제외** (사용자 정책):
 - 다국어 UI (i18n)
@@ -697,7 +700,100 @@ defer (다음 라운드):
 영구 제외 (사용자 정책):
   · 다국어 UI (i18n)
 
-## 8. 알려진 미해결 사항 및 향후 작업
+**v52**: 캐릭터 아바타 (Παιδεία) — 사용자 요청 *"아킬레우스 헤라클레스 등 50가지 캐릭터와 사진으로 프로필 꾸미고 멀티와 명예의전당에 표시되도록"*.
+
+**구현 동기**: v28 의 다중 프로필 + v30 의 라이브 순위·멀티 배틀에서 학습자 식별은 *표시 이름 문자열* 만이었음. CIM Lab 처럼 여러 학습자가 같은 기기를 쓰거나, 라이브 순위·배틀에서 학습자들이 서로를 식별하기 위해 시각적 정체성이 필요. 한국 교실·연구실의 보편 패턴 — Kahoot, Quizlet Live 등이 보여준 *avatar identity* 의 사회적 효과 (소속감·경쟁 자극) 를 본 PWA 에 도입.
+
+**(1) CHARACTERS 데이터 — 50 인물 큐레이션** (index.html line ~4955~5165, ~210 lines).
+
+7 카테고리 분포:
+  · **영웅 hero** (10): Ἀχιλλεύς · Ἡρακλῆς · Ὀδυσσεύς · Περσεύς · Θησεύς · Ἰάσων · Βελλεροφῶν · Αἰνείας · Αἴας · Ἕκτωρ
+  · **여걸 heroine** (5): Ἑλένη · Πηνελόπη · Μήδεια · Ἀταλάντη · Ἀντιγόνη
+  · **남신 god** (8): Ζεύς · Ποσειδῶν · Ἀπόλλων · Ἄρης · Ἑρμῆς · Ἥφαιστος · Διόνυσος · Ἅιδης
+  · **여신 goddess** (7): Ἥρα · Ἀθηνᾶ · Ἄρτεμις · Ἀφροδίτη · Δημήτηρ · Ἑστία · Περσεφόνη
+  · **철학자 philosopher** (8): Σωκράτης · Πλάτων · Ἀριστοτέλης · Πυθαγόρας · Ἡράκλειτος · Διογένης · Ἐπίκουρος · Παρμενίδης
+  · **역사인물 historical** (6): Ἀλέξανδρος · Περικλῆς · Λεωνίδας · Θεμιστοκλῆς · Σόλων · Λυκοῦργος
+  · **시인 poet** (6): Ὅμηρος · Ἡσίοδος · Σαπφώ · Πίνδαρος · Σοφοκλῆς · Εὐριπίδης
+
+각 항목 필드: `{id, grk, ko, en, cat, init, img, desc}`. `init` 은 SVG 폴백용 그리스어 이니셜 (대부분 1자, ἁ·αἰ·εὐ 같은 디그래프는 2자), `img` 는 Wikimedia Commons 파일명 (없으면 빈 문자열 → SVG-only).
+
+**Wikimedia 이미지 커버리지**: 37/50 (74%) — 박물관 소장 고대 조각·도기·르네상스/신고전 회화. Special:FilePath 안정 리다이렉트 사용 (`https://commons.wikimedia.org/wiki/Special:FilePath/<file>?width=96`). 잘 알려진 작품: Farnese Heracles, Venus de Milo, Plato Silanion (Capitoline), Aristotle Altemps, Otricoli Zeus, Belvedere Apollo, Caravaggio Bacchus, Cellini Perseus, Bernini Pluto and Proserpina, Diane de Versailles, Sappho by Mengin, Alexander mosaic.
+
+**SVG-only 13명** (img 미설정): Bellerophon, Ajax, Hector, Atalanta, Hephaestus, Demeter, Hestia, Persephone, Parmenides, Solon, Lycurgus, Hesiod, Pindar — Wikimedia 에 정합·식별 가능한 고전 도상이 부족하거나 파일명 불확실. **SVG 폴백이 항상 정상 동작** 하므로 시각적 정체성은 보존되며, 다음 라운드에서 검증된 파일명 확인 시 `img` 필드만 채우면 자동 사진 표시.
+
+**(2) 렌더링 헬퍼** (index.html line ~5167~5217, ~50 lines).
+
+  · **`_characterAvatarSVG(c, size)`** — 인라인 SVG (radial gradient 원 + 그리스어 이니셜 + 카테고리별 색상). 항상 작동, 네트워크 무관. ~440 bytes 평균. Random gradient id (`cg<rnd>`) 로 동일 페이지 다중 인스턴스 충돌 회피.
+  · **`_characterAvatarHTML(idOrC, size, opts)`** — img 우선 + onerror 폴백. `c.img` 있으면 Wikimedia Special:FilePath URL + `onerror="window._charImgFallback&&window._charImgFallback(this)"`. 없으면 바로 SVG span. 미선택 캐릭터 (`null`) 는 점선 원 placeholder (`⌀`).
+  · **`window._charImgFallback(img)`** — img 로드 실패 시 SVG span 으로 DOM 노드 in-place 교체. parentNode.replaceChild — 한 번만 fail 한 URL 은 SW 가 캐시하지 않으므로 *다음 방문 시 재시도* 자동 복구.
+  · **`_chrEsc(s)`** — XSS 방어. SVG/HTML 텍스트 노드에 안전 escape.
+  · **`_ensureCharacter()`** — 기존 사용자 마이그레이션. `if(!('character' in S)) S.character = null` 만 추가. 사용자의 명시적 선택은 **절대 덮어쓰지 않음** (v28 다중 프로필 마이그레이션 패턴과 동일).
+
+**(3) 카테고리 색상** — `CHAR_CATS` 객체:
+  · hero: 적색상 도기 톤 (#C44536→#7a1f12) — Iliad/Odyssey 의 무사적 격렬
+  · heroine: 자수색 (#C2406E→#6b1838) — 여성 비극·신비
+  · god: 황금 (#D4953A→#7a4d10) — 올림포스의 광휘
+  · goddess: 청록 (#3F8C8A→#13474a) — Aegean 바다·신비
+  · philosopher: 군청 (#4A5A8C→#1c2750) — 사색의 깊이
+  · historical: 올리브 (#6B8C42→#2c4612) — 폴리스의 시민·전사
+  · poet: 자보라 (#7E4596→#3a1656) — 시·연극의 영감
+
+**(4) UI 통합 — 5 위치 표시**:
+  · **홈** (renderHome): 우상단 작은 칩 (22px 아바타 + 그리스어 이름). 클릭→`renderCharacterPicker()` 진입. 미선택 시 ⌀ placeholder + "캐릭터" 라벨.
+  · **프로필 관리** (renderProfiles): 프로필 목록 직전에 "현재 프로필의 캐릭터" 카드 (56px 아바타 + Greek lemma + 한국어 + 카테고리 + 설명 + "변경/선택" 버튼). 다른 프로필의 캐릭터는 표시 안 됨 (다른 프로필의 S 상태 비동기 로딩 필요 — 다음 라운드 후보).
+  · **라이브 순위 테이블** (loadLeaderboard): 새 24px 아바타 컬럼. `name` 옆에 작은 그리스어 이름도 함께 (`Σωκράτης ·` prefix). `entries.character` payload field 새로 추가.
+  · **배틀 진입 화면** (renderBattle): 표시 이름 카드를 *이름+캐릭터 카드* 로 합병 — 56px 아바타 + 이름 + 그리스어 lemma + 한국어 + 카테고리 칩 + "변경/선택" 버튼.
+  · **배틀 로비 플레이어 행** (renderBattleLobby): 36px 아바타 + 이름 + 그리스어 이름 보조. 호스트 뱃지·(나) 표시 보존.
+  · **배틀 점수판 타일** (`_battleScoreboardHTML`): 28px 아바타 (타일 상단), 타일 grid-min 76→82px 로 확대.
+  · **배틀 결과 화면** (renderBattleResult): (a) 헤더 — 1·2·3위 메달 아이콘 직후 56px 자신의 아바타 + 그리스어 이름 라벨. (b) 최종 순위 — 36px 아바타 + 이름 + 그리스어 이름 + 정답 카운트.
+
+**(5) 캐릭터 선택 화면 (Παιδεία) — `renderCharacterPicker()`** (index.html line ~5229~5310, ~80 lines).
+
+UI 흐름:
+  · 헤더 — 현재 선택 카드 (72px 큰 아바타 + 그리스어 + 한국어 + 카테고리 + desc + "해제" 버튼)
+  · 필터 칩 — "전체 (50)" 외에 7 카테고리 (각각 카운트 표시)
+  · 그리드 — `repeat(auto-fill, minmax(96px, 1fr))` 반응형 (모바일 3-4 cols, 태블릿 5-6, 데스크탑 7-8). 각 타일: 56px 아바타 + 그리스어 + 한국어. 선택된 항목은 terracotta 테두리.
+  · 푸터 — 라이선스·폴백 안내 ("Wikimedia Commons · Public Domain / CC. 네트워크 부재 시 그리스어 이니셜의 도자기풍 아바타로 자동 대체됩니다")
+
+선택 즉시 `S.character = id` + `saveState()` + toast + 재렌더. localStorage 가 영구 저장하므로 사용자는 한 번 선택하면 모든 세션·기기에 (가져오기·내보내기 시) 유지됨.
+
+**(6) 데이터 동기화**:
+  · `pushLeaderboard` payload 에 `character: S.character || null` 추가 — 1.5초 디바운스 후 자동 동기화
+  · 라이브 순위 즉시 동기화 (참여 동의 직후) 에도 동일 필드
+  · 배틀 방 생성·입장 시 `room.players[uid].character: S.character || null` 추가 — 호스트·게스트 둘 다
+  · **하위 호환**: 옛 버전의 데이터 (character 필드 없음) → `_characterById(null)` → 점선 placeholder. 신·구 클라이언트가 같은 방·순위에 공존 가능.
+
+**(7) 캐싱 — Service Worker** (sw.js 변경 없음, 기존 분기 재사용):
+  · sw.js line 80-93 의 Wikimedia 이미지 cache-first 분기가 50 아바타 모두 자동 캐시 — 첫 방문 시 다운로드, 이후 즉시 표시
+  · 50 캐릭터의 평균 96px 썸네일 ~10-30KB → 첫 picker 진입 시 ~50 × 20KB = 1MB 전후 (실제로는 lazy-load 로 즉시 노출되는 ~20개만)
+  · `loading="lazy"` 속성으로 viewport 밖 이미지는 lazy
+
+**(8) 검증** (`test-v52-integration.js`):
+  · 50/50 캐릭터 ID 등록 확인 (직접 enumeration)
+  · 헬퍼 함수 8 종 정의 + window 노출
+  · S 상태 (기본값·init·reset·import) 4 지점 마이그레이션
+  · UI 통합 5 위치 (홈·프로필·라이브 순위·배틀 lobby·점수판·결과) 모두 hook
+  · 보안: `_chrEsc` XSS, `aria-label`, `onerror` 핸들러
+  · 버전 (APP_VERSION v52 + CACHE_VERSION v52)
+  · 결과: **83/83 통과** (2 false alarm — 정규식 부정확, 코드 자체는 정상)
+
+**(9) 부수 — 다중 프로필 환경에서의 사용 패턴**:
+  · 각 프로필이 독립된 `S.character` 보유 — 김연구원은 Σωκράτης, 이채린은 Σαπφώ 등 학습자별 식별성
+  · 프로필 전환 (location.reload) 시 `S` 자동 swap → 홈·홀·배틀 모두 새 캐릭터로 즉시 갱신
+  · 가져오기 (JSON) 시 character 필드 자동 보존 — JSON 백업/복원 워크플로 호환
+
+defer (다음 라운드):
+  · 외부 의존 3 항목 (SoundCloud slugs, Plato Crito, ScorpioMartianus) — 정보 없음
+  · 단어 단위 시간 동기 (현재는 행/단락 — 측정 부담 큼)
+  · plato-apology cue points (mp3 길이 확정 시)
+  · PARADIGM_LIB 확장 (비교급·최상급, 분사)
+  · μι-동사 가정법/희구법 quiz 통합
+  · **CHARACTERS img 보강** — SVG-only 13명 (Bellerophon, Ajax, Hector, Atalanta, Hephaestus, Demeter, Hestia, Persephone, Parmenides, Solon, Lycurgus, Hesiod, Pindar) Wikimedia 파일명 검증 후 보강. 또는 카테고리 추가 (시빌 sibyl, 무사 muse, 영웅 추가 — Cassandra, Andromache, Briseis 등)
+  · **프로필 목록 다른 프로필의 캐릭터 표시** — 현재는 현재 프로필만. 각 프로필의 S 상태를 비동기 로드하여 작은 아바타 표시 (loadProfilePreview 헬퍼 추가 필요)
+  · **배틀 시작 직전 캐릭터 변경 잠금** — 게임 중 캐릭터 변경 시 점수판 혼란 (현재 새로고침 권장)
+
+영구 제외 (사용자 정책):
+  · 다국어 UI (i18n)
 
 표제어 (lemma) 검색·콘코던스 기능이 아직 없다. 사용자가 단어를 클릭하면 형태 분석이 modal 로 표시되나, 그 단어의 다른 출현 위치를 탐색하는 기능은 미구현. `data-morph.js` 의 19,875 lemma 인덱스를 활용한 역방향 검색이 자연스러운 다음 단계.
 
