@@ -1,12 +1,12 @@
 # Ἑλληνικὴ Παιδεία — CIM Lab 인수인계
 
-본 문서는 CIM Lab에서 운영하는 고전 그리스어 학습 Progressive Web App (PWA) 의 기술적 인수인계를 위한 자료다. 신규 합류 구성원이 별도 컨텍스트 없이도 코드베이스를 이해하고 유지·확장할 수 있도록 작성했다. 최종 갱신 **v53 (2026년 5월)**.
+본 문서는 CIM Lab에서 운영하는 고전 그리스어 학습 Progressive Web App (PWA) 의 기술적 인수인계를 위한 자료다. 신규 합류 구성원이 별도 컨텍스트 없이도 코드베이스를 이해하고 유지·확장할 수 있도록 작성했다. 최종 갱신 **v55 (2026년 5월)**.
 
-> **다음 작업자에게**: §7 라운드별 changelog 의 *맨 마지막 항목 (v53)* 이 현재 상태다. 그 위 라운드들은 어떻게 여기까지 왔는지의 기록. 새 작업을 시작하기 전에 §7 의 가장 최근 항목과 §0 의 현재 스냅샷을 먼저 읽기.
+> **다음 작업자에게**: §7 라운드별 changelog 의 *맨 마지막 항목 (v55)* 이 현재 상태다. 그 위 라운드들은 어떻게 여기까지 왔는지의 기록. 새 작업을 시작하기 전에 §7 의 가장 최근 항목과 §0 의 현재 스냅샷을 먼저 읽기.
 
-## 0. 현재 상태 스냅샷 (v53, 2026-05)
+## 0. 현재 상태 스냅샷 (v55, 2026-05)
 
-**배포 산출물**: `index.html` (~895 KB, IIFE 약 410K chars, 14.6K lines) · `sw.js` · `data-works.js` (3 MB, 45 작품 545 섹션) · `data-morph.js` (4 MB, AGDT v2.1 37K 어형 11.8K lemma) · `data-dialogues.js` (45 KB, 10 콩트 시나리오) · **`data-translations.js` (~55 KB, v53 확장 — 19 발췌 정역 ~330 문장 + 34 짧은 발췌 정역)** · **`data-characters.js` (~12 KB, v53 신규 — 50 캐릭터 사진 메타데이터)** · `espeakng.worker.js` (760 KB) · `manifest.json` · `reset.html`.
+**배포 산출물**: `index.html` (~895 KB, IIFE 약 410K chars, 14.6K lines) · `sw.js` · `data-works.js` (3 MB, 45 작품 545 섹션) · `data-morph.js` (4 MB, AGDT v2.1 37K 어형 11.8K lemma) · `data-dialogues.js` (45 KB, 10 콩트 시나리오) · `data-translations.js` (~55 KB, v53 확장 — 19 발췌 정역 ~330 문장 + 34 짧은 발췌 정역) · **`data-characters.js` (~16 KB, v55 완결 — 50 캐릭터 전원의 검증된 Wikimedia Commons 사진 메타데이터)** · `espeakng.worker.js` (760 KB) · `manifest.json` · `reset.html`.
 
 **기능 카탈로그**:
 - 어휘 학습: 교재 어휘 + DCC 523 + DAILY_W 51 + CIVIC_W 80 + 콩트 vocab 60 = 1142 어휘
@@ -19,7 +19,7 @@
 - 발음 모드: 4종 (eSpeak NG · 현대 헬라어 · Erasmian · 복원 Attic) + Stratakis/SORGLL/Projet Homere/Ariphron 학자 발음 비교
 - 학습 모드: 어휘 quiz (객관식·타이핑) · 받아쓰기 (Ἀκοή) · 악센트 학습 (Τόνος) · 옥시톤 분류 quiz · 검색·콘코던스 (Εὕρεσις) · 변화표 만들기 + 빈칸 채우기 시험 (Παράδειγμα) · 배틀 모드 · 오답함 SRS
 - 변화표: 76 표제어 큐레이션 (55 명사 · 12 형용사 · 9 대명사) — Smyth/Goodwin 표준형, AGDT v2.1 실제 어형과 자동 결합 표시, 빈칸 채우기 시험 모드 (NFD/ς-σ 관용 채점, 액센트 정확 ★ 마킹)
-- **캐릭터 (Παίγνια · v52 신규)**: **50 캐릭터** SVG 메달리온 (12 올림포스 신 · 12 영웅 · 8 여신/여성 영웅 · 10 철학자 · 8 시인·역사가·정치가). 카테고리별 그라데이션 팔레트 · 32 심볼 · 그리스 이니셜 + 한국어 호칭. 홈·프로필·명예의 전당·라이브 순위·멀티 배틀 5 위치에 표시.
+- **캐릭터 (Παίγνια · v52 신규)**: **50 캐릭터** SVG 메달리온 (12 올림포스 신 · 12 영웅 · 8 여신/여성 영웅 · 10 철학자 · 8 시인·역사가·정치가). 카테고리별 그라데이션 팔레트 · 32 심볼 · 그리스 이니셜 + 한국어 호칭. 홈·프로필·명예의 전당·라이브 순위·멀티 배틀 5 위치에 표시. **v55: 50 캐릭터 전원이 Wikimedia Commons 사진 표시** (v54 의 41/50 + v55 신규 9: diomedes · orpheus · aeneas · penelope · atalanta · medea · empedocles · herodotus · solon). 모든 파일명은 Wikimedia 카테고리 페이지 listing 에서 검증된 실존 파일만 사용 — v53 의 추측 오류 (broken-image 23 개) 완전 해소.
 - **원문 해석 (Ἑρμηνεία · v52 신규, v53 확장)**: 본문 읽기에 📖 해석 토글. 큐레이션 정역 13 발췌 (Iliad 1.1-50/1.51-100 · Odyssey 1.1-50/1.51-100 · Plato Apology §17/§18/§19/§20/§21/§22 · Plato Crito §43 · Herodotus 1.1 · Hesiod Theogony 1-50) + 짧은 발췌 34편 (`data-translations.js` 별도 파일) + ALL_VOCAB/MORPH_LOOKUP 기반 단어 풀이 폴백. 문장 단위 표시 (.sent[data-sent-idx] 그룹화). 모든 발췌의 sentence 카운트가 renderer 의 `[.;·?!]` 정규식과 일치하도록 검증.
 - 접근성: aria-label 35 · title 18 · greek lang attr 자동화
 - 다중 프로필 · 명예의 전당 · 책갈피·메모
@@ -36,14 +36,16 @@
 - **캐릭터 라이브러리 (v52)**: `CHARACTERS` (50 항목) · `CHARACTERS_BY_ID` 인덱스 · `CHAR_SYMBOLS` (32 SVG path) · `CHAR_PALETTES` (5 카테고리) · `_charMedallion(idOrObj, size)` 렌더러
 - **정역 라이브러리 (v52)**: 별도 파일 `data-translations.js` 가 `window.WORK_TRANSLATIONS` (5 발췌, `workId:secN` → 문장 인덱스 배열) + `window.READING_TRANSLATIONS` (12 짧은 발췌) 노출. index.html 의 IIFE 가 `window.WORK_TRANSLATIONS` 를 캡처 (없으면 빈 객체 폴백). 헬퍼: `_getCuratedTranslation()` 조회 · `_buildLiteralGloss()` 단어 풀이 폴백 · `_applyTranslationDisplay()` DOM 삽입
 
-**현재 미해결·defer 상태** (§7 의 v52 끝 defer 블록 참조):
+**현재 미해결·defer 상태** (§7 의 v55 끝 defer 블록 참조):
 - 외부 의존 3 항목 (SoundCloud slugs · Plato Crito sample · ScorpioMartianus) — 새 정보 없음
 - 단어 단위 시간 동기 (현재 행/단락 — 더 정밀은 큰 측정 부담)
 - plato-apology Stratakis cue points 측정 (mp3 길이 미확정으로 보류)
 - PARADIGM_LIB 확장 — 비교급·최상급 형용사, 분사 (현재 명사·형용사·대명사만)
 - μι-동사 가정법/희구법 quiz 통합 (v50 의 5 표는 학습만, Παράδειγμα 시험과 별개)
-- **정역 확장 (v53)**: 현재 13 발췌 큐레이션 (data-translations.js). 나머지 532 섹션은 단어 풀이 폴백. 다음 우선순위: Plato Apology §23-26 (변론 마무리), Iliad 1.101-150 (공개 다툼), Anabasis 1.2 이후 (긴 섹션), Sophocles Antigone 1-100 (안티고네-이스메네 대화)
+- **정역 확장 (v53)**: 현재 19 발췌 큐레이션 (data-translations.js). 나머지 ~525 섹션은 단어 풀이 폴백. 다음 우선순위 (v56 권장): Plato Apology §23-26 (변론 마무리), Iliad 1.151-200+ (외교 시도), Sophocles Oedipus 1-100, Plato Crito §44-47
 - **캐릭터 잠금 시스템 (v52)**: 현재 모든 50 캐릭터 즉시 선택 가능. XP/배지/완독 기반 점진 잠금 해제는 다음 라운드 후보 (학습 동기 부여)
+- **캐릭터 사진 prefetch (v53 의 defer)**: 사용자가 picker 열기 전에 50 사진 미리 캐시 (`<link rel=prefetch>` 또는 SW pre-cache). 첫 picker 열림 속도 개선용. v55 에서 50/50 사진이 모두 검증되어 prefetch 의 효과가 명확해짐.
+- **캐릭터 사진 라이선스 정밀화 (v53 의 defer)**: 일부 CC BY 사진 (회화) 의 attribution 화면 표시. 현재는 caption 필드의 작가/박물관 명시로 *사실상의 attribution*.
 
 **영구 제외** (사용자 정책):
 - 다국어 UI (i18n)
@@ -891,6 +893,167 @@ defer (다음 라운드 후보, v54+):
 
 영구 제외 (사용자 정책):
   · 다국어 UI (i18n)
+
+---
+
+**v54**: 캐릭터 사진 broken-image 핫픽스 — 사용자 보고 *"아직 모든 캐릭터 안나오는 문제 해결"* (스크린샷 3 장 첨부, 23/50 메달리온이 사진이 아닌 SVG 폴백 상태).
+
+**원인 진단**: v53 의 `data-characters.js` 는 50 entry 전체를 단일 라운드에서 추가했는데, 그중 23 entries 의 Wikimedia Commons 파일명이 *현재 Commons 에 존재하지 않거나 변경*된 상태였다. 패턴별 오류 사례:
+  · **불필요한 접두사**: `Bust_Zeus_Otricoli_...` (실제는 `Zeus_Otricoli_Pio-Clementino_Inv257.jpg`)
+  · **잘못된 inventory 번호**: `Ares_Borghese_Louvre_Ma866.jpg` (실제는 `Ma_866_n01.jpg`, 언더스코어와 일련번호 차이)
+  · **존재하지 않는 일련번호**: `Exekias_Suicide_d_Ajax_05.jpg` (Commons 에는 `_01` 만 존재)
+  · **불필요한 접미사**: `Hestia_Giustiniani_Torlonia.jpg` (실제는 `Hestia_Giustiniani.jpg`)
+  · **추측한 카테고리 패턴**: 일부 entry 는 검증 없이 추정 명명 규칙으로 작성됨
+
+→ `Special:FilePath/{잘못된 파일명}` HTTP 404 → `<img onerror>` 발동 → SVG 폴백 노출 (v53 의 `_charPhotoMedallion` 폴백 로직은 정상 작동했으나 *24/50 = 절반 가까이가 폴백 상태*인 일관성 없는 UX 가 사용자 보고로 이어짐).
+
+**수정**:
+
+**(1) 14 파일명 정정** — Wikimedia Commons 카테고리 검색으로 실제 존재하는 파일 확인 후 교체:
+  | id | v53 파일명 (broken) | v54 파일명 (verified) |
+  |---|---|---|
+  | zeus | `Bust_Zeus_Otricoli_...` | `Zeus_Otricoli_Pio-Clementino_Inv257.jpg` |
+  | poseidon | (broken) | `Bronze_statue_of_Zeus_or_Poseidon.jpg` |
+  | ares | `..._Ma866.jpg` | `Ares_Borghese_Louvre_Ma_866_n01.jpg` |
+  | hephaestus | (broken) | `Jouvenet_Forge_of_Vulcan.jpg` |
+  | heracles | (broken) | `Herakles_Farnese_MAN_Napoli_Inv6001_n01.jpg` |
+  | theseus | (broken) | `Henry_Fuseli_-_Ariadne_Watching_the_Struggle_of_Theseus_with_the_Minotaur_-_Google_Art_Project.jpg` |
+  | perseus | (broken) | `Loggia_dei_Lanzi_-_Perseus_with_the_Head_of_Medusa_-_Florence_04_2024_0738.jpg` |
+  | jason | (broken) | `Jason_with_the_Golden_Fleece_by_Bertel_Thorvaldsen.jpg` |
+  | bellerophon | (broken) | `Bellerophon_killing_Chimaera_(mosaic_from_Rhodes).jpg` |
+  | hector | (broken) | `Preller_Hektors_Abschied.jpg` |
+  | ajax | `..._Ajax_05.jpg` | `Exekias_Suicide_d_Ajax_01.jpg` |
+  | andromache | (broken) | `Jacques-Louis_David-_Andromache_Mourning_Hector.JPG` |
+  | hestia | `..._Torlonia.jpg` | `Hestia_Giustiniani.jpg` |
+  | sappho | (broken) | `Herkulaneischer_Meister_002.jpg` |
+
+**(2) 9 entry 제거** — 검증된 파일명을 찾지 못한 9 캐릭터는 entry 자체를 `data-characters.js` 에서 제거 (주석으로 *Wikimedia 파일명 검증 실패* 표시 후 entry 본문 삭제):
+  `diomedes · orpheus · aeneas · penelope · atalanta · medea · empedocles · herodotus · solon`
+
+→ `window.CHARACTER_IMAGES[id]` 가 `undefined` 일 때 `_charPhotoMedallion` 이 자동으로 `_charMedallion` (SVG only) 으로 fallthrough (index.html line 5387):
+```js
+if(!meta || !meta.url) return _charMedallion(c, size);
+```
+v53 의 *broken-image fallback* (DOM 에 깨진 img + SVG 가 동시 존재) 보다 *깔끔한 SVG-only 렌더* 가 된다. UX 일관성 개선.
+
+**결과** (50 캐릭터 = 41 사진 + 9 SVG 메달리온, 일관된 UX):
+  · v53: 27 사진 + 23 broken-image-with-SVG-fallback (혼란스러운 상태)
+  · v54: 41 사진 + 9 깨끗한 SVG 메달리온
+
+**검증 방법**: Wikimedia Commons 카테고리 페이지 검색 (`Category:Statue of X`, `Category:Bust of X`, `Category:X (mythology)`) 으로 실제 파일명 목록 확인. 추측·기억·외삽 금지 원칙 적용 (v53 의 실수 재현 방지).
+
+**구현 사항**:
+  · data-characters.js: 50 → 41 entry 로 축소. 14 entries 의 url 필드 교체. 9 entries 는 주석만 남기고 제거. 헤더에 v54 정정 사유 명시 (~12 KB → ~14 KB, 헤더 확장만큼)
+  · index.html: APP_VERSION v53 → v54 (line 4612). UI 코드 변경 없음 (폴백 로직은 이미 v53 에서 정상)
+  · sw.js: CACHE_VERSION v53 → v54 (line 21). IMG_CACHE 도 자동으로 `paideia-img-v54` 로 bump → 사용자가 다음 방문 시 신·구 잘못된 이미지가 캐시에 남아 있어도 새 캐시로 진입
+
+**검증** (test-v54.js):
+  · 50 캐릭터 ID 가 CHARACTERS 배열에 모두 존재 (구조 변경 없음)
+  · CHARACTER_IMAGES 정확히 41 entries
+  · 9 미수록 ID = 예상 set 과 일치 (`diomedes · orpheus · aeneas · penelope · atalanta · medea · empedocles · herodotus · solon`)
+  · 41 entries 모두 `Special:FilePath/{name}.{ext}?width=240` 패턴 준수, caption/license 필드 존재
+  · `_charPhotoMedallion` 함수가 SVG 폴백 분기 보존 (index.html line 5387)
+  · syntax check 통과
+
+defer (다음 라운드 후보, v55+):
+  · **9 미수록 캐릭터 사진 재추가** — 검증된 Wikimedia 파일명 발견 시. 후보 카테고리:
+    - diomedes → `Category:Diomedes` (도기 그림)
+    - orpheus → `Category:Orpheus` (모자이크 다수)
+    - aeneas → `Category:Aeneas` (Bernini, Lazio mosaic 등)
+    - penelope → `Category:Penelope` (Vatican Penelope 흉상)
+    - atalanta → `Category:Atalanta` (Guido Reni 회화)
+    - medea → `Category:Medea` (Delacroix, Vase paintings)
+    - empedocles → `Category:Empedocles` (Salerno fresco?)
+    - herodotus → `Category:Herodotus` (Roman copy bust)
+    - solon → `Category:Solon` (Athens monument)
+  · 사진 prefetch (사용자가 picker 열기 전에 다음 50 사진 미리 캐시) — v53 의 defer
+  · 캐릭터 잠금 시스템 (XP/배지/완독 기반) — v53 의 defer
+  · 정역 추가 — Apology §23-26, Iliad 1.151-200+, Sophocles Oedipus, Plato Crito §44-47 — v53 의 defer
+  · PARADIGM_LIB 분사 확장 (v51 의 defer)
+  · μι-동사 quiz 통합 (v51 의 defer)
+  · AI 기반 정역 (Anthropic API 통합) — v53 의 defer
+
+영구 제외 (사용자 정책):
+  · 다국어 UI (i18n)
+
+---
+
+**v55**: 9 미수록 캐릭터 사진 재추가 — v54 hotfix 의 완결. 사용자 요청 *"계속"* (즉, NEXT_TASKS.md §1 우선순위 1 그대로 진행).
+
+v54 까지의 상태: `data-characters.js` 가 50 ID 중 41 entries 만 등록 (사진 표시), 9 ID (`diomedes · orpheus · aeneas · penelope · atalanta · medea · empedocles · herodotus · solon`) 는 entry 제거하여 `_charPhotoMedallion` 의 SVG 폴백 (line 5387 의 `if(!meta || !meta.url) return _charMedallion(c, size);`) 으로 깨끗하게 분기. v55 의 작업은 *이 9 미수록 항목을 Wikimedia 카테고리 검증 후 entry 로 재추가*.
+
+**v53 → v54 의 핵심 교훈 (v55 에서도 엄수)**: 파일명 추측 금지. 카테고리 페이지에 *실제 listing 된 파일명* 만 채택. v53 의 23/50 broken 의 유일한 원인이 파일명 추측이었기에, v55 는 *web search 의 카테고리 페이지 listing* (사이즈·MB 포함) 으로 직접 검증.
+
+**(1) 9 캐릭터의 검증된 파일명** — 각 출처 카테고리:
+
+  | ID | 파일명 | 출처 카테고리 |
+  |---|---|---|
+  | `diomedes` | `Diomedes_Louvre_Ma890_n2.jpg` | Cat:Diomedes_(Louvre,_Ma_890) — Kresilas 의 5c BC 그리스 원본을 복제한 Louvre 의 로마 복제 |
+  | `orpheus` | `Berlin-Pergamonmuseum-18-Orpheus-Mosaik-2016-gje.jpg` | Cat:Pergamonmuseum_-_Orpheus_mosaic — 밀레토스의 ~200 CE 모자이크 |
+  | `aeneas` | `Aeneas,_Anchises,_and_Ascanius_by_Bernini,_Galleria_Borghese_(44686152210).jpg` | Cat:Aeneas,_Anchises,_and_Ascanius_by_Bernini — 1618-19 |
+  | `penelope` | `JohnWilliamWaterhouse-PenelopeandtheSuitors(1912).jpg` | File 페이지 직접 검증 — Waterhouse 1912, Aberdeen Art Gallery |
+  | `atalanta` | `Guido_Reni_-_Atalanta_and_Hippomenes_-_Google_Art_Project.jpg` | Cat:Atalanta_and_Hippomenes_by_Guido_Reni_(Naples) — Capodimonte |
+  | `medea` | `Lille_PdBA_delacroix_medee.JPG` | File 페이지 직접 검증 — Delacroix 1838 *Medea about to Kill her Children* (Lille 원본). 확장자 *대문자 `.JPG`* 주의 |
+  | `empedocles` | `The_Death_of_Empedocles_by_Salvator_Rosa.jpg` | File 페이지 직접 검증 — 살바토르 로사의 17c 회화 (에트나 화산 투신 전설). 고대 흉상이 없는 캐릭터의 정전적 표현 |
+  | `herodotus` | `Marble_bust_of_Herodotos_MET_DT11742_(cropped).jpg` | Wikidata Q26825 의 정전 이미지 — MET 의 2c AD 로마 복제 (4c BC 그리스 청동상의 복제) |
+  | `solon` | `Solon_in_Vatican_Museums.JPG` | File 페이지 직접 검증 — Vatican Museums. 확장자 *대문자 `.JPG`* 주의 |
+
+세 가지 미세 패턴 함정 (v54 의 hestia·ajax·ares 와 같은 부류):
+  · **medea, solon**: 확장자가 *대문자 `.JPG`* — Wikimedia 는 확장자도 case-sensitive. 소문자로 작성하면 404. v54 의 andromache 가 이미 같은 패턴 (`.JPG`) 이었기에 선례 존재.
+  · **aeneas**: 파일명에 콤마 (`,`) + 괄호 (`()`) 포함. Special:FilePath 가 URL 인코딩 없이 그대로 처리. v54 의 bellerophon (괄호 포함) 과 같은 패턴.
+  · **herodotus**: `(cropped)` 괄호 — Wikidata 가 채택한 cropped 버전을 그대로 사용 (원본보다 메달리온에 더 적합한 비율).
+
+**(2) data-characters.js 갱신** — 41 entries → 50 entries (~14 KB → ~16 KB):
+  · 헤더 주석을 v55 사유로 교체 (검증 방법론 + 9 신규 entries 의 출처 카테고리 명시)
+  · 4 개 카테고리 헤더 코멘트의 "(N 사진 + M SVG 폴백)" 표기를 "(전원 사진 · v55)" 로 갱신: heroines · philosophers · poets (heroes 의 경우 신규 3 entries 가 ajax 뒤에 추가되므로 헤더 자체는 그대로지만 끝에 새 entries 부착)
+
+**(3) 버전 bump**:
+  · `index.html`: APP_VERSION v54 → v55 (line 4612)
+  · `sw.js`: CACHE_VERSION v54 → v55 (line 21). `IMG_CACHE` 도 자동으로 `paideia-img-v55` 로 bump → v54 의 broken 캐시가 남아 있어도 새 캐시로 진입
+
+**(4) 검증** (`test-v55.js`, 27/27 PASS):
+  · APP_VERSION/CACHE_VERSION 둘 다 v55
+  · `data-characters.js` 가 syntax error 없이 파싱, `window.CHARACTER_IMAGES` 노출
+  · 정확히 50 entries (v54 의 41 + 신규 9)
+  · 9 신규 ID 의 *정확한 파일명* 검증 (대소문자·언더스코어·괄호·콤마 보존)
+  · v54 의 41 보존 ID 가 regression 없이 모두 존재 (id-by-id 체크)
+  · 모든 50 entries 의 URL 이 `Special:FilePath/.../?width=240` 패턴 + caption 비공 + license 'PD'
+  · `_charPhotoMedallion` 의 SVG 폴백 분기 (`if(!meta || !meta.url) return _charMedallion`) 보존
+
+  추가: `index.html` 의 16 개 inline `<script>` 블록 모두 syntax error 없이 파싱. v54 의 `test-v54.js` 도 함께 실행 — 20 pass / 15 fail. *fail 15 는 모두 의도된 reversal*:
+    - 9 fail: 'X entry 제거됨' 주장 (v54 의 invariant) 이 이제 거짓 (v55 가 의도적으로 재추가)
+    - 4 fail: 41 entry 가정 (이제 50)
+    - 2 fail: APP_VERSION/CACHE_VERSION (이제 v55)
+  즉, v54 테스트가 v55 의 정상 변경을 보고한 *건강한 신호*. 구조적 invariant 는 그대로.
+
+**의도된 결과**:
+  · 50 캐릭터 모두 사진 표시 — 일관된 UX
+  · v54 의 "41 사진 + 9 SVG 메달리온" 혼재 해소
+  · 사용자가 picker 를 열 때 보는 시각 경험이 v52 의 *기획 의도* 에 도달 (v52 가 "50 캐릭터 사진" 을 첫 요청한 라운드, v53 의 broken-image, v54 의 hotfix 를 거쳐 v55 에서 완결)
+
+**구현 사항**:
+  · `data-characters.js`: 9 entries 추가, 헤더 주석 교체, 카테고리 헤더 4 줄 업데이트 (~52 lines 추가, ~16 KB)
+  · `index.html`: APP_VERSION v54 → v55 (1 line, line 4612)
+  · `sw.js`: CACHE_VERSION v54 → v55 (1 line, line 21)
+  · `test-v55.js`: 신규 (~150 lines, 27 assertions)
+
+defer (다음 라운드 후보, v56+):
+  · **정역 확장** (v53~v54 의 defer) — *현재 가장 학습 가치 높은 자체완결 항목*. 19 발췌 → 25 발췌 목표. 우선순위:
+    - Plato Apology §23-26 (변론 마무리, v52~v53 진행한 §17-22 의 자연스러운 연속)
+    - Iliad 1.151-200+ (외교 시도, v53 의 §1.101-150 연속)
+    - Sophocles Oedipus 1-100 (안티고네에 이은 두 번째 비극)
+    - Plato Crito §44-47 (탈출 권유 본격화, v53 의 §43 연속)
+    - Aeschylus Agamemnon 1-100 또는 Euripides Medea 1-100 (옵션)
+  · 사진 prefetch — 이제 50/50 모두 검증되어 prefetch 효과 명확. 작업 비용은 낮음.
+  · 캐릭터 잠금 시스템 (XP/배지/완독 기반) — v52~v54 의 defer. 학습 동기 부여 효과 있을 수 있으나 UX 설계 필요 (어느 캐릭터를 기본 unlock 으로 둘지 등)
+  · 외부 의존 3 항목 (SoundCloud slugs, Plato Crito, ScorpioMartianus) — 새 정보 없으면 진척 불가
+  · PARADIGM_LIB 분사 확장 (v51 의 defer)
+  · μι-동사 quiz 통합 (v51 의 defer)
+  · AI 기반 정역 (Anthropic API 통합) — *큐레이션 한계 보완*. 비용 모델 결정 필요
+
+영구 제외 (사용자 정책):
+  · 다국어 UI (i18n)
+
 
 ## 8. 알려진 미해결 사항 및 향후 작업
 
