@@ -4609,7 +4609,7 @@ function imageURL(imgId, width){
 
 // 앱 버전 — sw.js CACHE_VERSION과 동기화 유지. 홈 화면 푸터에 표시되어
 // 사용자가 자신이 어느 버전을 사용 중인지 확인 가능 (캐시 갱신 진단용).
-const APP_VERSION = 'v59';
+const APP_VERSION = 'v60';
 window.__paideiaVersion = APP_VERSION;
 
 // ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
@@ -14425,9 +14425,19 @@ async function renderBattleLobby(){
     const players = Object.entries(room.players || {});
     const status = room.meta.status;
     const myId = S.userId;
+    // v60: status 'finished' 는 어떤 단락(short-circuit)보다도 먼저 체크.
+    // 이전엔 'playing' 분기의 answeredThisQ 단락에 가로채여 결과 화면 진입이 지연/실패할 수 있었음.
+    if(status === 'finished'){
+      _battleStopPoll();
+      return renderBattleResult(code, room);
+    }
     if(status === 'playing'){
+      // v60: 자기가 이미 wait-others 상태 (모든 문제 풀었거나 finished true) 면 단락 금지 —
+      // status 전환 watchdog (renderBattleGame 진입 시 재평가) 가 필요.
+      const inWaitOthers = !!(_battleGameLocal && _battleGameLocal.code === code &&
+                               (_battleGameLocal.idx >= BATTLE_N_Q || _battleGameLocal.finished));
       // 답 중이면 점수보드만 부분 갱신 (전체 재렌더하면 시각 피드백 끊김)
-      if(_battleGameLocal && _battleGameLocal.answeredThisQ){
+      if(!inWaitOthers && _battleGameLocal && _battleGameLocal.answeredThisQ){
         const sb = document.getElementById('bat-scoreboard-wrap');
         if(sb){
           const ps = Object.entries(room.players || {});
@@ -14436,10 +14446,6 @@ async function renderBattleLobby(){
         return;
       }
       return renderBattleGame(code, room);
-    }
-    if(status === 'finished'){
-      _battleStopPoll();
-      return renderBattleResult(code, room);
     }
 
     view.innerHTML = `
@@ -15088,6 +15094,28 @@ async function renderBattleGame(code, room){
     return renderBattleResult(code, room);
   }
 
+  // v60: status 전환 watchdog — 자기가 wait-others 상태이고 모든 player 가 finished:true 인데
+  // meta.status 가 아직 'playing' 이면, 어떤 player 든 status flip 을 재시도 (idempotent).
+  // 마지막 player 의 _battleSubmitProgress 가 transient 실패했을 때의 자가 회복 경로.
+  if((local.idx >= BATTLE_N_Q || local.finished) && room && room.players && room.meta && room.meta.status === 'playing'){
+    const playersArr = Object.values(room.players);
+    if(playersArr.length > 0 && playersArr.every(p => p && p.finished)){
+      try {
+        const fresh = await _battleFetchRoom(code);
+        if(fresh && fresh.players && fresh.meta && fresh.meta.status === 'playing'){
+          const allDoneFresh = Object.values(fresh.players).every(p => p && p.finished);
+          if(allDoneFresh){
+            fresh.meta.status = 'finished';
+            fresh.meta.finishedAt = Date.now();
+            await _battleSaveRoom(code, fresh);
+            // 자기 자신은 즉시 결과 화면으로. 다른 player 는 다음 polling/SSE tick 에 자동 갱신.
+            return renderBattleResult(code, fresh);
+          }
+        }
+      } catch(_){}
+    }
+  }
+
   // 자기 다 풀었으면 대기 화면
   if(local.idx >= BATTLE_N_Q || local.finished){
     return _renderBattleWaitOthers(code, room, local);
@@ -15324,18 +15352,32 @@ async function _battleSubmitProgress(code, local, finished){
     finished: !!finished,
     stolen: Array.isArray(local.stolen) ? local.stolen.slice(0, 50) : [],  // v56: 강탈 기록 (안전 한도 50)
   };
+  // v60: path 일반화 — _battleFetchRoom/_battleSaveRoom 와 동일 규칙으로 lobby matches (`lobby:matches:<mid>`) 도 지원.
+  // 기존 hardcoded `battles:${code}` 는 코드방만 작동하고 공개 lobby 매치에서는 잘못된 path 로 PUT 되어
+  // 모든 player 의 `finished: true` 가 실제 매치 객체에 반영 안 됨 → status 'finished' 전환 영구 실패 → wait-others 화면 무한 정지.
+  const basePath = (_battleState && _battleState.roomPath) ? _battleState.roomPath : `battles:${code}`;
   try {
-    await STORAGE.setShared(`battles:${code}:players:${S.userId}`, JSON.stringify(payload));
+    await STORAGE.setShared(`${basePath}:players:${S.userId}`, JSON.stringify(payload));
   } catch(_){}
   // 모든 플레이어 finished인지 확인 → status를 'finished'로
   if(finished){
     try {
       const fresh = await _battleFetchRoom(code);
       if(fresh && fresh.players){
-        const allDone = Object.values(fresh.players).every(p => p.finished);
-        if(allDone && fresh.meta.status !== 'finished'){
+        // v60: Last-player race 대응 — Firebase RTDB 의 eventual consistency 로 자기 직전 PUT 이 아직
+        // propagate 안 됐을 수 있음. 자기 자신은 막 PUT 한 payload 가 ground truth 이므로 local merge.
+        const merged = { ...fresh.players };
+        if(S.userId && merged[S.userId]){
+          merged[S.userId] = { ...merged[S.userId], ...payload };
+        } else if(S.userId){
+          merged[S.userId] = payload;
+        }
+        const allDone = Object.values(merged).every(p => p && p.finished);
+        if(allDone && fresh.meta && fresh.meta.status !== 'finished'){
           fresh.meta.status = 'finished';
           fresh.meta.finishedAt = Date.now();
+          // 자기 merge 결과도 함께 publish — 다른 player 의 stale view 해소
+          fresh.players = merged;
           await _battleSaveRoom(code, fresh);
         }
       }
@@ -15345,15 +15387,73 @@ async function _battleSubmitProgress(code, local, finished){
 
 function _renderBattleWaitOthers(code, room, local){
   const players = Object.entries(room.players || {});
+  // v60: 미완료 player 식별 + 자기가 진입한 후 흐른 시간
+  const unfinished = players.filter(([, p]) => p && !p.finished);
+  const others = players.filter(([uid]) => uid !== S.userId);
+  const allOthersFinished = others.length > 0 && others.every(([, p]) => p && p.finished);
+  const waitMs = local._waitOthersStartedAt ? (Date.now() - local._waitOthersStartedAt) : 0;
+  if(!local._waitOthersStartedAt) local._waitOthersStartedAt = Date.now();
+  const waitedSec = Math.floor(waitMs/1000);
+  // 미완료 player 가 30초 넘게 응답 없으면 stale 알림 + 수동 종료 가능
+  const showStaleHint = waitedSec >= 30 && unfinished.length > 0;
+  // 다른 player 가 모두 끝났는데도 wait-others 에 있으면 status 전환 실패 가능 — 즉시 비상 종료 제안
+  const showForceEnd = allOthersFinished || (waitedSec >= 45);
+
   view.innerHTML = `
     <h2 class="view-title fade-in" style="margin-top:6px"><span class="grk">Ἀγών</span>배틀 진행 중</h2>
-    <div class="card" style="padding:10px 12px">${_battleScoreboardHTML(players)}</div>
+    <div class="card" id="bat-scoreboard-wrap" style="padding:10px 12px">${_battleScoreboardHTML(players)}</div>
     <div class="card" style="text-align:center;padding:24px">
       <div style="font-family:var(--font-display);font-size:18px;color:var(--terracotta-d);font-weight:600">${local.score}/${BATTLE_N_Q} 완료</div>
-      <div style="font-size:13px;color:var(--clay-d);margin-top:8px;line-height:1.6">다른 참가자가 끝나기를 기다리는 중...</div>
-      <div style="font-size:11px;color:var(--clay-d);margin-top:12px;font-style:italic">매치 5분 한도 초과 시 자동 종료</div>
+      <div style="font-size:13px;color:var(--clay-d);margin-top:8px;line-height:1.6">
+        ${unfinished.length > 0
+          ? `${unfinished.length}명이 아직 풀고 있습니다 (대기 ${waitedSec}초)`
+          : '모두 끝났습니다 — 결과 집계 중...'}
+      </div>
+      ${showStaleHint ? `
+        <div style="font-size:11.5px;color:var(--clay-d);margin-top:14px;padding:8px 10px;background:var(--ivory-d);border-left:3px solid var(--clay-d);text-align:left;line-height:1.5;border-radius:4px">
+          ⓘ 응답이 늦어지는 참가자가 있습니다. 매치 5분 한도가 지나면 자동 종료되며, 그 전에 결과를 보고 싶다면 아래 버튼으로 매치를 수동 종료할 수 있습니다 (미완료 참가자는 현재 점수로 집계).
+        </div>` : `<div style="font-size:11px;color:var(--clay-d);margin-top:12px;font-style:italic">매치 5분 한도 초과 시 자동 종료</div>`}
+      ${showForceEnd ? `
+        <button class="btn btn-sm" id="bat-force-finish" type="button" style="margin-top:14px;background:var(--terracotta);color:var(--ivory-w);border:none">
+          ⚡ 지금 결과 보기 (매치 종료)
+        </button>` : ''}
     </div>
   `;
+
+  // v60: 수동 종료 — 자기 권한으로 meta.status='finished' 전환. 미완료 참가자는 현재 점수로 집계.
+  const fb = document.getElementById('bat-force-finish');
+  if(fb){
+    fb.addEventListener('click', async () => {
+      fb.disabled = true; fb.textContent = '종료 중...';
+      try {
+        const fresh = await _battleFetchRoom(code);
+        if(fresh){
+          if(!fresh.meta) fresh.meta = {};
+          fresh.meta.status = 'finished';
+          fresh.meta.finishedAt = Date.now();
+          fresh.meta.forceFinishedBy = S.userId || null;
+          // 미완료 player 도 일관성 위해 finished=true 마킹 (점수는 그대로)
+          if(fresh.players){
+            for(const uid in fresh.players){
+              if(fresh.players[uid] && !fresh.players[uid].finished){
+                fresh.players[uid].finished = true;
+              }
+            }
+          }
+          const ok = await _battleSaveRoom(code, fresh);
+          if(ok){
+            return renderBattleResult(code, fresh);
+          } else {
+            if(typeof toast === 'function') toast('종료 실패 — Firebase 룰 또는 네트워크 확인', 'err');
+            fb.disabled = false; fb.textContent = '⚡ 지금 결과 보기 (매치 종료)';
+          }
+        }
+      } catch(e){
+        if(typeof toast === 'function') toast('종료 실패: ' + (e && e.message ? e.message.slice(0,60) : '알 수 없는 오류'), 'err');
+        fb.disabled = false; fb.textContent = '⚡ 지금 결과 보기 (매치 종료)';
+      }
+    });
+  }
 }
 
 async function _battleForfeit(){

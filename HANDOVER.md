@@ -2,11 +2,11 @@
 
 본 문서는 CIM Lab에서 운영하는 고전 그리스어 학습 Progressive Web App (PWA) 의 기술적 인수인계를 위한 자료다. 신규 합류 구성원이 별도 컨텍스트 없이도 코드베이스를 이해하고 유지·확장할 수 있도록 작성했다. 최종 갱신 **v56 (2026년 5월)**.
 
-> **다음 작업자에게**: §7 라운드별 changelog 의 *맨 마지막 항목 (v59)* 이 현재 상태다. 그 위 라운드들은 어떻게 여기까지 왔는지의 기록. 새 작업을 시작하기 전에 §7 의 가장 최근 항목과 §0 의 현재 스냅샷을 먼저 읽기.
+> **다음 작업자에게**: §7 라운드별 changelog 의 *맨 마지막 항목 (v60)* 이 현재 상태다. 그 위 라운드들은 어떻게 여기까지 왔는지의 기록. 새 작업을 시작하기 전에 §7 의 가장 최근 항목과 §0 의 현재 스냅샷을 먼저 읽기.
 
-## 0. 현재 상태 스냅샷 (v59, 2026-05)
+## 0. 현재 상태 스냅샷 (v60, 2026-05)
 
-**배포 산출물**: `index.html` (~960 KB, IIFE ~440K chars, 16.35K lines — v58 의 공개 lobby ~430 + 3 신규 모드 빌더 ~200 + 모드 dispatch + **v59 의 silent failure 차단 + 진단 modal 확장 ~270 lines**) · `sw.js` · `data-works.js` (3 MB, 45 작품 545 섹션) · `data-morph.js` (4 MB, AGDT v2.1 37K 어형 11.8K lemma) · `data-dialogues.js` (45 KB, 10 콩트 시나리오) · `data-translations.js` (~55 KB, v53 확장 — 19 발췌 정역 ~330 문장 + 34 짧은 발췌 정역) · **`data-characters.js` (~22 KB, v56 — 50 캐릭터 사진 + 50 명언 인용)** · `espeakng.worker.js` (760 KB) · `manifest.json` · `reset.html`.
+**배포 산출물**: `index.html` (~975 KB, IIFE ~440K chars, ~16.4K lines — v59 의 silent failure 차단 + 진단 modal ~270 lines + **v60 의 종료 흐름 fix 4 갈래 ~110 lines**) · `sw.js` · `data-works.js` (3 MB, 45 작품 545 섹션) · `data-morph.js` (4 MB, AGDT v2.1 37K 어형 11.8K lemma) · `data-dialogues.js` (45 KB, 10 콩트 시나리오) · `data-translations.js` (~55 KB, v53 확장 — 19 발췌 정역 ~330 문장 + 34 짧은 발췌 정역) · `data-characters.js` (~22 KB, v56 — 50 캐릭터 사진 + 50 명언 인용) · `espeakng.worker.js` (760 KB) · `manifest.json` · `reset.html`.
 
 **기능 카탈로그**:
 - 어휘 학습: 교재 어휘 + DCC 523 + DAILY_W 51 + CIVIC_W 80 + 콩트 vocab 60 = 1142 어휘
@@ -41,21 +41,23 @@
 - **Feedback (v56)**: `openFeedbackModal` · `STORAGE` 의 `feedback:<ts>:<userId>` 키 · localStorage `paideia.feedbackQueue`
 - **Presence (v56)**: `pingPresence` · `startPresenceHeartbeat` · `fetchPresenceCount` · 상수 `PRESENCE_TTL_MS=5min`, `PRESENCE_PING_MS=4min` · `_presenceCountCache` (60초 TTL)
 - **(v59) Silent failure 차단 + 진단**: `BACKEND.setShared/getShared/listShared` 가 `window._battleLastError` 에 HTTP status + body 200자 + `isPermissionDenied` (401/403) 캡처 · `_battleSaveRoom` / `_lobbyPingWaiter` / `_lobbyStartMatch` 반환값 검증 · `_battleHandleUpdate` 의 `BATTLE_JUST_CREATED_GRACE_MS=5000` + `_battleState.justCreatedAt` (호스트 본인 첫 fetch transient null 흡수) · `_lobbyEnterQueue` 낙관적 UI (`_optimistic: true` 마커) + 롤백 · 진단 modal 의 `#diag-firebase-test` 자가진단 버튼 (6 경로 PUT/GET/DEL + verdict allWriteOk/allDenied/partialDenied + 권장 룰 inline 표시) · toast 시그니처 확장 (`(msg, typeOrDuration, duration)` — 숫자면 duration, 문자열이면 type) · README §3 Firebase 룰을 `.read/.write: true` 루트 허용으로 갱신
+- **(v60) 멀티 배틀 종료 흐름 fix**: `_battleSubmitProgress` 의 path-level `STORAGE.setShared` 가 hardcoded `battles:${code}` 였던 것을 `_battleState.roomPath || 'battles:'+code` 로 일반화 (공개 lobby 매치에서 player.finished PUT 이 잘못된 경로로 가서 status 전환 영구 실패하던 버그) · last-player race 의 self-merge (자기 직전 PUT 이 Firebase 의 eventual consistency 로 fresh 응답에 반영 안 됐을 때 local payload 우선) · SSE/polling onUpdate 콜백에서 `status==='finished'` 분기를 `playing` 보다 *먼저* 평가 + `inWaitOthers` 식별 변수로 `answeredThisQ` 단락 무력화 · `renderBattleGame` 에 status 전환 watchdog (room.players 가 모두 finished:true 이고 status 가 playing 이면 idempotent flip 재시도) · `_renderBattleWaitOthers` 에 wait 시작 시각 추적 + 30초 stale 알림 + 45초/all-others-finished 시 "⚡ 지금 결과 보기 (매치 종료)" 비상 버튼 (meta.forceFinishedBy 기록).
 
-**현재 미해결·defer 상태** (§7 의 v59 끝 defer 블록 참조):
+**현재 미해결·defer 상태** (§7 의 v60 끝 defer 블록 참조):
 - 외부 의존 3 항목 (SoundCloud slugs · Plato Crito sample · ScorpioMartianus) — 새 정보 없음
 - 단어 단위 시간 동기 (현재 행/단락)
 - plato-apology Stratakis cue points
 - PARADIGM_LIB 분사·비교급·최상급 확장
 - μι-동사 가정법/희구법 quiz 통합 (v50 의 5 표 학습만 있고 시험 없음)
-- **정역 확장 (v53 의 권장 작업, v54~v59 에서도 이월)**: 19 발췌 → 25 발췌 (Plato Apology §23-26, Iliad 1.151-200+, Sophocles Oedipus 1-100, Plato Crito §44-47). v59 는 멀티 배틀 silent failure 핫픽스를 우선 처리하여 정역 확장은 v60 으로 이월.
+- **정역 확장 (v53 의 권장 작업, v54~v60 에서도 이월)**: 19 발췌 → 25 발췌 (Plato Apology §23-26, Iliad 1.151-200+, Sophocles Oedipus 1-100, Plato Crito §44-47). v60 도 종료 흐름 핫픽스를 우선 처리하여 v61 으로 이월.
+- **원문 코퍼스 확장 (v60 세션 검토 시작)**: 현 corpus 45 작품 중 26 작품이 NT 코이네. 고전 그리스어 정전 결손 — Euripides, Aristophanes, Thucydides, Demosthenes, Aristotle, Lysias, Sappho/Pindar (도서관엔 있으나 WORKS 엔 없음), Plato Phaedo, Hippocratic Oath. v61 후보로 본격 작업.
 - 캐릭터 잠금 시스템 (XP/배지/완독 기반)
 - 사진 prefetch
 - AI 기반 정역 (Anthropic API)
 - **BGM 확장**: 추가 모드 (Phrygian, Lydian, Mixolydian), 모티프 다양화, 실제 학자 복원 곡 외부 mp3 옵션, 음량 슬라이더
 - **Feedback 운영 UI**: 현재는 console 수집만. 별도 `/admin` 페이지 또는 명예의 전당 옆에 운영자 전용 진입 (운영자 인증은 STORAGE 의 `admin:` 키 토큰)
 - **Presence 통계**: 현재 카운트만. 시간대별 분포·요일별 분포 등 통계 분석 (운영자 전용)
-- **(v57 defer, v58 lobby 에선 처리됨)** 멀티 배틀 ghost player 정리 — 공개 lobby 의 waiters 는 v58 의 visibilitychange/beforeunload/pagehide 핸들러로 즉시 정리됨. **그러나 코드방 (private) 매치 진행 중 ghost** 는 미해결 (v60 우선순위).
+- **(v57 defer, v58 lobby 에선 처리됨)** 멀티 배틀 ghost player 정리 — 공개 lobby 의 waiters 는 v58 의 visibilitychange/beforeunload/pagehide 핸들러로 즉시 정리됨. **그러나 코드방 (private) 매치 진행 중 ghost** 는 미해결. (v60 의 자동 status 전환 + 수동 종료 버튼이 *증상* 완화. 진정한 cleanup 은 별도 작업.)
 - **(v58 defer) 추가 게임 모드** — 4 모드 골격이 plug-in 식 확장 가능. 후보: Ἀκόντισμα (속도전), Δίφθογγος (악센트 위치), Ὀρθογραφία (받아쓰기 race), Ἑρμηνεία (정역 race), Δίκη (문맥 추론), Κλήρωσις (베팅 modifier). 가장 가성비 좋은 후보는 Ἀκόντισμα.
 - **(v58 defer) 재연결 시 인트로 컷 재진입 옵션** — 현재 `_battleIntroShown[code]=true` 가드라 재연결해도 인트로 안 보임.
 - **(v59 신규 defer) Firebase Auth 통합** — 현재 권장 룰 `.read/.write: true` 는 *연구실 내부용* 으로만 안전. 외부 공개 시 anonymous auth + `auth != null` 또는 email/password 로 강화 필요.
@@ -1709,6 +1711,128 @@ defer (다음 라운드 후보, v60+):
 - AI 기반 정역 (Anthropic API)
 - **(v59 신규 defer)** Firebase Auth 통합 — `.read/.write: true` 의 보안 위험 (외부 공개 시) 대비. anonymous auth + `auth != null` 또는 email/password.
 - **(v59 신규 defer)** 자가진단 modal 의 *자동 룰 PUT* — 현재는 사용자가 콘솔에 수동 붙여넣기. Firebase Admin API 로 자동 갱신 가능하나 service account 키 노출 위험.
+
+영구 제외 (사용자 정책):
+  · 다국어 UI (i18n)
+
+---
+
+**v60**: 멀티 배틀 종료 흐름 4 갈래 fix — 사용자 보고 *"배틀 퀴즈가 끝나도 종료되지 않는 문제 수정"*. 매치가 10 문제 다 풀린 후에도 wait-others 화면에 *영구 정지*하는 증상.
+
+**Root cause 진단** (코드 정밀 추적):
+
+`_battleSubmitProgress` (line 15313~) 가 자기 player 객체를 `STORAGE.setShared` 로 PUT 할 때 **hardcoded path** 사용:
+
+```js
+await STORAGE.setShared(`battles:${code}:players:${S.userId}`, JSON.stringify(payload));
+```
+
+v58 에서 멀티 배틀이 두 경로로 확장됐다 — 코드방 (`battles:<code>`) + 공개 lobby 매치 (`lobby:matches:<mid>`). v58 의 changelog 는 `_battleFetchRoom` / `_battleSaveRoom` / `_battleSubscribeSSE` 의 path 일반화 (`_battleState.roomPath || 'battles:'+code`) 만 명시했고, `_battleSubmitProgress` 의 path-level setShared 는 *간과됨*. 결과:
+
+- **공개 lobby 매치에서**: 모든 player 의 `finished: true` PUT 이 *잘못된 경로* `battles:XYZW:players:u1` 에 가서 (실제 매치 객체는 `lobby:matches:abcdef12` 에 존재) 어떤 player 도 그 정보를 못 봄. `_battleFetchRoom` 결과의 `players[*].finished` 가 영원히 false → `allDone` 체크 영구 실패 → `meta.status` 가 'finished' 로 절대 전환 안 됨 → 모든 player 가 wait-others 에 영구 정지.
+- 코드방 (private) 에서는 path 가 우연히 일치하여 작동했으나 (`battles:${code}` 가 실제 roomPath 와 동일), 아키텍처적으로 깨진 상태였음.
+
+**부차 결함 3건** (위 root cause 가 해결돼도 잠재):
+
+(a) **Last-player race** — 자기가 마지막에 finish 했을 때, 직전 `setShared(players:me)` 와 `_battleFetchRoom()` 사이에 Firebase RTDB 의 eventual consistency 로 인해 fresh 응답에 *자기 finished:true 가 반영 안 됨* → allDone 통과 실패.
+
+(b) **SSE/polling `answeredThisQ` 단락 가로채기** (line 14430) — 자기가 wait-others 상태일 때도 `_battleGameLocal.answeredThisQ` 가 true 면 scoreboard partial update 만 하고 `return` → `status === 'finished'` 체크 (line 14440 — 같은 분기의 *뒤*) 에 도달 못 함. 다른 player 가 transition 성공시켜도 자기 화면 갱신 안 됨.
+
+(c) **자가 회복 watchdog 없음** — `_battleSubmitProgress` 의 status flip 이 한 번 실패하면 누구도 다시 시도하지 않음. 진정한 fail-safe 부재.
+
+**v60 의 4 갈래 fix**:
+
+**(1) `_battleSubmitProgress` path 일반화** — `_battleFetchRoom` / `_battleSaveRoom` 와 동일 규칙:
+```js
+const basePath = (_battleState && _battleState.roomPath) ? _battleState.roomPath : `battles:${code}`;
+await STORAGE.setShared(`${basePath}:players:${S.userId}`, JSON.stringify(payload));
+```
+
+**(2) Last-player race 의 self-merge** — `_battleSubmitProgress` 의 allDone 체크 직전에 fresh.players 를 *spread 한 local merge* 로 자기 직전 payload 우선:
+```js
+const merged = { ...fresh.players };
+if(S.userId && merged[S.userId]){
+  merged[S.userId] = { ...merged[S.userId], ...payload };
+}
+const allDone = Object.values(merged).every(p => p && p.finished);
+if(allDone && fresh.meta.status !== 'finished'){
+  fresh.meta.status = 'finished';
+  fresh.meta.finishedAt = Date.now();
+  fresh.players = merged;   // ← 다른 player view 의 stale 도 해소
+  await _battleSaveRoom(code, fresh);
+}
+```
+
+**(3) SSE/polling onUpdate 재정렬** (`renderBattleLobby` 의 `draw(room)` 콜백, line 14425~):
+- `status === 'finished'` 분기를 `playing` 보다 *먼저* 평가 — 어떤 단락보다 우선.
+- `inWaitOthers = local.idx >= BATTLE_N_Q || local.finished` 변수 도입 — wait-others 상태에서는 `answeredThisQ` 단락 비활성화.
+
+**(4) `renderBattleGame` 의 status 전환 watchdog** — wait-others 분기 직전에 *idempotent retry*:
+```js
+if((local.idx >= BATTLE_N_Q || local.finished)
+   && room.players && room.meta.status === 'playing'
+   && Object.values(room.players).every(p => p && p.finished)){
+  const fresh = await _battleFetchRoom(code);
+  if(fresh && Object.values(fresh.players).every(p => p && p.finished)
+     && fresh.meta.status === 'playing'){
+    fresh.meta.status = 'finished';
+    fresh.meta.finishedAt = Date.now();
+    await _battleSaveRoom(code, fresh);
+    return renderBattleResult(code, fresh);
+  }
+}
+```
+어떤 player 든 status flip 을 재시도. Last-write-wins, idempotent.
+
+**(보조 5) `_renderBattleWaitOthers` 비상 종료 버튼** — 모든 위 fix 가 실패해도 사용자에게 *수동 탈출구*:
+- `local._waitOthersStartedAt` 추적
+- 30초 이후 stale 알림 (미완료 N명 + 경과 시간)
+- 45초 이후 또는 다른 모든 player 가 finished:true 인데도 status 가 playing 이면 **⚡ 지금 결과 보기 (매치 종료)** 버튼 노출
+- 버튼 클릭 시 `meta.status = 'finished'` + `meta.forceFinishedBy = S.userId` 기록, 미완료 player 들은 현재 점수로 finished 마킹
+
+**구현 사항**:
+- `index.html`: ~110 lines 변경
+  - `_battleSubmitProgress`: basePath + self-merge (~30 lines)
+  - `renderBattleLobby` 의 draw 콜백: 분기 순서 재정렬 + inWaitOthers (~25 lines)
+  - `renderBattleGame`: status watchdog (~25 lines)
+  - `_renderBattleWaitOthers`: stale alert + force-finish 버튼 (~30 lines)
+  - APP_VERSION v59 → v60
+- `sw.js`: CACHE_VERSION v59 → v60
+- `test-v60.js`: 신규 (~210 lines, 44 assertions — 8 섹션, 4 시나리오 sandbox 시뮬레이션)
+
+**검증** (test-v60.js, 44/44 PASS):
+- 버전 상수, hardcoded path 제거 + basePath 일반화, self-merge 5 패턴, finished 분기 순서, watchdog, wait-others 버튼·DOM id·forceFinishedBy
+- v59 invariant 6 항목 보존 (`BATTLE_JUST_CREATED_GRACE_MS`, `_battleHandleUpdate`, `_lobbyEnterQueue`, `BATTLE_MODES`, `CHARACTER_QUOTES`, `_renderBattleIntro`)
+- Sandbox 시뮬레이션 4 시나리오: A 코드방 정상 / B lobby 매치 path 일반화 / C race + self-merge / D 다른 player 진행 중 (status 유지)
+
+추가: `test-v56.js` / `test-v57.js` / `test-v59.js` 도 실행 — *의도된 reversal* (APP/CACHE_VERSION 만) 외 모든 invariant 보존. test-v58.js 는 옛 디렉토리 path hardcoded 라 환경 의존 (코드 결함 아님).
+
+**라이브 작동 검증 시나리오 (사용자 측 수동 점검)**:
+1. **공개 lobby 매치** — 두 브라우저에서 큐 입장 → 선임자 시작 → 양측 10 문제 풀이 → *양측 모두 즉시 결과 화면 진입* (이전엔 영구 wait-others 였음)
+2. **코드방** — 호스트가 방 생성 + 게스트 입장 → 양측 10 문제 → 양측 결과 화면 진입 (v58 까지도 작동했으나 path 일반화로 아키텍처 일관성 확보)
+3. **race 시뮬레이션** — 두 player 가 거의 동시에 마지막 문제 정답 → 둘 다 결과 화면 (이전엔 어느 쪽도 안 보였을 수 있음 — self-merge + watchdog 이 보장)
+4. **느린 상대** — 한 사람만 다 풀고 wait-others 진입 → 30초 후 stale 알림 + 45초 후 비상 종료 버튼 노출 → 클릭 시 즉시 결과 (미완료 상대의 현재 점수도 집계)
+
+**솔직한 한계**:
+- 4 갈래 fix 는 *증상별 layered defense*. Root cause (path 일반화) 가 가장 critical 하고 나머지는 cascade fail-safe. 운영 환경에서 어느 갈래가 실제로 발동되는지는 통계 부재 — Feedback 운영 UI (defer) 가 갖춰지면 측정 가능.
+- 비상 종료 버튼은 *5분 한도 도래 전 사용자 의지로 매치 종료* 권한. 악용 시나리오 (자기가 지고 있을 때 미완료 상대 점수로 종료) 가능하나, 매치 5분 한도가 짧고 학습 보조 목적이라 정책적으로 수용. 외부 공개 시 정정 필요.
+- Watchdog 의 `_battleFetchRoom` + `_battleSaveRoom` 2회 호출 비용 — wait-others 진입 player 당 1회 (idempotent 라 다회 진입해도 status 이미 finished 면 분기 안 탐).
+- Self-merge 는 *자기 자신만* 보정. 다른 player 의 stale 은 그들의 watchdog 이 처리 (또는 SSE/polling 의 다음 tick 의 fresh fetch).
+
+defer (다음 라운드 후보, v61+):
+- **v61 권장 = 정역 확장** (v53 부터 누적 defer, v54~v60 에서도 다른 우선순위에 밀림) — Apology §23-26, Iliad 1.151-200+, Sophocles Oedipus 1-100, Plato Crito §44-47
+- **(v60 세션 검토 신규)** 원문 코퍼스 확장 — 결손된 정전 작가 6 작품 (Euripides Medea prologue, Aristophanes Clouds 1-100, Thucydides 1.1-5, Plato Phaedo §57-60, Sappho fr.1+31, Hippocratic Oath). v60 세션에서 corpus inventory 분석 완료, 작품 후보 결정 단계.
+- 추가 게임 모드 (v58 의 plug-in 골격) — Ἀκόντισμα, Δίφθογγος, Ὀρθογραφία, Ἑρμηνεία, Δίκη, Κλήρωσις
+- 매치 진행 중 ghost player 정리 — v60 의 자동·수동 종료가 *증상* 완화. 진정한 cleanup (`presence:battle:<roomPath>:<uid>` + 30초 TTL + visibilitychange) 별도.
+- 재연결 시 인트로 컷 재진입 옵션
+- 외부 의존 3 항목 — 새 정보 없음
+- BGM 확장 (음량 슬라이더, 추가 모드)
+- Feedback 운영 UI · Presence 통계
+- 캐릭터 명언 TTS 자동 발화 · 사진 prefetch · 캐릭터 잠금 시스템
+- PARADIGM_LIB 분사·비교급 확장 · μι-동사 quiz 통합
+- AI 기반 정역 (Anthropic API)
+- Firebase Auth 통합 (v59 defer)
+- 자가진단 modal 의 자동 룰 PUT (v59 defer)
 
 영구 제외 (사용자 정책):
   · 다국어 UI (i18n)
