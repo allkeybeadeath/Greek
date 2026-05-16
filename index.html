@@ -11274,6 +11274,12 @@ window._appDiagnose = async function(){
           <td style="padding:5px 0;font-family:monospace;font-size:11px">${swState}</td></tr>
       <tr><td style="padding:5px 0;color:var(--clay-d)">대기 중 새 SW</td>
           <td style="padding:5px 0;font-family:monospace">${hasWaiting?`<span style="color:${warnColor}">있음</span>`:'없음'}</td></tr>
+      <tr><td style="padding:5px 0;color:var(--clay-d)">공유 저장소</td>
+          <td style="padding:5px 0;font-family:monospace;font-size:11px">${(typeof STORAGE!=='undefined' && STORAGE.supportsShared) ? '✓ '+(STORAGE.label||'shared') : `<span style="color:${warnColor}">✗ 미지원 — 멀티 배틀 불가</span>`}</td></tr>
+      ${(typeof window!=='undefined' && window._battleLastError) ? `
+      <tr><td style="padding:5px 0;color:var(--clay-d);vertical-align:top">최근 배틀 에러</td>
+          <td style="padding:5px 0;font-family:monospace;font-size:10.5px;color:${warnColor};word-break:break-all">${(window._battleLastError.op||'?')} (${window._battleLastError.code||'?'}): ${(window._battleLastError.msg||'').slice(0,160).replace(/</g,'&lt;')}</td></tr>
+      ` : ''}
     </table>
 
     ${(mismatch || hasWaiting) ? `<div class="hint" style="margin-bottom:12px;color:${warnColor};border-left-color:${warnColor}">새 버전이 대기 중입니다. <b>강제 새로고침</b>으로 즉시 적용하세요.</div>` : ''}
@@ -13197,6 +13203,9 @@ async function _battleFetchRoom(code){
     if(!r || !r.value) return null;
     return JSON.parse(r.value);
   } catch(e){
+    // v56.1: 진단성 강화 — 사용자 보고 시 사용
+    try { window._battleLastError = { op: 'fetch', code, msg: (e && (e.message || String(e))).slice(0,200), ts: Date.now() }; } catch(_){}
+    console.warn('[battle] fetchRoom failed:', e);
     return null;
   }
 }
@@ -13341,11 +13350,17 @@ function _battleSubscribe(code, onUpdate){
 }
 
 async function _battleSaveRoom(code, room){
-  if(!STORAGE.supportsShared) return false;
+  if(!STORAGE.supportsShared){
+    try { window._battleLastError = { op: 'save', code, msg: 'STORAGE.supportsShared=false ('+(STORAGE.label||'unknown')+')', ts: Date.now() }; } catch(_){}
+    return false;
+  }
   try {
     await STORAGE.setShared(`battles:${code}`, JSON.stringify(room));
     return true;
   } catch(e){
+    // v56.1: 진단성 강화 — 사용자 보고용
+    try { window._battleLastError = { op: 'save', code, msg: (e && (e.message || String(e))).slice(0,300), ts: Date.now() }; } catch(_){}
+    console.warn('[battle] saveRoom failed:', e);
     return false;
   }
 }
@@ -13465,7 +13480,21 @@ async function renderBattleCreate(){
     },
   };
   const ok = await _battleSaveRoom(code, room);
-  if(!ok){ toast('방 생성 실패 — 네트워크 확인'); renderBattle(); return; }
+  if(!ok){
+    // v56.1: 진단성 — 실제 에러 메시지 노출 (사용자 보고용)
+    const err = window._battleLastError;
+    let msg = '방 생성 실패';
+    if(err && err.msg){
+      msg += ' — ' + err.msg.slice(0, 100);
+    } else if(!STORAGE.supportsShared){
+      msg += ' — 공유 저장소 미지원 (' + (STORAGE.label || 'local') + ')';
+    } else {
+      msg += ' — 네트워크 확인';
+    }
+    toast(msg);
+    renderBattle();
+    return;
+  }
   _battleState = { roomCode: code, role: 'host', pollTimer: null };
   renderBattleLobby();
 }

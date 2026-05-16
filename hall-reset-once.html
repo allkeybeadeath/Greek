@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Παιδεία · 명예의 전당 1회 초기화</title>
+<style>
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
+       background:#F4E8D8;color:#2a241e;padding:40px 24px;line-height:1.6}
+  .wrap{max-width:520px;margin:0 auto}
+  h1{font-size:22px;color:#9C3F2D;margin:0 0 8px}
+  .grk{font-family:Georgia,serif;font-style:italic}
+  .sub{font-size:13px;color:#8a7a6a;margin-bottom:24px}
+  .step{padding:10px 14px;margin:8px 0;border-radius:8px;
+        background:#fff;border:1px solid #d9ccba;font-size:14px}
+  .ok{border-left:4px solid #5a9c5a;background:#f0f9f0}
+  .info{border-left:4px solid #8a7a6a;background:#faf5ec}
+  .err{border-left:4px solid #c44536;background:#fbf0ee}
+  .pending{border-left:4px solid #d9ccba;opacity:.6}
+  .done{margin-top:24px;padding:14px;border-radius:8px;
+        background:#9C3F2D;color:#fff;text-align:center;font-weight:600}
+  .meta{font-size:11px;color:#8a7a6a;margin-top:4px;font-style:italic}
+  code{background:#ecdfca;padding:2px 6px;border-radius:3px;font-size:11px;font-family:Menlo,monospace}
+  .lock-warn{margin-top:20px;padding:12px;border:1px dashed #c44536;border-radius:8px;
+             font-size:12px;color:#5c4e3e;background:#fbf0ee}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1><span class="grk">Τιμαί</span> · 명예의 전당 1회 초기화</h1>
+  <p class="sub">이 도구는 *현재 활성 프로필 한 명*의 명예의 전당 데이터만 한 번 비웁니다.</p>
+
+  <div id="log"></div>
+
+  <div id="done" class="done" style="display:none">
+    완료. 5초 후 메인 앱으로 이동합니다.<br>
+    <span style="font-size:12px;font-weight:400;opacity:.85">이동 안 되면 <a href="./index.html" style="color:#fff;text-decoration:underline">메인으로 이동</a></span>
+  </div>
+
+  <div class="lock-warn">
+    <b>한 번만 실행</b>: 성공 시 <code>paideia.hallResetUsed.&lt;프로필ID&gt;</code> 마커가 localStorage 에 저장되어 *같은 프로필에서는 두 번째 실행이 차단*됩니다. 다른 프로필은 각자 별도 1회 사용 가능.<br><br>
+    <b>비우는 필드</b>: XP · 등급 · 연속 출석 · 배지 · 전집 완독·진행 · 어휘·문법·원문 누적 카운트 · 배틀 기록 · 라이브 순위 본인 항목.<br>
+    <b>보존되는 필드</b>: 캐릭터 선택 · 오답함 · 책갈피·메모 · 발음 설정 · 표시 이름 · userId · 프로필 메타.
+  </div>
+</div>
+
+<script>
+(async function(){
+  const LOG = document.getElementById('log');
+  const DONE = document.getElementById('done');
+  function log(html, cls){
+    cls = cls || 'info';
+    const d = document.createElement('div');
+    d.className = 'step ' + cls;
+    d.innerHTML = html;
+    LOG.appendChild(d);
+  }
+
+  // 1. 활성 프로필 ID 찾기
+  let profileId = null;
+  let stateKey = null;
+  try {
+    const metaRaw = localStorage.getItem('paideia-profile-meta');
+    if(metaRaw){
+      const meta = JSON.parse(metaRaw);
+      profileId = meta && meta.currentId;
+    }
+  } catch(e){}
+  if(profileId){
+    stateKey = 'paideia-state-' + profileId;
+  } else {
+    // 폴백: 첫 번째 paideia-state-* 키
+    for(let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(k && k.startsWith('paideia-state-')){
+        stateKey = k;
+        profileId = k.replace('paideia-state-', '');
+        break;
+      }
+    }
+  }
+
+  if(!stateKey){
+    log('❌ 학습 데이터를 찾을 수 없습니다. 메인 앱을 한 번도 실행한 적이 없는 브라우저일 수 있습니다.', 'err');
+    log('<a href="./index.html">메인으로 →</a>', 'info');
+    return;
+  }
+  log('대상 프로필: <code>' + stateKey + '</code>', 'info');
+
+  // 2. 가드 마커 확인
+  const guardKey = 'paideia.hallResetUsed.' + profileId;
+  if(localStorage.getItem(guardKey) === '1'){
+    log('⚠ 이 프로필은 이미 1회 초기화 도구를 사용했습니다. 추가 초기화가 필요하면 메인 앱의 명예의 전당 → <b>전체 초기화</b> 또는 브라우저 콘솔에서 수동 명령을 사용하세요.', 'err');
+    log('<a href="./index.html">메인으로 →</a>', 'info');
+    return;
+  }
+
+  // 3. 상태 읽기
+  let S;
+  try {
+    S = JSON.parse(localStorage.getItem(stateKey));
+  } catch(e){
+    log('❌ 데이터 파싱 실패: ' + e.message, 'err');
+    return;
+  }
+  if(!S){
+    log('❌ 데이터 없음 (해당 프로필에 저장된 학습 상태 없음)', 'err');
+    return;
+  }
+
+  // 4. 초기화 전 통계 보존 (사용자에게 보여줄 용)
+  const before = {
+    xp: S.xp || 0,
+    streak: S.streak || 0,
+    badges: (S.badges || []).length,
+    works: (S.worksFinished || []).length,
+    sections: Object.values(S.sectionsDone || {}).reduce((a, arr) => a + (Array.isArray(arr) ? arr.length : 0), 0),
+    battles: (S.battleHistory || []).length,
+    vocab: S.vocabCorrectCount || 0,
+    topics: (S.topicsStudied || []).length,
+    reads: (S.readDone || []).length,
+  };
+  log(
+    '<b>초기화 전 통계</b>' +
+    '<div class="meta">' +
+    `XP ${before.xp} · 등급레벨 · 연속 ${before.streak}일 · 배지 ${before.badges} · ` +
+    `완독 ${before.works}편 · 섹션 ${before.sections}회 · 배틀 ${before.battles}건<br>` +
+    `어휘 누적 ${before.vocab} · 문법 ${before.topics} · 발췌 ${before.reads}` +
+    '</div>',
+    'info'
+  );
+
+  // 5. 명예의 전당 필드 비우기
+  const userIdToDeleteFromLb = S.userId;
+  S.xp = 0;
+  S.streak = 0;
+  S.lastDay = '';
+  S.hadPerfect = false;
+  S.vocabCorrectCount = 0;
+  S.vocabSeen = 0;
+  S.vocabRight = 0;
+  S.vocabWrong = 0;
+  S.topicsStudied = [];
+  S.grammarCorrectCount = 0;
+  S.readDone = [];
+  S.sectionsDone = {};
+  S.worksFinished = [];
+  S.battleHistory = [];
+  S.badges = [];
+  S.analysisWritten = 0;
+
+  // 6. 저장
+  try {
+    localStorage.setItem(stateKey, JSON.stringify(S));
+    log('✓ 명예의 전당 필드 비움 + localStorage 저장', 'ok');
+  } catch(e){
+    log('❌ 저장 실패: ' + e.message, 'err');
+    return;
+  }
+
+  // 7. 라이브 순위에서 본인 항목 제거 (Firebase RTDB DELETE)
+  if(userIdToDeleteFromLb){
+    const FIREBASE_URL = 'https://paideia-8e45e-default-rtdb.asia-southeast1.firebasedatabase.app';
+    try {
+      const r = await fetch(
+        FIREBASE_URL + '/lb/' + encodeURIComponent(userIdToDeleteFromLb) + '.json',
+        { method: 'DELETE' }
+      );
+      if(r.ok){
+        log('✓ 라이브 순위에서 본인 항목(<code>lb:' + userIdToDeleteFromLb.slice(0, 14) + '...</code>) 제거', 'ok');
+      } else {
+        log('⚠ 라이브 순위 항목 제거 실패 (HTTP ' + r.status + ') — 다음 saveState 에서 자동 갱신될 가능성', 'info');
+      }
+    } catch(e){
+      log('⚠ 라이브 순위 항목 제거 실패: ' + (e.message || '네트워크 에러') + ' — 다음 saveState 에서 자동 갱신', 'info');
+    }
+  }
+
+  // 8. 가드 마커 설치 — 같은 프로필에서 두 번째 실행 차단
+  try {
+    localStorage.setItem(guardKey, '1');
+    log('🔒 가드 마커 설치 (<code>' + guardKey + '</code>) — 이 프로필은 다시 실행 안 됨', 'ok');
+  } catch(e){
+    log('⚠ 가드 설치 실패: ' + e.message, 'info');
+  }
+
+  // 9. 완료 — 5초 후 메인으로
+  DONE.style.display = 'block';
+  setTimeout(function(){
+    location.replace('./index.html?fresh=' + Date.now());
+  }, 5000);
+})();
+</script>
+</body>
+</html>
