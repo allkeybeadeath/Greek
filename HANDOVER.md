@@ -2,11 +2,11 @@
 
 본 문서는 CIM Lab에서 운영하는 고전 그리스어 학습 Progressive Web App (PWA) 의 기술적 인수인계를 위한 자료다. 신규 합류 구성원이 별도 컨텍스트 없이도 코드베이스를 이해하고 유지·확장할 수 있도록 작성했다. 최종 갱신 **v56 (2026년 5월)**.
 
-> **다음 작업자에게**: §7 라운드별 changelog 의 *맨 마지막 항목 (v56)* 이 현재 상태다. 그 위 라운드들은 어떻게 여기까지 왔는지의 기록. 새 작업을 시작하기 전에 §7 의 가장 최근 항목과 §0 의 현재 스냅샷을 먼저 읽기.
+> **다음 작업자에게**: §7 라운드별 changelog 의 *맨 마지막 항목 (v59)* 이 현재 상태다. 그 위 라운드들은 어떻게 여기까지 왔는지의 기록. 새 작업을 시작하기 전에 §7 의 가장 최근 항목과 §0 의 현재 스냅샷을 먼저 읽기.
 
-## 0. 현재 상태 스냅샷 (v58, 2026-05)
+## 0. 현재 상태 스냅샷 (v59, 2026-05)
 
-**배포 산출물**: `index.html` (~960 KB, IIFE ~440K chars, 16.1K lines — v58 의 공개 lobby ~430 lines + 3 신규 모드 빌더 ~200 lines + 모드 dispatch 패치 추가) · `sw.js` · `data-works.js` (3 MB, 45 작품 545 섹션) · `data-morph.js` (4 MB, AGDT v2.1 37K 어형 11.8K lemma) · `data-dialogues.js` (45 KB, 10 콩트 시나리오) · `data-translations.js` (~55 KB, v53 확장 — 19 발췌 정역 ~330 문장 + 34 짧은 발췌 정역) · **`data-characters.js` (~22 KB, v56 — 50 캐릭터 사진 + 50 명언 인용)** · `espeakng.worker.js` (760 KB) · `manifest.json` · `reset.html`.
+**배포 산출물**: `index.html` (~960 KB, IIFE ~440K chars, 16.35K lines — v58 의 공개 lobby ~430 + 3 신규 모드 빌더 ~200 + 모드 dispatch + **v59 의 silent failure 차단 + 진단 modal 확장 ~270 lines**) · `sw.js` · `data-works.js` (3 MB, 45 작품 545 섹션) · `data-morph.js` (4 MB, AGDT v2.1 37K 어형 11.8K lemma) · `data-dialogues.js` (45 KB, 10 콩트 시나리오) · `data-translations.js` (~55 KB, v53 확장 — 19 발췌 정역 ~330 문장 + 34 짧은 발췌 정역) · **`data-characters.js` (~22 KB, v56 — 50 캐릭터 사진 + 50 명언 인용)** · `espeakng.worker.js` (760 KB) · `manifest.json` · `reset.html`.
 
 **기능 카탈로그**:
 - 어휘 학습: 교재 어휘 + DCC 523 + DAILY_W 51 + CIVIC_W 80 + 콩트 vocab 60 = 1142 어휘
@@ -40,23 +40,26 @@
 - **BGM (v56)**: `BGM` IIFE 모듈 (`window.BGM.start/stop/isRunning/isAvailable`) · `toggleBgm` · `S.bgmEnabled` · `_ensureBgmPref`
 - **Feedback (v56)**: `openFeedbackModal` · `STORAGE` 의 `feedback:<ts>:<userId>` 키 · localStorage `paideia.feedbackQueue`
 - **Presence (v56)**: `pingPresence` · `startPresenceHeartbeat` · `fetchPresenceCount` · 상수 `PRESENCE_TTL_MS=5min`, `PRESENCE_PING_MS=4min` · `_presenceCountCache` (60초 TTL)
+- **(v59) Silent failure 차단 + 진단**: `BACKEND.setShared/getShared/listShared` 가 `window._battleLastError` 에 HTTP status + body 200자 + `isPermissionDenied` (401/403) 캡처 · `_battleSaveRoom` / `_lobbyPingWaiter` / `_lobbyStartMatch` 반환값 검증 · `_battleHandleUpdate` 의 `BATTLE_JUST_CREATED_GRACE_MS=5000` + `_battleState.justCreatedAt` (호스트 본인 첫 fetch transient null 흡수) · `_lobbyEnterQueue` 낙관적 UI (`_optimistic: true` 마커) + 롤백 · 진단 modal 의 `#diag-firebase-test` 자가진단 버튼 (6 경로 PUT/GET/DEL + verdict allWriteOk/allDenied/partialDenied + 권장 룰 inline 표시) · toast 시그니처 확장 (`(msg, typeOrDuration, duration)` — 숫자면 duration, 문자열이면 type) · README §3 Firebase 룰을 `.read/.write: true` 루트 허용으로 갱신
 
-**현재 미해결·defer 상태** (§7 의 v58 끝 defer 블록 참조):
+**현재 미해결·defer 상태** (§7 의 v59 끝 defer 블록 참조):
 - 외부 의존 3 항목 (SoundCloud slugs · Plato Crito sample · ScorpioMartianus) — 새 정보 없음
 - 단어 단위 시간 동기 (현재 행/단락)
 - plato-apology Stratakis cue points
 - PARADIGM_LIB 분사·비교급·최상급 확장
 - μι-동사 가정법/희구법 quiz 통합 (v50 의 5 표 학습만 있고 시험 없음)
-- **정역 확장 (v53 의 권장 작업, v54~v58 에서도 이월)**: 19 발췌 → 25 발췌 (Plato Apology §23-26, Iliad 1.151-200+, Sophocles Oedipus 1-100, Plato Crito §44-47). 사용자가 v58 에서도 구조 전환 + 신규 모드를 우선했기에 v59 로 이월.
+- **정역 확장 (v53 의 권장 작업, v54~v59 에서도 이월)**: 19 발췌 → 25 발췌 (Plato Apology §23-26, Iliad 1.151-200+, Sophocles Oedipus 1-100, Plato Crito §44-47). v59 는 멀티 배틀 silent failure 핫픽스를 우선 처리하여 정역 확장은 v60 으로 이월.
 - 캐릭터 잠금 시스템 (XP/배지/완독 기반)
 - 사진 prefetch
 - AI 기반 정역 (Anthropic API)
 - **BGM 확장**: 추가 모드 (Phrygian, Lydian, Mixolydian), 모티프 다양화, 실제 학자 복원 곡 외부 mp3 옵션, 음량 슬라이더
 - **Feedback 운영 UI**: 현재는 console 수집만. 별도 `/admin` 페이지 또는 명예의 전당 옆에 운영자 전용 진입 (운영자 인증은 STORAGE 의 `admin:` 키 토큰)
 - **Presence 통계**: 현재 카운트만. 시간대별 분포·요일별 분포 등 통계 분석 (운영자 전용)
-- **(v57 defer, v58 lobby 에선 처리됨)** 멀티 배틀 ghost player 정리 — 공개 lobby 의 waiters 는 v58 의 visibilitychange/beforeunload/pagehide 핸들러로 즉시 정리됨. **그러나 코드방 (private) 매치 진행 중 ghost** 는 미해결 (v59 우선순위 3).
-- **(v58 신규 defer) 추가 게임 모드** — v58 의 4 모드 (vocab/quote/verse/riddle) 골격이 plug-in 식 확장 가능. 후보: Ἀκόντισμα (속도전), Δίφθογγος (악센트 위치), Ὀρθογραφία (받아쓰기 race), Ἑρμηνεία (정역 race), Δίκη (문맥 추론), Κλήρωσις (베팅 modifier). 가장 가성비 좋은 후보는 Ἀκόντισμα.
-- **(v58 신규 defer) 재연결 시 인트로 컷 재진입 옵션** — 현재 `_battleIntroShown[code]=true` 가드라 재연결해도 인트로 안 보임.
+- **(v57 defer, v58 lobby 에선 처리됨)** 멀티 배틀 ghost player 정리 — 공개 lobby 의 waiters 는 v58 의 visibilitychange/beforeunload/pagehide 핸들러로 즉시 정리됨. **그러나 코드방 (private) 매치 진행 중 ghost** 는 미해결 (v60 우선순위).
+- **(v58 defer) 추가 게임 모드** — 4 모드 골격이 plug-in 식 확장 가능. 후보: Ἀκόντισμα (속도전), Δίφθογγος (악센트 위치), Ὀρθογραφία (받아쓰기 race), Ἑρμηνεία (정역 race), Δίκη (문맥 추론), Κλήρωσις (베팅 modifier). 가장 가성비 좋은 후보는 Ἀκόντισμα.
+- **(v58 defer) 재연결 시 인트로 컷 재진입 옵션** — 현재 `_battleIntroShown[code]=true` 가드라 재연결해도 인트로 안 보임.
+- **(v59 신규 defer) Firebase Auth 통합** — 현재 권장 룰 `.read/.write: true` 는 *연구실 내부용* 으로만 안전. 외부 공개 시 anonymous auth + `auth != null` 또는 email/password 로 강화 필요.
+- **(v59 신규 defer) 자가진단 modal 의 자동 룰 PUT** — 현재는 사용자가 Firebase Console 에 수동 붙여넣기. Admin API 로 자동화 가능하나 service account 키 노출 위험으로 보류.
 
 **영구 제외** (사용자 정책):
 - 다국어 UI (i18n)
@@ -1601,6 +1604,111 @@ defer (다음 라운드 후보, v59+):
 - PARADIGM_LIB 분사·비교급 확장
 - μι-동사 quiz 통합
 - AI 기반 정역 (Anthropic API)
+
+영구 제외 (사용자 정책):
+  · 다국어 UI (i18n)
+
+---
+
+**v59**: 멀티 배틀 silent failure 차단 + Firebase 자가진단 도구 + README 룰 안내 갱신. 사용자 보고 *"여전히 방만들기 오류, 큐 입장도 안됨. 문제해결."* — v58 에서도 같은 fragility 가 재현되어 정밀 진단 라운드.
+
+**Root cause 진단** (코드 정밀 분석으로 도출):
+
+v52 이후 멀티 배틀·lobby·feedback·presence 가 Firebase RTDB 의 *신규 path* 들을 사용하기 시작했음:
+- `battles:<code>` — 코드방 (v52 부터)
+- `lobby:waiters:<uid>` · `lobby:matches:<mid>` — 공개 lobby (v58 신규)
+- `feedback:*` · `presence:*` — v56 의 보조 모듈
+- `lb:*` — 라이브 순위 (v30s 부터, 기존)
+
+그런데 **README.md v2 의 권장 Firebase 룰**:
+```json
+{ "rules": { "lb": { ".read": true, ".write": true } } }
+```
+은 `lb` 만 허용. 사용자가 README 권장대로 설정 후 v52~v58 의 신규 path 들을 추가해도, **룰을 갱신하지 않으면 Firebase 가 401/403 으로 전체 PUT/GET 차단**. 사용자의 Firebase 프로젝트 (`paideia-8e45e`) 가 이 상태일 가능성 매우 높음.
+
+**Silent failure 두 군데 (코드 결함)**:
+
+(a) `BACKEND.setShared` (line 4687~) 가 `r.ok=false` 일 때 HTTP status 나 body 를 *어디에도 기록하지 않고* 단순히 `null` 반환:
+```js
+return r.ok ? { key:k, value:v, shared:true } : null;
+```
+사용자도 운영자도 *왜 실패하는지* 알 길이 없음.
+
+(b) 호출처들이 setShared 의 반환값을 *검증 안 함*. `_battleSaveRoom`:
+```js
+try {
+  await STORAGE.setShared(path, JSON.stringify(room));
+  return true;  // ← null 반환받아도 true!
+}
+```
+`_lobbyPingWaiter` / `_lobbyStartMatch` 도 동일 패턴.
+
+**결과로 본 사용자 증상**:
+- *방 만들기 실패*: setShared null → `_battleSaveRoom` 이 true 반환 (silent) → `_battleState = {...}` 설정 → `renderBattleLobby` → `_battleSubscribe` 의 첫 fetch 가 null (방 자체가 PUT 안 됨) → `_battleHandleUpdate` 의 `everSawGood=false, nullRunCount=1` 분기 → 즉시 `onUpdate(null)` → "방 연결 끊김" 표시.
+- *큐 입장 실패*: setShared null → `_lobbyPingWaiter` 가 silent 진행 → 다음 `_lobbyTick` 의 `listShared` 빈 결과 → 자기 자신이 waiters 에 안 보임 → 사용자는 "입장 안 됨" 으로 인식.
+
+**v59 의 6 갈래 fix**:
+
+**(1) `BACKEND.setShared/getShared/listShared` 진단 정보 캡처** — HTTP status (r.status) + body text 앞 200자 + `isPermissionDenied` 플래그 (401/403) 를 `window._battleLastError` 에 기록. `op` 필드로 어느 메서드인지 식별. setShared 의 catch 블록도 `network/exception:` 접두로 구분.
+
+**(2) `_battleSaveRoom` 반환값 검증** — `const res = await STORAGE.setShared(...)` 후 `if(!res){...return false;}` 분기. 기존 `_battleLastError` 의 isPermissionDenied 정보 보존하면서 op 만 갱신 (`{...existing, op:'save', code, msg: existing.msg || 'setShared returned null'}`).
+
+**(3) `_battleHandleUpdate` justCreated grace period** — `BATTLE_JUST_CREATED_GRACE_MS = 5000`. `_battleState.justCreatedAt` 설정된 호스트 본인이 막 방을 만들고 첫 fetch 가 null 인 경우 (Firebase eventual consistency, SSE 초기화 race), 5초 grace 안에서는 `everSawGood=false` 분기에서도 onUpdate(null) 호출 *안 함*. `renderBattleCreate` 가 `_battleState = { ..., justCreatedAt: Date.now() }` 로 플래그 세팅.
+
+**(4) `_lobbyEnterQueue` 낙관적 UI + 결과 검증** — phase='waiting' 직후 자기를 waiters 에 *임시* 추가 (`_optimistic: true` 마커) + 즉시 `_lobbyDraw()` 호출 → 사용자에게 *즉각 시각 피드백*. 그 후 `_lobbyPingWaiter()` 결과가 false 면 phase 를 'idle' 로 롤백 + 자기를 waiters 에서 제거 + `isPermissionDenied` 분기로 명확한 토스트 ("Firebase 보안 규칙이 차단 (홈 → 진단)").
+
+**(5) 진단 modal Firebase 자가진단 버튼 (`🔬 Firebase 자가진단`)** — 6 경로 (battles · lobby:waiters · lobby:matches · lb · feedback · presence) 각각에 더미 PUT → GET → DEL 시도 + 결과 표시 + verdict 분기 (allWriteOk / allDenied / partialDenied). 차단 케이스에 *권장 룰 JSON* 을 inline 코드 블록으로 표시 (사용자가 Firebase Console 에 그대로 붙여넣기 가능).
+
+**(6) `README.md` Firebase 룰 안내 갱신** — `lb` 만 허용하는 v2 의 잘못된 안내를 *루트 수준 .read/.write 허용* 으로 교체. "v59 갱신" 주의 + 이전 룰의 위험성 (멀티 배틀·큐 입장 차단) 명시.
+
+**부수 수정 (toast 시그니처)**: 기존 `toast(msg, type)` 에 옵션 duration 인자 추가하여 `toast(msg, 6000)` 같은 호출 (숫자 인자) 도 정상 작동. backward compatible — 문자열 인자는 여전히 type (CSS 클래스) 으로 해석.
+
+**구현 사항**:
+- `index.html`:
+  - BACKEND 3 메서드 진단 캡처 (~70 lines 추가)
+  - `_battleSaveRoom` !res 분기 (~25 lines)
+  - `_battleHandleUpdate` justCreated grace + 상수 BATTLE_JUST_CREATED_GRACE_MS (~10 lines)
+  - `renderBattleCreate` justCreatedAt 세팅 + 진단 메시지 강화 (~15 lines)
+  - `_lobbyPingWaiter` boolean 반환 (~5 lines)
+  - `_lobbyEnterQueue` 낙관적 UI + 롤백 + 에러 분기 (~30 lines)
+  - `_lobbyStartMatch` setShared 검증 (~10 lines)
+  - 진단 modal Firebase 자가진단 버튼 + 핸들러 (~120 lines)
+  - toast 시그니처 확장 (~10 lines)
+  - APP_VERSION v58 → v59
+- `sw.js`: CACHE_VERSION v58 → v59
+- `README.md`: §3 규칙 설정 블록 교체 (~15 lines)
+- `test-v59.js`: 신규 (~180 lines, 43 assertions — 13 섹션, sandbox eval 로 justCreated grace 행위 검증)
+
+**검증** (test-v59.js, 43/43 PASS):
+- 버전 상수 v59 / BACKEND 3 메서드 진단 캡처 / `_battleSaveRoom` 검증 / justCreated grace 정의·사용·호스트 setter / renderBattleCreate 진단 / `_lobbyPingWaiter` boolean / `_lobbyEnterQueue` 낙관적 + 롤백 / `_lobbyStartMatch` 검증 / 자가진단 modal 6 경로 + 3 verdict / toast 확장 / README 갱신 / v58 invariants 보존 (BATTLE_MODES, lobby 상수, ghost cleanup 핸들러) / sandbox 시뮬레이션 3 시나리오 (A: justCreated grace 흡수, B: justCreated 없으면 첫 null 전달, C: 정상 후 null 임계 미달 무시).
+
+추가: `test-v57.js` `test-v58.js` 도 함께 실행 가능 — APP_VERSION/CACHE_VERSION 의도된 reversal 외 모든 invariant 보존.
+
+**라이브 작동 검증 시나리오 (사용자 측 수동 점검)**:
+1. **Firebase 룰 갱신** (가장 중요): Firebase Console → 본 프로젝트 → Build → Realtime Database → Rules 탭 → `{ "rules": { ".read": true, ".write": true } }` Publish. 또는 진단 modal 의 자가진단 버튼으로 룰 갱신 필요 여부 자동 확인.
+2. 방 만들기 → 정상 동작 (Firebase propagation race 가 grace period 로 흡수)
+3. 큐 입장 → 자기 자신이 즉시 표시 (낙관적 UI). 실제 PUT 실패 시 즉시 에러 토스트 + phase 롤백.
+4. 진단 modal 의 자가진단 버튼 → 6 경로 결과 표시.
+
+**솔직한 한계**:
+- v59 의 fix 들은 *root cause 자체는 해결 안 함* — Firebase 룰 설정은 여전히 운영자가 콘솔에서 갱신해야 함. v59 가 한 일은 (a) 그 진단을 명확히 노출 (silent → 명확한 에러), (b) 권장 룰 자가진단 modal 에 inline 표시, (c) README 안내 갱신. 사용자가 자가진단 버튼을 누르고 권장 룰을 콘솔에 붙여넣지 않으면 여전히 작동 안 함.
+- 낙관적 UI 의 `_optimistic: true` 마커는 현재 사용 안 됨 (display 분기에 활용 가능). _lobbyTick 의 실제 데이터로 자연스럽게 덮어쓰여 사용자에게는 매끄럽게 보임.
+- 진단 modal 의 자가진단은 *현재 시점* 의 상태만 확인. 룰 갱신 후 즉시 반영되지 않을 수 있음 (Firebase Console publish 후 약 5-10초 propagation).
+- BACKEND.setShared 의 진단 캡처는 *직전 호출만* `_battleLastError` 에 저장 — 동시 다발 setShared (예: presence + battles + lobby 동시 PUT) 시 마지막 것만 남음. 진단 modal 의 자가진단은 순차 PUT 이라 영향 없음.
+
+defer (다음 라운드 후보, v60+):
+- 정역 확장 (v53 부터 누적) — Apology §23-26, Iliad 1.151-200+, Sophocles Oedipus 1-100, Plato Crito §44-47
+- 추가 게임 모드 (v58 의 plug-in 골격) — Ἀκόντισμα, Δίφθογγος, Ὀρθογραφία, Ἑρμηνεία, Δίκη, Κλήρωσις
+- 매치 진행 중 ghost player 정리 (v58 의 lobby waiters cleanup 과 별개)
+- 재연결 시 인트로 컷 재진입 옵션
+- 외부 의존 3 항목 — 새 정보 없음
+- BGM 확장 (음량 슬라이더, 추가 모드)
+- Feedback 운영 UI · Presence 통계
+- 캐릭터 명언 TTS 자동 발화 · 사진 prefetch · 캐릭터 잠금 시스템
+- PARADIGM_LIB 분사·비교급 확장 · μι-동사 quiz 통합
+- AI 기반 정역 (Anthropic API)
+- **(v59 신규 defer)** Firebase Auth 통합 — `.read/.write: true` 의 보안 위험 (외부 공개 시) 대비. anonymous auth + `auth != null` 또는 email/password.
+- **(v59 신규 defer)** 자가진단 modal 의 *자동 룰 PUT* — 현재는 사용자가 콘솔에 수동 붙여넣기. Firebase Admin API 로 자동 갱신 가능하나 service account 키 노출 위험.
 
 영구 제외 (사용자 정책):
   · 다국어 UI (i18n)

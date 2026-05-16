@@ -49,20 +49,20 @@ icon.svg / icon-192.png / icon-512.png / apple-touch-icon.png
 
 ### 3) 규칙 설정 (30일 자동 만료 방지)
 
-**Rules** 탭에 붙여넣고 **Publish**:
+**Rules** 탭에 붙여넣고 **Publish** — **연구실 내부용 (모든 경로 허용)**:
 
 ```json
 {
   "rules": {
-    "lb": {
-      ".read": true,
-      ".write": true
-    }
+    ".read": true,
+    ".write": true
   }
 }
 ```
 
-연구실 내부용으로 충분. 더 엄격한 인증이 필요하면 Firebase Auth 추가.
+⚠ **중요 (v59 갱신)**: v52 이후 추가된 경로 — `battles` (방 만들기), `lobby` (큐 입장·자동 매치), `feedback` (건의 사항), `presence` (동시 학습자) — 가 작동하려면 위 규칙처럼 *루트 수준 read/write 허용* 필요. 이전 버전 안내 (`lb` 만 허용) 를 사용하면 멀티 배틀과 큐 입장이 **차단**된다. 자가진단: 홈 → 진단 → 🔬 Firebase 자가진단.
+
+연구실 내부용으로 충분. 더 엄격한 인증이 필요하면 Firebase Auth 추가 후 `auth != null` 로 조건 강화.
 
 ### 4) index.html에 URL 입력
 

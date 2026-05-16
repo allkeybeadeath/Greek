@@ -1,6 +1,6 @@
-# 다음 라운드 작업 계획 (v59 ~)
+# 다음 라운드 작업 계획 (v60 ~)
 
-*현재 상태*: **v58 빌드 완료** (멀티 배틀 구조 전환 — 호스트 없는 공개 lobby + 3종 신규 게임 모드 + ghost player cleanup). paideia-pwa-v58.zip 배포.
+*현재 상태*: **v59 빌드 완료** (멀티 배틀 silent failure 차단 + Firebase 자가진단 도구 + README 룰 안내 갱신). paideia-pwa-v59.zip 배포.
 
 *세션 정책*:
 - 다국어 UI (i18n) 는 **작업 범위에서 영구 제외** — 사용자 지시 (v49 세션).
@@ -9,153 +9,81 @@
 - **PD 원전 인용 검증** (v56 의 교훈) — 명언·정역 모두 표준 인용으로 출처 명시.
 - **단발성 null 에 보수적** (v57 의 교훈) — 외부 의존의 transient 실패가 UX 를 깨뜨리지 않게 임계점·재시도 패턴.
 - **단일 실패점 회피** (v58 의 교훈) — 호스트·중앙 권한자 없는 자율 시스템 선호. 매치 questions[] 같은 자료는 *시작 시점에 결정론적으로 publish* 하여 진행 중 의존성 0.
+- **(v59 신규 교훈) Silent failure 0 원칙** — 외부 API 호출 (fetch/PUT/GET) 의 실패는 *반드시* `_battleLastError` 같은 진단 채널에 캡처. 호출처는 *반드시* 반환값을 검증. 사용자에게 *반드시* 명확한 메시지. 새 STORAGE 메서드 추가 시 이 패턴을 강제.
+- **(v59 신규 교훈) 외부 보안 룰 변경에 안전망** — Firebase 룰 (또는 다른 백엔드의 인증 정책) 은 운영자가 변경할 수 있고, *그 시점에 클라이언트가 작동을 중단*할 수 있다. 자가진단 도구는 *현재 작동 여부* 를 확인할 수 있어야 함. 새 path 추가 시 README 룰 안내도 동시 갱신.
 
 ---
 
-## v58 완료 사항 (참조용)
+## v59 완료 사항 (참조용)
 
-사용자 요청 *"3, 1, 옵션 유지, 이외 더 창의적이고 재밌는 게임 방식 구상"* 처리:
+사용자 보고 *"여전히 방만들기 오류, 큐 입장도 안됨. 문제해결."* 처리.
 
-### A. 멀티 배틀 구조 전환 (호스트 → 공개 lobby)
-1. **`_battleState.roomPath` 일반화** — `_battleFetchRoom`/`_battleSaveRoom`/`_battleSubscribeSSE` 가 `roomPath` 가 있으면 그걸, 없으면 legacy `battles:<code>` 를 사용. 코드방·lobby 매치 둘 다 같은 시스템.
-2. **공개 lobby (Ἀγορά)** — `lobby:waiters:<uid>` 큐 + `lobby:matches:<mid>` 매치. 호스트 없음. 가장 오래 기다린 사람 ("선임자") 이 "지금 시작" 누르면 모든 waiter 가 자동 매치 합류. waiters≥2 조건 (사용자 결정 3번 옵션).
-3. **매치 questions 사전 publish** — `_lobbyStartMatch` 가 시드 기반 questions 를 *매치 시작 시점에* 결정론적으로 생성·저장. 진행 중 호스트 의존 0.
-4. **매치 진행 중 입장 봉쇄** — lobby 가 `activeMatches.length>0` 이면 "큐 입장" 버튼 disabled (사용자 결정 1번 옵션).
-5. **비공개 코드방 유지** — `renderBattle` 의 details 블록에 접어서 보존. legacy 사용자 호환 (사용자 결정 "옵션 유지").
-6. **Ghost player cleanup** — `visibilitychange`/`beforeunload`/`pagehide` 시 `lobby:waiters:<uid>` 즉시 삭제. 대기자 stale 임계 60초 (heartbeat 20초).
+### A. Root cause 진단 (코드 정밀 분석)
 
-### B. 4종 게임 모드 (BATTLE_MODES)
-모두 동일한 4-option MC + 12초 타이머 + Q3/Q6/Q9 강탈 + 시드 결정성을 공유. 다른 점은 (a) 풀의 출처, (b) 프롬프트 렌더링.
+v52 이후 추가된 Firebase RTDB 신규 path 들 (`battles:<code>` · `lobby:waiters:<uid>` · `lobby:matches:<mid>` · `feedback:*` · `presence:*`) 이 **README v2 의 권장 룰** (`lb` 만 허용) 로는 차단된다. 사용자의 Firebase 프로젝트가 이 상태로 보임.
 
-| id | 그리스어명 | 한국어 | 풀 | 학습 가치 |
-|---|---|---|---|---|
-| `vocab` | Ἀγών | 어휘 결투 (기본) | ALL_VOCAB 1142 | 어휘 인식 (Greek → Korean) |
-| `quote` | Μάχη Ποιητῶν | 명언의 주인 | CHARACTER_QUOTES 50 | 정전 귀속 + 캐릭터 학습 |
-| `verse` | Στίχοι | 행 잇기 | CHARACTER_QUOTES (split) | 운율·문맥 인식 |
-| `riddle` | Σφίγξ | 역방향 추론 | ALL_VOCAB (역방향) | 인출형 학습 (Korean → Greek) |
+추가로 **코드 내부 silent failure 두 군데**:
+1. `BACKEND.setShared` 가 `r.ok=false` 일 때 진단 정보 0
+2. `_battleSaveRoom` / `_lobbyPingWaiter` / `_lobbyStartMatch` 가 반환값 미검증
 
-빌더는 `_battleBuildVocab`/`_battleBuildQuote`/`_battleBuildVerse`/`_battleBuildRiddle` 로 분리. `_battleBuildQuestions(seed, mode)` 가 dispatch. `renderBattleGame` 의 promptBlock 이 `q.mode` 로 분기하여 글자 크기·보조 라벨·옵션 lang 속성을 모드별로 조정.
+이 둘이 결합되어 사용자에게는 *"방 만들기 실패"* / *"큐 입장 안 됨"* 만 보이고, 원인 표시 없음.
 
-**verse 분절 알고리즘**: 명언을 ano teleia (·, U+0387) → comma → semicolon → 중앙 근처 공백 우선순위로 절반에 가까운 위치에서 분절. 양쪽이 각 6자 이상이어야 사용. 50 명언 중 ~30 개가 verse 풀에 진입.
+### B. 6 갈래 fix
+1. **BACKEND 3 메서드 진단 캡처** — HTTP status + body 200자 + `isPermissionDenied` (401/403) 를 `window._battleLastError` 에 기록
+2. **호출처 반환값 검증** — `_battleSaveRoom` / `_lobbyPingWaiter` / `_lobbyStartMatch` 모두 `if(!res)` 분기 + 사용자 토스트
+3. **`_battleHandleUpdate` justCreated grace period** — `BATTLE_JUST_CREATED_GRACE_MS=5000` + `_battleState.justCreatedAt`. 호스트 본인이 막 만든 방의 첫 fetch transient null 흡수 (Firebase eventual consistency 대비)
+4. **`_lobbyEnterQueue` 낙관적 UI** — phase='waiting' 직후 자기를 waiters 에 즉시 추가 (`_optimistic: true` 마커) + `_lobbyDraw()` 호출. setShared 실패 시 phase='idle' 롤백 + 자기 제거 + 명확한 토스트
+5. **진단 modal Firebase 자가진단 (`#diag-firebase-test`)** — 6 경로 (battles · lobby:waiters · lobby:matches · lb · feedback · presence) 각각 PUT/GET/DEL 시도. verdict allWriteOk / allDenied / partialDenied 로 분기 + 권장 룰 JSON inline 표시
+6. **README §3 룰 안내 갱신** — `lb` 만 허용 → `.read/.write: true` 루트 허용 (연구실 내부용). 이전 룰의 위험성 명시
 
-**quote distractors**: 같은 카테고리 (god/hero/heroine/philo/poet) 우선. 학습자에게 *맥락 추론* 압력 (예: 호메로스 정형구라면 영웅 4명 중 누구인가).
+### C. 부수
+- toast 시그니처 확장 (`(msg, typeOrDuration, duration)` — 숫자면 duration, 문자열이면 type). backward compatible
+- APP/CACHE_VERSION v58 → v59
+- test-v59.js 신규 (~180 lines, 43 assertions — 13 섹션 · sandbox eval)
 
-**모드 선택 UI**: lobby 카드에 `🎲 게임 모드 선택` 섹션. 4 모드 카드. 선임자만 의미 있으나 *모든 대기자에게 보임* — 위로 올라가면서 그 권한이 자연스럽게 넘어옴.
-
-### C. 검증
-`test-v58.js` 104/104 PASS. 정적 grep + 동적 sandbox (모든 4 빌더가 10 questions × 시드 결정성 × Q3/Q6/Q9 강탈 패턴 × 옵션 검증 통과). `test-v57.js` 43/45 (fail 2 = APP/CACHE_VERSION 상수 의도된 reversal). `test-v56.js` 63/66 (fail 3 = 동일 + intro callback signature).
-
-`APP_VERSION`/`CACHE_VERSION` v57 → v58.
+### D. 솔직한 한계
+- v59 의 fix 들은 **root cause 자체는 해결 안 함**. 사용자가 Firebase Console 에서 룰을 갱신해야 함. v59 가 한 일은 (a) 진단 명확화, (b) 자가진단 modal 의 권장 룰 inline 표시, (c) README 갱신. **사용자에게 가장 빠른 해결책은 README §3 의 권장 룰 (혹은 자가진단 modal 의 inline 룰) 을 Firebase Console 에 붙여넣고 Publish**.
+- 진단 modal 의 자가진단은 *현재 시점* 만 확인. 룰 갱신 후 약 5-10초 propagation 지연.
+- BACKEND 의 진단 캡처는 *직전 호출만* `_battleLastError` 에 저장 — 동시 다발 setShared 시 마지막 것만 남음 (자가진단은 순차라 영향 없음).
+- 낙관적 UI 의 `_optimistic: true` 마커는 현재 표시 분기에 활용 안 함 — _lobbyTick 의 실제 데이터로 자연스럽게 덮어쓰임.
 
 ---
 
-## 즉시 실행 후보 (자체 완결)
+## v60 우선순위 (사용자 보고 없을 시 자연스러운 다음 라운드)
 
-### 우선순위 1 — 정역 더 확장 (v53 부터 누적 defer)
-**작업 깊이**: 중간
-**의존성**: `data-translations.js` 의 `WORK_TRANSLATIONS` 모델
-**목표**: 19 발췌 → 25 발췌
+### 1순위: 정역 확장 (v53 부터 누적 defer)
+가장 큰 학습 가치. 19 발췌 → 25 발췌 목표:
+- **Plato Apology §23-26** (변론 마무리 — v52~v53 의 §17-22 연속, 자연스러운 흐름)
+- **Iliad 1.151-200+** (외교 시도 — v53 의 §1.101-150 연속)
+- **Sophocles Oedipus 1-100** (안티고네에 이은 두 번째 비극)
+- **Plato Crito §44-47** (탈출 권유 본격화 — v53 의 §43 연속)
+- (선택) Aeschylus Agamemnon 1-100 또는 Euripides Medea 1-100
 
-**구체 작업**:
-1. **Plato Apology §23-26** (변론 마무리) — v52~v53 의 §17-22 자연스러운 연속.
-2. **Homer Iliad 1.151-200+** (외교 시도) — v53 의 §1.101-150 연속.
-3. **Sophocles Oedipus 1-100** — 안티고네 (v53) 에 이은 두 번째 비극.
-4. **Plato Crito §44-47** — v53 의 §43 연속.
-5. **Euripides Medea 1-100** (옵션) — v56 의 Medea 명언과 자연스러운 연결.
+`data-translations.js` 확장 ~310 lines. 학자 정역 (강대진·천병희·정암학당) 참고하되 학습 보조 작업 번역으로 명시.
 
----
+### 2순위: 매치 진행 중 ghost player 정리
+v58 의 lobby waiters cleanup 과 별개. 코드방·lobby 매치 진행 중 모바일 백그라운드/탭 닫기 시 player 객체가 방에 잔존. 결과 화면의 stale 표시만 영향.
 
-### 우선순위 2 — 추가 게임 모드 후보 (v58 의 자연스러운 연장)
-**작업 깊이**: 모드당 작음~중간
-**배경**: v58 의 4 모드 골격 (4-option MC, 시드 결정성, 강탈, 12초 타이머) 이 plug-in 식으로 확장 가능하게 설계됨. `_battleBuildXxx` 함수 추가 + `BATTLE_MODES` 등록 + `renderBattleGame` 의 promptBlock 분기 추가만으로 신규 모드 가능.
+구현: `presence:battle:<roomPath>:<uid>` 별도 키 + 30초 TTL + visibilitychange 시 즉시 삭제. `renderBattleGame` 의 점수보드 렌더가 stale player 필터링.
 
-**후보** (학습 가치 순):
+### 3순위 이하 (defer 유지)
+- 추가 게임 모드 (v58 의 plug-in 골격 활용) — Ἀκόντισμα (속도전) 가성비 가장 좋음
+- 재연결 시 인트로 컷 재진입 옵션
+- BGM 확장 (음량 슬라이더, 추가 모드)
+- Feedback 운영 UI · Presence 통계
+- 캐릭터 명언 TTS 자동 발화
+- 사진 prefetch (50/50 검증 완료, 즉시 효과)
+- 캐릭터 잠금 시스템 (XP/배지/완독 기반)
+- PARADIGM_LIB 분사·비교급 확장
+- μι-동사 quiz 통합
+- AI 기반 정역 (Anthropic API)
+- **(v59 신규) Firebase Auth 통합** — 외부 공개 시 보안 강화
+- **(v59 신규) 자가진단 modal 의 자동 룰 PUT** — Admin API 통합 (service account 키 노출 위험)
 
-- **2a · Ἀκόντισμα (Javelin · 속도전)** — 작음. 첫 정답자만 정답 점수. race-free 강탈 패턴 재사용 (`claimed[]`).
-- **2b · Δίφθογγος (악센트 위치)** — 작음. v47 의 `_classifyAccent` 재사용. ultima/penult/antepenult 3-option MC.
-- **2c · Ὀρθογραφία (받아쓰기 race)** — 중간. v44 의 `_normalizeForDictation` 재사용. TTS + 텍스트 입력 (MC 골격 벗어남, 별도 화면 분기 필요).
-- **2d · Ἑρμηνεία (정역 맞히기)** — 중간. WORK_TRANSLATIONS 19 발췌 × ~330 문장에서 그리스 문장 → 4 한국어. 학습 가치 매우 큼.
-- **2e · Δίκη (단어 재판 · 문맥 추론)** — 큼. DIALOGUES 의 turn 에서 어휘 highlight → 뜻 추론. 풀 작음 (~200).
-- **2f · Κλήρωσις (Wager modifier)** — 중간. 모든 모드에 적용 가능한 베팅 modifier.
+### 영구 제외
+- 다국어 UI (i18n)
 
-**권장 다음**: 2a (Ἀκόντισμα) 가 가장 작고 변별성 큼. 또는 2d (Ἑρμηνεία) 가 학습 가치 ↑.
-
----
-
-### 우선순위 3 — 매치 종료 시 ghost player 정리 (코드방 잔여)
-**상태**: v58 의 lobby 모드는 이미 `visibilitychange`/`beforeunload`/`pagehide` 로 처리. **그러나 코드방 (private) 의 매치 진행 중 ghost** 는 미해결.
-
-**작업 깊이**: 작음
-**구현**: `renderBattleLobby` 의 draw 에 *stale player 자동 제거* — 60초 이상 currentQ 갱신 없는 player 는 표시에서 제외 (객체는 남김 — finished 처리는 5분 TTL).
-
----
-
-### 우선순위 4 — 재연결 후 인트로 컷 재진입 옵션 (v57 신규 defer)
-**작업 깊이**: 작음. localStorage `S.battle.skipIntro` + 인트로 컷 토글.
-
----
-
-### 우선순위 5 — BGM 확장 (v56 신규 defer)
-**작업 깊이**: 작음~중간
-- (d) 음량 슬라이더 (가장 작음)
-- (a) 모드 다양화 (Phrygian/Lydian/Mixolydian)
-- (b) 모티프 다양화 (5종 → 15종)
-- (c) Seikilos Epitaph 실제 멜로디 mp3 (PD 학자 녹음 검증 필요)
-
----
-
-### 우선순위 6 — Feedback 운영 UI (v56 신규 defer)
-**작업 깊이**: 중간. `/admin?token=<운영자 토큰>` + `listShared('feedback:')` 카드 리스트.
-
----
-
-### 우선순위 7 — Presence 통계 (v56 신규 defer)
-**작업 깊이**: 작음~중간. 운영자 페이지에 시간대별·요일별 분포 차트.
-
----
-
-### 우선순위 8 — 캐릭터 명언 TTS 자동 발화 (v56 defer)
-**작업 깊이**: 작음. 인트로 컷에서 명언 자동 발화 (`S.battle.autoQuote`).
-
----
-
-### 우선순위 9 — 사진 prefetch (v53 defer)
-**작업 깊이**: 작음. picker 열기 전 50 사진 미리 캐싱.
-
----
-
-### 우선순위 10 — 캐릭터 잠금 시스템 (v52 defer)
-**작업 깊이**: 중간~큼. UX 설계 복잡, 기존 사용자 grandfathering 필요.
-
----
-
-### 우선순위 11 — PARADIGM_LIB 분사·비교급 확장 (v51 defer)
-**작업 깊이**: 큼. 76 → 90+ 표제어.
-
----
-
-### 우선순위 12 — μι-동사 quiz 통합 (v51 defer)
-**작업 깊이**: 중간.
-
----
-
-### 우선순위 13 — AI 기반 정역 (v53 defer)
-**작업 깊이**: 큼. Anthropic API + 사용자 API 키.
-
----
-
-## 외부 의존 (정보 없으면 진척 불가)
-
-- SoundCloud rhapsodoi 실제 slug 검증 (v46 defer)
-- Plato Crito 무료 mp3 (v46 defer)
-- ScorpioMartianus 무료 mp3 호스트 (v46 defer)
-
----
-
-## 권장 다음 작업
-
-**우선순위 1 (정역 확장)** 이 v53 부터 누적 defer 인 데다 v54~v58 의 사용자 요청 (캐릭터 사진 hotfix, 멀티 확장, 안정성, 구조 전환) 이 모두 처리됐으므로 가장 자연스러운 v59 작업.
-
-**대안**: **우선순위 2a (Ἀκόντισμα 속도전 모드)** — v58 의 게임 모드 골격이 plug-in 식으로 확장 가능하게 설계됐으니 소규모 신규 모드 추가는 가성비 ↑. 사용자가 멀티 배틀에 적극적이면 이쪽 우선.
-
-사용자 보고나 우선순위 변경 시 즉시 재조정.
+### 외부 의존 (새 정보 없으면 진척 불가)
+- SoundCloud rhapsodoi slugs 검증
+- Plato Crito Stratakis 무료 샘플 URL
+- ScorpioMartianus Ancient Greek Alive 001 호스트 확인
