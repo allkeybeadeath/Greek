@@ -4,7 +4,7 @@
 
 > **다음 작업자에게**: §7 라운드별 changelog 의 *맨 마지막 항목 (v56)* 이 현재 상태다. 그 위 라운드들은 어떻게 여기까지 왔는지의 기록. 새 작업을 시작하기 전에 §7 의 가장 최근 항목과 §0 의 현재 스냅샷을 먼저 읽기.
 
-## 0. 현재 상태 스냅샷 (v56, 2026-05)
+## 0. 현재 상태 스냅샷 (v57, 2026-05)
 
 **배포 산출물**: `index.html` (~920 KB, IIFE 약 420K chars, 15.2K lines — v56 의 멀티 인트로·강탈·BGM·feedback·presence 모듈 ~600 lines 추가) · `sw.js` · `data-works.js` (3 MB, 45 작품 545 섹션) · `data-morph.js` (4 MB, AGDT v2.1 37K 어형 11.8K lemma) · `data-dialogues.js` (45 KB, 10 콩트 시나리오) · `data-translations.js` (~55 KB, v53 확장 — 19 발췌 정역 ~330 문장 + 34 짧은 발췌 정역) · **`data-characters.js` (~22 KB, v56 — 50 캐릭터 사진 + 50 명언 인용)** · `espeakng.worker.js` (760 KB) · `manifest.json` · `reset.html`.
 
@@ -19,7 +19,7 @@
 - 변화표: 76 표제어 큐레이션 (55 명사 · 12 형용사 · 9 대명사)
 - **캐릭터 (Παίγνια · v52~v55)**: 50 캐릭터 SVG 메달리온 + 50 검증된 Wikimedia 사진. 5 표시 위치 (홈·프로필·명예의 전당·라이브 순위·멀티 배틀).
 - **원문 해석 (Ἑρμηνεία · v52~v53)**: 19 발췌 큐레이션 정역 + 단어 풀이 폴백.
-- **멀티 배틀 (v56 대폭 확장)**: 호스트가 방 생성 → 게스트 참가 → **(v56) 인트로 컷** (적·나 캐릭터 상하단 + 중앙 VS + 캐릭터별 명언 말풍선) → 어휘 객관식 10문제 → **(v56) Q3/Q6/Q9 는 점수 강탈 문제** (정답 시 다른 모든 플레이어로부터 8점씩 빼앗음, race-free 설계). 시간 12초/문제. XP 보상 30/18/12/5.
+- **멀티 배틀 (v56 대폭 확장, v57 안정성 핫픽스)**: 호스트가 방 생성 → 게스트 참가 → **(v56) 인트로 컷** (적·나 캐릭터 상하단 + 중앙 VS + 캐릭터별 명언 말풍선) → 어휘 객관식 10문제 → **(v56) Q3/Q6/Q9 는 점수 강탈 문제** (정답 시 다른 모든 플레이어로부터 8점씩 빼앗음, race-free 설계). 시간 12초/문제. XP 보상 30/18/12/5. **(v57)** 단발성 fetch null 이 "방이 닫혔습니다" 로 직결되던 fragility 해소 — 연속 3회 *그리고* 12초 임계점 둘 다 만족해야 실제 닫힘 확정. 인트로 컷 표시 중 SSE/polling update 가 화면을 깨뜨리지 못하게 보호.
 - **(v56 신규) BGM**: 절차적 고대 그리스 양식 음악 (Web Audio API, 도리아 모드 E F G A B C D, 키타라/리라 톤 합성). 홈 화면 BGM 토글 버튼. **양식적 모방** (재현 아님) 명시. Self-contained · 오프라인 · 라이선스 위험 없음.
 - **(v56 신규) 건의 사항**: 홈 푸터의 `건의` 링크 → modal (textarea 2000자) → `STORAGE.setShared('feedback:<ts>:<userId>', ...)`. 운영자는 console 에서 `STORAGE.listShared('feedback:')` 로 수집. 오프라인 시 localStorage 큐 (`paideia.feedbackQueue`).
 - **(v56 신규) 동시 학습자 카운트**: 4분 간격 `presence:<userId>` heartbeat. 홈 화면 카드에 `현재 N명 공부 중` 표시 (5분 이내 ping 한 사용자만). 60초 카운트 캐시.
@@ -35,24 +35,25 @@
 - 콩트: `DIALOGUES` (data-dialogues.js)
 - 학자 낭독: `SCHOLAR_AUDIO` (본문 매칭) + `SCHOLAR_LIBRARY` (도서관)
 - **캐릭터 (v52~v56)**: `CHARACTERS` 50 · `CHARACTERS_BY_ID` · `CHAR_SYMBOLS` 32 · `CHAR_PALETTES` 5 · `CHARACTER_IMAGES` (v53~v55, 50 사진) · **`CHARACTER_QUOTES` (v56, 50 명언)** · `_charMedallion` / `_charPhotoMedallion`
-- **멀티 배틀 (v56 강화)**: `_battleGameLocal` (로컬 진행 + `stolen[]`) · `_battleIntroShown` (인트로 1회 가드) · `_battleEffectiveScores` (강탈 반영) · `_renderBattleIntro` · 상수 `BATTLE_STEAL_INTERVAL=3`, `BATTLE_STEAL_AMOUNT=8`, `BATTLE_INTRO_MS=5200`
+- **멀티 배틀 (v56 강화, v57 안정화)**: `_battleGameLocal` (로컬 진행 + `stolen[]`) · `_battleIntroShown` (인트로 1회 가드) · `_battleEffectiveScores` (강탈 반영) · `_renderBattleIntro` · 상수 `BATTLE_STEAL_INTERVAL=3`, `BATTLE_STEAL_AMOUNT=8`, `BATTLE_INTRO_MS=5200` · **(v57) `_battleHandleUpdate(room, onUpdate)`** null robustness wrapper · 상수 `BATTLE_NULL_THRESHOLD=3`, `BATTLE_NULL_MIN_MS=12000` · `_battleState` 추가 필드 `nullRunCount` · `lastGoodRoom` · `lastGoodAt` · `introActive` · `latestRoomDuringIntro`
 - **BGM (v56)**: `BGM` IIFE 모듈 (`window.BGM.start/stop/isRunning/isAvailable`) · `toggleBgm` · `S.bgmEnabled` · `_ensureBgmPref`
 - **Feedback (v56)**: `openFeedbackModal` · `STORAGE` 의 `feedback:<ts>:<userId>` 키 · localStorage `paideia.feedbackQueue`
 - **Presence (v56)**: `pingPresence` · `startPresenceHeartbeat` · `fetchPresenceCount` · 상수 `PRESENCE_TTL_MS=5min`, `PRESENCE_PING_MS=4min` · `_presenceCountCache` (60초 TTL)
 
-**현재 미해결·defer 상태** (§7 의 v56 끝 defer 블록 참조):
+**현재 미해결·defer 상태** (§7 의 v57 끝 defer 블록 참조):
 - 외부 의존 3 항목 (SoundCloud slugs · Plato Crito sample · ScorpioMartianus) — 새 정보 없음
 - 단어 단위 시간 동기 (현재 행/단락)
 - plato-apology Stratakis cue points
 - PARADIGM_LIB 분사·비교급·최상급 확장
 - μι-동사 가정법/희구법 quiz 통합 (v50 의 5 표 학습만 있고 시험 없음)
-- **정역 확장 (원래 v56 의 권장 작업)**: 19 발췌 → 25 발췌 (Plato Apology §23-26, Iliad 1.151-200+, Sophocles Oedipus 1-100, Plato Crito §44-47). 사용자가 v56 에서 멀티 확장을 우선했기에 v57 로 이월.
+- **정역 확장 (v53 의 권장 작업, v56·v57 에서도 이월)**: 19 발췌 → 25 발췌 (Plato Apology §23-26, Iliad 1.151-200+, Sophocles Oedipus 1-100, Plato Crito §44-47). 사용자가 v56 멀티 확장 + v57 핫픽스를 우선했기에 v58 로 이월.
 - 캐릭터 잠금 시스템 (XP/배지/완독 기반)
 - 사진 prefetch
 - AI 기반 정역 (Anthropic API)
-- **(v56 신규 defer) BGM 확장**: 추가 모드 (Phrygian, Lydian, Mixolydian), 모티프 다양화, 실제 학자 복원 곡 (Seikilos Epitaph 의 *진짜* 멜로디) 외부 mp3 옵션
-- **(v56 신규 defer) Feedback 운영 UI**: 현재는 console 수집만. 별도 `/admin` 페이지 또는 명예의 전당 옆에 운영자 전용 진입 (운영자 인증은 STORAGE 의 `admin:` 키 토큰)
-- **(v56 신규 defer) Presence 통계**: 현재 카운트만. 시간대별 분포·요일별 분포 등 통계 분석 (운영자 전용)
+- **BGM 확장**: 추가 모드 (Phrygian, Lydian, Mixolydian), 모티프 다양화, 실제 학자 복원 곡 (Seikilos Epitaph 의 *진짜* 멜로디) 외부 mp3 옵션
+- **Feedback 운영 UI**: 현재는 console 수집만. 별도 `/admin` 페이지 또는 명예의 전당 옆에 운영자 전용 진입 (운영자 인증은 STORAGE 의 `admin:` 키 토큰)
+- **Presence 통계**: 현재 카운트만. 시간대별 분포·요일별 분포 등 통계 분석 (운영자 전용)
+- **(v57 신규 defer) 멀티 배틀 종료 시 자동 정리**: 사용자가 모바일에서 브라우저를 닫거나 백그라운드로 가면 SSE/polling 이 끊긴 채 player 객체가 방에 남아 다른 학습자에게 "ghost 참가자" 로 보임. `visibilitychange` 핸들러 + heartbeat 기반 stale player 제거 필요 (v57 의 null-robustness 와 별개 작업)
 
 **영구 제외** (사용자 정책):
 - 다국어 UI (i18n)
@@ -1169,10 +1170,167 @@ defer (다음 라운드 후보, v57+):
 영구 제외 (사용자 정책):
   · 다국어 UI (i18n)
 
+---
+
+**v57**: 멀티 배틀 "방이 닫혔습니다" fragility 핫픽스 — 사용자 보고 *"멀티 배틀에서 '방이 닫혔습니다 — 호스트가 방을 종료했거나 네트워크 오류입니다.' 가 떠요"* (iPad Safari, allkeybeadeath.github.io 배포). 스크린샷 첨부: "← 배틀" 버튼 + 단발성 오류 카드만 표시, 호스트는 멀쩡한데 게스트만 끊긴 상황.
+
+**원인 진단** — `renderBattleLobby` 의 `draw(room)` 콜백이 `room === null` 한 번만 받아도 즉시 "방이 닫혔습니다" 카드 표시 + `_battleStopPoll()` 호출. 그러나 `room === null` 의 origin 은 *방 진짜 삭제*뿐 아니라:
+  · `_battleFetchRoom` 의 catch (13205~) — 네트워크 hiccup, Firebase 일시 지연, STORAGE backend 의 throttle
+  · `_battleStartPolling` 의 첫 fetch (`_battleFetchRoom(code).then(onUpdate)`) — null 도 그대로 전달
+  · `_battleStartPolling` 의 interval 안 fetch — 마찬가지로 null 그대로 전달
+  · SSE 핸들러의 `path === '/' && payload === null` 분기 — Firebase RTDB 초기화 시 일시적으로 빈 응답이 올 수 있음
+  · v56 의 추가 fetch 부담: 강탈 처리 시 `_battleFetchRoom` (14140), `_battleSubmitProgress` 의 fresh fetch (14223), presence heartbeat 의 4분 간격 STORAGE 호출 — 네트워크 부담 ↑
+
+전체적으로 *한 번의 transient null 이 매치 진행 화면을 완전히 부숨*. iPad 18% 배터리 + 모바일 네트워크 환경은 transient hiccup 빈도가 높아 사용자가 자주 마주칠 수밖에 없는 fragility.
+
+**부수 문제 — 인트로 컷이 5.2초 채우지 못하고 잘릴 가능성**: `_renderBattleIntro` 가 view.innerHTML 로 인트로 화면을 표시하는 동안에도 SSE/polling 은 계속 동작. status='playing' room update 가 도착하면 `draw(room)` → `renderBattleGame(code, room)` → `_battleIntroShown[code]` 이미 true 이므로 본 게임으로 점프 → 인트로 컷이 사라짐. v56 의 인트로 컷 디자인 의도 (5.2초 = 캐릭터 인지 + 명언 읽을 시간) 약화.
+
+**해결책 두 갈래**:
+
+**(1) `_battleHandleUpdate` null robustness wrapper** — 핵심 수정. 단발성 null 이 즉시 "방이 닫혔습니다" 로 직결되지 않게 *연속 카운트 + 시간 임계점* 도입.
+
+```js
+const BATTLE_NULL_THRESHOLD = 3;
+const BATTLE_NULL_MIN_MS    = 12000;
+
+function _battleHandleUpdate(room, onUpdate){
+  if(!_battleState) return;
+  if(room){
+    _battleState.nullRunCount = 0;
+    _battleState.lastGoodRoom = room;
+    _battleState.lastGoodAt = Date.now();
+    onUpdate(room);
+    return;
+  }
+  // null 받음 — 임계점까지는 마지막 정상 room 유지
+  _battleState.nullRunCount = (_battleState.nullRunCount || 0) + 1;
+  const sinceGood = _battleState.lastGoodAt ? (Date.now() - _battleState.lastGoodAt) : Infinity;
+  const everSawGood = !!_battleState.lastGoodRoom;
+  if(!everSawGood){
+    // 첫 응답부터 null — 코드 오타 등 즉시 알림. 첫 번째만 전달.
+    if(_battleState.nullRunCount === 1) onUpdate(null);
+    return;
+  }
+  // 정상 응답 이력 있음 — 연속 3회 *그리고* 12초 둘 다 만족해야 실제 닫힘 확정
+  if(_battleState.nullRunCount >= BATTLE_NULL_THRESHOLD && sinceGood >= BATTLE_NULL_MIN_MS){
+    onUpdate(null);
+  }
+}
+```
+
+진입 경로 4 곳 모두 `onUpdate(r)` → `_battleHandleUpdate(r, onUpdate)` 로 교체:
+  · `_battleStartPolling` 의 즉시 fetch (13331)
+  · `_battleStartPolling` 의 interval 안 fetch (13334)
+  · `_battleSubscribe` 의 즉시 fetch (13344)
+  · `_battleSubscribeSSE` 의 path='/'+payload=null 및 cached 부분 갱신 분기 (4 위치)
+
+`_battleSubscribe` 시작 시 `nullRunCount=0, lastGoodRoom=null, lastGoodAt=0` 초기화. `_battleCleanup` 도 동일 필드 정리 (메모리 누수 방지).
+
+**의도된 동작 시뮬레이션 (test-v57.js 의 시나리오 A-D, 모두 통과)**:
+  · A: 정상 응답 → onUpdate 1회 호출, nullCount=0, lastGoodRoom 보존
+  · B: 정상 1회 + null 2회 (임계 미달) → onUpdate 정상만 1회 (null 2회는 모두 흡수, UI 동결 유지)
+  · C: 정상 응답 → 13초 경과 + null 3회 → 임계점 도달, onUpdate(null) 호출 (실제 방 닫힘 확정)
+  · D: 첫 응답부터 null (코드 오타 등) → 첫 번째 null 만 전달, 나머지 무시 (사용자에게 즉시 알리되 반복 안 함)
+
+**(2) 인트로 컷 보호** — `_renderBattleIntro` 가 표시 중일 때 `_battleState.introActive = true` 설정. `renderBattleLobby` 의 `draw` 가 introActive 면 view.innerHTML 안 만지고 `_battleState.latestRoomDuringIntro` 에 room 만 보존. `advance()` 에서 `introActive = false` + onContinue(latestRoom).
+
+```js
+// _renderBattleIntro 시작:
+if(_battleState){
+  _battleState.introActive = true;
+  _battleState.latestRoomDuringIntro = room;
+}
+// advance():
+function advance(){
+  if(advanced) return;
+  advanced = true;
+  clearTimeout(autoTm);
+  let nextRoom = room;
+  if(_battleState){
+    _battleState.introActive = false;
+    if(_battleState.latestRoomDuringIntro) nextRoom = _battleState.latestRoomDuringIntro;
+    _battleState.latestRoomDuringIntro = null;
+  }
+  onContinue(nextRoom);
+}
+// draw(room) 콜백:
+if(_battleState && _battleState.introActive){
+  _battleState.latestRoomDuringIntro = room;
+  // status='finished' 만 예외 — 인트로 깨고 결과로 점프
+  if(room.meta && room.meta.status === 'finished'){
+    _battleState.introActive = false;
+    return renderBattleResult(code, room);
+  }
+  return;
+}
+```
+
+`renderBattleGame` 의 `_renderBattleIntro` 호출에서 onContinue 가 `(latestRoom) => renderBattleGame(code, latestRoom || room)` 으로 변경. 인트로 5.2초 동안 도착한 최신 room (예: 다른 게스트가 추가 입장 또는 score 갱신) 으로 본 게임 진입.
+
+**(3) 방 닫힘 메시지 개선** — 임계점 도달해서 실제 표시될 때 더 informative:
+  · 타이틀: "방이 닫혔습니다" → "방 연결 끊김" (완곡)
+  · 진단: "약 N초 동안 응답 없음 — 호스트 이탈 또는 네트워크 문제" (sinceGood 표시)
+  · 버튼: 🔄 다시 연결 시도 (nullCount/lastGoodAt 리셋 후 `_battleSubscribe` 재호출) + 메뉴로
+  · 재시도 흐름: 사용자가 모바일 LTE→Wi-Fi 전환 등으로 일시적 끊김이었던 경우 재연결 한 번으로 복귀 가능
+
+**구현 사항**:
+  · `index.html`: 약 110 lines 변경/추가 (~600 lines 의 v56 멀티 배틀 모듈 중 약 18% 가 영향 받음)
+    - `_battleHandleUpdate` 신규 함수 + 상수 2개 (~40 lines)
+    - `_battleStartPolling` / `_battleSubscribe` 의 onUpdate 직접 호출을 wrapper 경유로 (4 위치)
+    - `_battleSubscribeSSE` 의 4 분기 모두 wrapper 경유로
+    - `_renderBattleIntro` 시작·advance() 에 introActive 토글 + latestRoomDuringIntro
+    - `renderBattleLobby` 의 `draw` 콜백에 introActive 처리 + 방 닫힘 메시지 개선 + 재연결 버튼
+    - `renderBattleGame` 의 `_renderBattleIntro` 호출에서 onContinue 가 latestRoom 인자
+    - `_battleCleanup` 가 신규 필드 정리
+  · `sw.js`: CACHE_VERSION v56 → v57 (1 line)
+  · `index.html`: APP_VERSION v56 → v57 (1 line)
+  · `test-v57.js`: 신규 (~220 lines, 45 assertions — 정적 grep + 동적 시뮬레이션)
+
+**검증** (test-v57.js, 45/45 PASS):
+  · 버전 상수, wrapper 함수·상수 정의, 모든 onUpdate 진입 경로의 wrapper 경유, 인트로 보호 코드 4 항목, 방 닫힘 메시지 개선 5 항목, cleanup 의 신규 필드 4 정리, v56 invariant 8 항목 보존, `_battleHandleUpdate` 행위 시뮬레이션 4 시나리오 (sandbox eval) — 모두 통과
+  · 추가: v56 의 test-v56.js 도 함께 실행 (63 pass / 3 fail). fail 3 는 *의도된 reversal*:
+    - APP_VERSION/CACHE_VERSION v56 invariant → v57 으로 의도 변경
+    - "인트로 종료 콜백이 renderBattleGame 재진입" — onContinue 시그니처 변경 (`() => ...` → `(latestRoom) => ...`) 으로 의도 변경
+  · 즉, v56 테스트가 v57 의 정상 변경을 보고한 *건강한 신호*. 구조적 invariant 는 그대로.
+
+**라이브 작동 검증 시나리오 (사용자 측 수동 점검 권장)**:
+1. 두 브라우저 (또는 iPad+iPhone) 에서 같은 방 입장 → 호스트가 시작 → *양측 모두 5.2초 인트로 컷 완주* (이전엔 일찍 잘렸을 수 있음)
+2. 게스트 측에서 *기내 모드 토글 후 즉시 해제* (~3초 끊김) → "방 연결 끊김" 안 뜨고 매치 계속 (transient hiccup 흡수)
+3. 호스트가 *진짜로 방을 떠남* → 게스트는 약 12초 후 "방 연결 끊김" + 진단 메시지 + 재연결 버튼 표시
+4. 게스트가 *진짜로 잘못된 방 코드 입력* → 즉시 (첫 fetch null) "방 연결 끊김" 안내 (정상)
+5. 게스트가 *재연결 시도 버튼 클릭* → 호스트가 방을 재생성했다면 즉시 복귀 (실패 시 다시 안내)
+
+**의도된 결과**:
+  · 매치 중 transient 네트워크 hiccup (모바일 환경에서 흔함) 으로 매치가 끊기지 않음
+  · 인트로 컷이 5.2초 디자인 의도대로 완주
+  · 실제로 방이 닫힌 경우엔 적절한 시간 후 (12초) 명확한 진단 메시지 + 재연결 기회
+
+**솔직한 한계**:
+  · 12초 임계점은 *모바일 LTE의 평균 hiccup 회복 시간 + Firebase RTDB 의 keep-alive 주기* 를 기준으로 한 값. 추후 사용자 보고에 따라 조정 가능 (코드 한 줄: `BATTLE_NULL_MIN_MS`)
+  · 호스트가 *진짜로* 떠난 경우 12초 동안 게스트가 모르는 채로 진행 — 그러나 호스트 부재 시 `meta.status` 갱신이 없으므로 게스트 화면이 동결될 뿐, 잘못된 결과 저장 위험은 없음 (`_battleSubmitProgress` 가 path-level PUT 이므로 호스트 부재가 자기 진척에 영향 안 줌)
+  · 인트로 컷 중 *호스트가 매치를 일찍 취소* 했다면, 인트로는 5.2초 동안 표시되고 끝나면 본 게임으로 진입했다가 거기서 status 확인 — 약간의 UX 지연 있으나 frequent 시나리오 아님
+  · 본 핫픽스는 *증상 (fragility) 완화* 가 목적. 진정한 해법은 Firebase RTDB 대신 *acknowledgment 기반 reliable transport* 또는 sync-aware 백엔드 (Liveblocks, Yjs 등). 그러나 단일 PWA + 무료 백엔드 제약 내에서는 본 wrapper 가 합리적 절충점
+
+defer (다음 라운드 후보, v58+):
+  · **v58 권장 = 정역 확장** (v53 부터 누적 defer, v56·v57 에서도 다른 우선순위에 밀림) — Apology §23-26, Iliad 1.151-200+, Sophocles Oedipus 1-100, Plato Crito §44-47. 사용자 보고 또는 우선순위 변경 없으면 v58 의 자연스러운 작업
+  · **(v57 신규 defer) 매치 종료 시 ghost player 정리** — 모바일 백그라운드/탭 닫기 시 player 객체가 방에 남는 문제. `visibilitychange` 핸들러 + `presence:battle:<code>:<uid>` 별도 키 + 60초 TTL 로 stale player 제거. 별도 작업
+  · **(v57 신규 defer) 재연결 후 인트로 컷 재진입 옵션** — 현재는 `_battleIntroShown[code] = true` 라 재연결해도 인트로 안 보임. 사용자 선택으로 "인트로 다시 보기" 버튼 제공 가능
+  · 외부 의존 3 항목 (SoundCloud slugs · Plato Crito · ScorpioMartianus) — 새 정보 없음
+  · BGM 확장 (v56 defer)
+  · Feedback 운영 UI (v56 defer)
+  · Presence 통계 (v56 defer)
+  · 캐릭터 명언 TTS 자동 발화 (v56 defer)
+  · 사진 prefetch (v53 defer)
+  · 캐릭터 잠금 시스템 (v52 defer)
+  · PARADIGM_LIB 분사·비교급 확장 (v51 defer)
+  · μι-동사 quiz 통합 (v51 defer)
+  · AI 기반 정역 (Anthropic API)
+
+영구 제외 (사용자 정책):
+  · 다국어 UI (i18n)
+
 
 ## 8. 알려진 미해결 사항 및 향후 작업
-
-표제어 (lemma) 검색·콘코던스 기능이 아직 없다. 사용자가 단어를 클릭하면 형태 분석이 modal 로 표시되나, 그 단어의 다른 출현 위치를 탐색하는 기능은 미구현. `data-morph.js` 의 19,875 lemma 인덱스를 활용한 역방향 검색이 자연스러운 다음 단계.
 
 `aria` 라벨 일괄 정비가 필요하다. v32 의 `_setupGreekLang` 이 `lang` 속성을 자동화했으나, 인터랙티브 요소 (버튼·링크) 의 `aria-label` 은 여전히 일부 누락. 스크린 리더 사용자를 위해 체계적 점검 필요.
 

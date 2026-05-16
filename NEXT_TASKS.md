@@ -1,32 +1,33 @@
-# 다음 라운드 작업 계획 (v57 ~)
+# 다음 라운드 작업 계획 (v58 ~)
 
-*현재 상태*: v56 빌드 완료 (멀티 배틀 인트로·강탈 + BGM + 건의 + presence 카운트). paideia-pwa-v56.zip 배포.
+*현재 상태*: **v57 빌드 완료** (멀티 배틀 "방이 닫혔습니다" fragility 핫픽스 — `_battleHandleUpdate` null robustness wrapper + 인트로 컷 보호 + 재연결 버튼). paideia-pwa-v57.zip 배포.
+
 *세션 정책*:
 - 다국어 UI (i18n) 는 **작업 범위에서 영구 제외** — 사용자 지시 (v49 세션).
 - **인수인계 (HANDOVER.md) 를 매 라운드 산출물에 동봉** — 사용자 지시 (v53 세션).
 - **Wikimedia 파일명 추측 금지** (v54~v55 의 교훈) — 카테고리 페이지 listing 의 *실존 파일명* 만 채택.
-- **PD 원전 인용 검증** (v56 의 교훈) — 명언·정역 모두 표준 인용 (Hom. Il. X.Y, DK 단편 번호 등) 으로 출처 명시.
+- **PD 원전 인용 검증** (v56 의 교훈) — 명언·정역 모두 표준 인용으로 출처 명시.
+- **단발성 null 에 보수적** (v57 의 교훈) — 외부 의존 (Firebase, STORAGE.getShared 등) 의 transient 실패가 UX 를 깨뜨리지 않게 임계점·재시도 패턴 적용.
 
 ---
 
-## v56 완료 사항 (참조용)
+## v57 완료 사항 (참조용)
 
-사용자 요청 *2 라운드 통합* (멀티 확장 3 + 학습 동반 모듈 3):
+사용자 보고 *"멀티 배틀에서 '방이 닫혔습니다' 가 떠요"* (iPad Safari, allkeybeadeath.github.io) 에 대한 핫픽스:
 
-1. **멀티 인트로 컷** (`_renderBattleIntro`) — 적·나 캐릭터 사진 + 중앙 VS 메달리온 + 캐릭터별 명언 말풍선. 2명/3+명 분기 레이아웃. 5.2초 자동 진행 + 바로 시작 / 명언 듣기 (TTS) 버튼.
-2. **CHARACTER_QUOTES 50 entries** — 모든 50 캐릭터의 PD 원전 명언 (`{grk, ko, src}`). 호메로스·플라톤·소포클레스·DK 단편 등.
-3. **점수 강탈** — Q3/Q6/Q9 가 결정적 강탈 문제 (시드 기반, 모든 플레이어 동일 인덱스). 정답 시 다른 모든 플레이어로부터 8점 강탈. Race-free 설계: 자기 `stolen[]` 에만 push, `_battleEffectiveScores` 가 계산 시 차감 + 음수 클램프.
-4. **BGM (Web Audio API)** — 절차적 도리아 모드 음악 + 키타라 톤 + 드론. 양식적 모방 (재현 아님) 명시. 홈 화면 토글 버튼.
-5. **건의 사항 modal** — STORAGE.setShared('feedback:<ts>:<uid>') + localStorage 큐 안전망. 운영자는 console 에서 listShared 로 수집.
-6. **동시 학습자 카운트** — 4분 간격 presence ping, 5분 TTL, 60초 카운트 캐시. 홈 카드에 N명 공부 중.
+1. **`_battleHandleUpdate` null robustness wrapper** — `BATTLE_NULL_THRESHOLD=3` + `BATTLE_NULL_MIN_MS=12000ms` 임계점 도입. 단발성 transient null 무시. 정상 응답 이력 없을 시 첫 null 만 전달 (코드 오타 등).
+2. **모든 onUpdate 경로 wrapper 경유** — `_battleStartPolling` 즉시 fetch / interval, `_battleSubscribe` 즉시 fetch, `_battleSubscribeSSE` 의 path='/'+null 및 부분 갱신 분기 (총 6 위치).
+3. **인트로 컷 보호** — `_battleState.introActive` + `latestRoomDuringIntro`. SSE/polling update 가 인트로 화면을 깨뜨리지 않고 latestRoom 만 보존. advance() 에서 최신 room 으로 본 게임 진입.
+4. **방 닫힘 메시지 개선** — "방 연결 끊김" + sinceGood 진단 + 🔄 재연결 시도 버튼.
+5. **`_battleCleanup` 신규 필드 정리** — nullRunCount, lastGoodRoom, lastGoodAt, introActive, latestRoomDuringIntro.
 
-`APP_VERSION`/`CACHE_VERSION` v55 → v56. `test-v56.js` (66/66 PASS).
+`APP_VERSION`/`CACHE_VERSION` v56 → v57. `test-v57.js` (45/45 PASS — 정적 grep + 동적 sandbox 시뮬레이션 4 시나리오 포함). `test-v56.js` 와 함께 실행 시 fail 3 — 모두 *의도된 reversal* (버전 상수 + onContinue 시그니처).
 
 ---
 
 ## 즉시 실행 후보 (자체 완결)
 
-### 우선순위 1 — 정역 더 확장 (v53 defer, v56 의 원래 권장 작업)
+### 우선순위 1 — 정역 더 확장 (v53 부터 누적 defer, v56·v57 에서도 다른 우선순위에 밀림)
 **작업 깊이**: 중간
 **의존성**: v53 의 `WORK_TRANSLATIONS` 모델 (별도 파일 `data-translations.js`)
 **목표**: 19 발췌 → 25 발췌
@@ -44,113 +45,110 @@
 
 ---
 
-### 우선순위 2 — BGM 확장 (v56 신규 defer)
+### 우선순위 2 — 매치 종료 시 ghost player 정리 (v57 신규 defer)
+**작업 깊이**: 작음~중간
+**배경**: 모바일에서 사용자가 *브라우저를 닫거나 백그라운드로 전환*하면 SSE/polling 끊긴 채 player 객체가 방에 남음. 다른 학습자에게 "ghost 참가자" 로 보임. v57 의 null-robustness 와 별개 작업 (v57 은 *내가 보는 측* 의 fragility, ghost player 는 *다른 사람에게 보이는 나의 stale 상태*).
+
+**구현 옵션**:
+- (a) `visibilitychange` 핸들러 — `document.hidden` 시 30초 후 자기 player 제거. 복귀 시 재등록. 위험: 사용자가 잠깐 다른 앱 갔다 와도 매치 끊김.
+- (b) heartbeat 기반 stale 제거 — `presence:battle:<code>:<uid>` 별도 키 + 60초 TTL. `renderBattleLobby` 의 draw 가 stale player 자동 제거. *권장* — v56 presence 와 일관성.
+- (c) 명시적 "방 나가기" 버튼 — 현재 `_battleLeave` 가 있으나 모바일 사용자가 보통 그냥 닫음. 버튼만으로는 불충분.
+
+**구현 우선순위**: (b) 가 가장 robust. presence 의 4분 heartbeat 보다 짧은 주기 (60초 TTL → 30초 ping) 필요.
+
+---
+
+### 우선순위 3 — 재연결 후 인트로 컷 재진입 옵션 (v57 신규 defer)
+**작업 깊이**: 작음
+**배경**: 현재는 `_battleIntroShown[code] = true` 라 재연결해도 인트로 안 보임. 사용자가 인트로를 다시 보고 싶을 수 있음.
+
+**구현**: 인트로 컷에 *"건너뛰기 + 다시 안 보기"* 와 *"건너뛰기"* 두 가지 분기. localStorage 의 `S.battle.skipIntro` 로 전역 선호 저장.
+
+---
+
+### 우선순위 4 — BGM 확장 (v56 신규 defer)
 **작업 깊이**: 작음~중간
 **구현 옵션 (우선순위 순)**:
 - **(d) 음량 슬라이더** — 현재 고정 0.045. 사용자 조절 가능하도록. *매우 작은 작업*.
-- **(b) 모티프 다양화** — 현재 5종 → 12-15종. 변주 (역행, 전위, 리듬 변경).
-- **(a) 추가 모드** — Phrygian/Lydian/Mixolydian. 그리스 음악 이론 학습 모듈로 확장 가능.
-- **(c) 외부 학자 복원 mp3** — Seikilos Epitaph 의 *진짜* 멜로디. 외부 호스팅. 라이선스 검증 필요.
+- **(a) 모드 다양화** — Phrygian/Lydian/Mixolydian 추가. `SCALE_PRESETS` 객체화. 사용자가 모드 선택 가능.
+- **(b) 모티프 다양화** — 현재 5종 → 15종. 도리아 모드 펜타토닉 + 헥사토닉.
+- **(c) Seikilos Epitaph 실제 멜로디 mp3** — Public Domain 학자 녹음 검증 필요. 외부 호스트 (Wikimedia Commons 의 Seikilos 가창 파일?) 확인 후 추가.
 
 ---
 
-### 우선순위 3 — Feedback 운영 UI (v56 신규 defer)
+### 우선순위 5 — Feedback 운영 UI (v56 신규 defer)
 **작업 깊이**: 중간
-**목표**: 운영자가 console 없이 UI 에서 건의 사항 조회·답변·완료 마킹.
+**배경**: 현재는 console 의 `STORAGE.listShared('feedback:')` 로만 수집. 운영자가 매번 console 열기 번거로움.
 
-**설계**:
-- `/?admin=<token>` 쿼리. 토큰은 `admin:` STORAGE 키.
-- 리스트 UI: 시간순 정렬, 미처리/처리완료 필터.
-- 처리 완료 마킹: `feedback:<ts>:<uid>` value 에 `resolved: true` 추가.
+**구현**:
+- `/admin?token=<운영자 토큰>` 진입 — 명예의 전당 옆 카드에 *작은 텍스트 링크*.
+- 운영자 토큰 확인 — `STORAGE.getShared('admin:<token>')` 가 존재해야 진입 허용. 초기 토큰은 console 에서 수동 발급.
+- 진입 시 `listShared('feedback:')` → 카드 리스트 (timestamp 내림차순) + "처리 완료" 마킹 (별도 키 `feedback-done:<원래 키>`).
 
 ---
 
-### 우선순위 4 — 캐릭터 잠금 시스템 (v52~v54 defer)
+### 우선순위 6 — Presence 통계 (v56 신규 defer)
+**작업 깊이**: 작음~중간
+**구현**: 운영자 페이지 (위 우선순위 5 와 통합 가능) 에 *시간대별·요일별 분포 차트*. 데이터 소스는 `listShared('presence:')` 의 ts 분포. SVG 차트는 v56 의 BGM 모듈처럼 self-contained.
+
+---
+
+### 우선순위 7 — 캐릭터 명언 TTS 자동 발화 (v56 defer)
+**작업 깊이**: 작음
+**배경**: 인트로 컷에서 명언이 *말풍선으로만 표시*. 음성으로 재생되면 학습 효과 ↑.
+
+**구현**: `_renderBattleIntro` 의 advance() 직전 ~3초 시점에 자기 명언 자동 발화. 사용자 선택 (`S.battle.autoQuote` localStorage).
+
+---
+
+### 우선순위 8 — 사진 prefetch (v53 defer)
+**작업 깊이**: 작음
+**구현**: 캐릭터 picker 열기 *전에* 50 사진 미리 캐싱. `link rel="prefetch"` 동적 삽입. service worker 가 IMG_CACHE 에 저장. 첫 picker 열림 즉시 모든 사진 표시.
+
+---
+
+### 우선순위 9 — 캐릭터 잠금 시스템 (v52 defer)
 **작업 깊이**: 중간~큼
-- 기본 15명 (5 카테고리 × 3) 즉시 가능
-- 35명 잠금: 5작품 완독, 34 문법 토픽 학습, 100 어휘, 10 배틀 승리 등
+**배경**: 현재 50 캐릭터 모두 즉시 선택 가능. 학습 동기 부여를 위해 점진 unlock.
+
+**제약**: UX 설계 복잡 — 어느 캐릭터를 기본 unlock 으로 둘지? 잠금 해제 기준 (XP, 배지, 완독)? 기존 사용자 grandfathering?
 
 ---
 
-### 우선순위 5 — PARADIGM_LIB 분사·비교급 확장 (v51 defer)
-**목표**: 76 → ~95.
+### 우선순위 10 — PARADIGM_LIB 분사·비교급 확장 (v51 defer)
+**작업 깊이**: 큼
+**범위**: 76 표제어 → 90+ (분사 15+ 표 추가)
+- 현재분사 능동 (m/f/n) — 형용사 1·2 변화 패턴
+- 부정과거 분사 (m/f/n) — ντ-stem 3 변화
+- 완료분사 (m/f/n) — οτ-stem 3 변화
+- 형용사 비교급 (μείζων) · 최상급 (μέγιστος)
 
 ---
 
-### 우선순위 6 — AI 기반 정역 (v53 defer)
-**의존성**: Anthropic API + 비용 모델
-**목표**: 큐레이션 한계 보완 — 사용자가 큐레이션 없는 섹션의 📖 토글 시 Claude API 로 번역.
+### 우선순위 11 — μι-동사 quiz 통합 (v51 defer)
+**작업 깊이**: 중간
+**배경**: v50 의 mi-verbs 토픽이 9 표 → 14 표로 확장됐으나 quiz 진입 없음.
 
 ---
 
-## v56 신규 미해결
+### 우선순위 12 — AI 기반 정역 (v53 defer)
+**작업 깊이**: 큼
+**배경**: 큐레이션 정역 19 발췌가 한계. 임의 섹션을 사용자 요청 시 번역.
 
-- **사진 prefetch** (v53 defer 유지) — 50/50 검증되어 효과 명확. 작업 비용 작음.
-- **BGM 음량 슬라이더** — 단일 라인 변경, 매우 작은 작업.
-- **명언 자동 TTS** — 현재는 클릭 시 발화. 옵션으로 자동 시작 가능.
-- **Presence 통계** — 시간대·요일 분포. 운영자 전용.
-
----
-
-## 외부 의존 (새 정보 있으면 즉시 처리)
-
-| 항목 | 필요 정보 | 현재 상태 |
-|---|---|---|
-| SoundCloud rhapsodoi slugs | 실제 트랙명 검증 | 지난 10 라운드 정보 없음 |
-| Plato Crito 무료 샘플 | mp3 URL | 노출 안 함 |
-| ScorpioMartianus Ancient Greek Alive 001 | mp3 호스트 | Patreon Tier 유료 |
-| Seikilos Epitaph 학자 복원 mp3 | 무료 PD 음원 호스팅 | v56 의 BGM 확장 검토 |
+**구현**: Anthropic API 직접 호출 (사용자 API 키 입력 → localStorage 저장).
 
 ---
 
-## 영구 정책
+## 외부 의존 (정보 없으면 진척 불가)
 
-- **다국어 UI (i18n)** — 영구 제외
-- **HANDOVER.md 동봉** — 매 라운드
-- **Wikimedia 파일명 추측 금지** (v54~v55)
-- **PD 원전 인용 검증** (v56) — Hom. Il. X.Y / DK 단편 / Stephanus 페이지
-
----
-
-## 권장 다음 라운드 묶음
-
-**v57 = 우선순위 1 (정역 더 확장)** 단독 라운드 — 19 → ~25 발췌
-- v56 에서 사용자가 멀티·UI 확장으로 옮겨갔으므로 정역은 v57 의 자연스러운 회귀
-- `data-translations.js` 만 수정, index.html 코드 변경 없음
-
-**v58 = 우선순위 2 (BGM 확장) 또는 5 (PARADIGM_LIB 분사)** — 학술 라운드
-
-**v59+** = 우선순위 3 (Feedback UI) 또는 4 (캐릭터 잠금) — 운영·UX 결정 시점
+- SoundCloud rhapsodoi 실제 slug 검증 (v46 defer)
+- Plato Crito 무료 mp3 (v46 defer)
+- ScorpioMartianus 무료 mp3 호스트 (v46 defer)
 
 ---
 
-## 시작 절차 (다음 세션)
+## 권장 다음 작업
 
-1. 작업 디렉토리 확인
-2. 현재 버전: `grep "APP_VERSION = '" index.html` → `v56`. `grep "CACHE_VERSION = '" sw.js` → `v56`.
-3. `NEXT_TASKS.md` 읽기 — 이 파일
-4. **HANDOVER.md §0 (현재 상태 스냅샷) + §7 의 v56 entry** 먼저 읽기
-5. 사용자 지시 확인 — 우선순위 1 (정역 확장) vs 새 지시
-6. 작업 → 검증 → 패키지 (zip + HANDOVER.md 둘 다 present_files) → HANDOVER 갱신
+**우선순위 1 (정역 확장)** 이 v53 부터 누적 defer 인 데다 v56·v57 의 사용자 요청 (멀티 확장 + 안정성 핫픽스) 이 모두 처리됐으므로 자연스러운 v58 작업. 단, 사용자가 다른 요청 시 우선순위 재조정.
 
----
-
-## v57 라운드 시작 시 핵심 방법론 메모 (정역 확장)
-
-**번역 기조** (v52~v53 일관 정책):
-1. 직역 우선, 자연스러운 한국어 절충
-2. 시문체 산문 풀이로 의미 전달 집중
-3. 학자 정역 참고하되 본 앱 학습 맥락에 맞게 재번역
-
-**검증 절차**:
-1. 각 발췌의 그리스어 본문을 `WORKS` 의 해당 섹션에서 추출
-2. renderer 의 `[.;·?!]` 정규식으로 문장 분할
-3. 정역 배열의 길이가 분할 결과와 일치하는지 확인
-4. `_getCuratedTranslation(workId, secN)` lookup 으로 1:1 매핑 확인
-
-**v53 sentence count 함정**: 헬라어 본문에는 `·` (middle dot) 가 마침표 역할도 함. `;` 는 의문문 종결.
-
----
-
-*작성: 2026-05-16 (v56 세션 종료 시점)*
-*문의: HANDOVER.md 의 §7 v56 entry, 또는 코드 내 `_renderBattleIntro` / `BGM` IIFE / `openFeedbackModal` / `fetchPresenceCount` 주석 참조*
+대안: **우선순위 2 (ghost player 정리)** — v57 의 멀티 배틀 안정성 작업의 자연스러운 후속편. 사용자가 멀티 배틀을 자주 사용한다면 (v56·v57 의 사용자 보고로 추정 가능) ghost player 문제도 곧 보고될 가능성.

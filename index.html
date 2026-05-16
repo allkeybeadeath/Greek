@@ -4609,7 +4609,7 @@ function imageURL(imgId, width){
 
 // 앱 버전 — sw.js CACHE_VERSION과 동기화 유지. 홈 화면 푸터에 표시되어
 // 사용자가 자신이 어느 버전을 사용 중인지 확인 가능 (캐시 갱신 진단용).
-const APP_VERSION = 'v56';
+const APP_VERSION = 'v57';
 window.__paideiaVersion = APP_VERSION;
 
 // ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
@@ -13193,6 +13193,14 @@ function _battleStopPoll(){
 
 function _battleCleanup(){
   _battleStopPoll();
+  // v57: null robustness 카운터·인트로 보호 플래그 정리
+  if(_battleState){
+    _battleState.nullRunCount = 0;
+    _battleState.lastGoodRoom = null;
+    _battleState.lastGoodAt = 0;
+    _battleState.introActive = false;
+    _battleState.latestRoomDuringIntro = null;
+  }
   _battleState = null;
 }
 
@@ -13208,6 +13216,41 @@ async function _battleFetchRoom(code){
     console.warn('[battle] fetchRoom failed:', e);
     return null;
   }
+}
+
+// v57 — null robustness wrapper. 단발성 fetch 실패 (네트워크 hiccup, Firebase
+// 일시 지연, SSE 초기화 시 path='/'+null 등) 가 "방이 닫혔습니다" 로 직결되던
+// fragility 를 해소. 연속 BATTLE_NULL_THRESHOLD (3) 회 *그리고* 마지막 정상
+// 응답으로부터 BATTLE_NULL_MIN_MS (12초) 경과 *둘 다* 만족해야 실제 null 로
+// 확정 후 onUpdate(null). 그 사이엔 마지막 정상 room 유지 (UI 동결).
+// 첫 응답이 null 인 경우 (방 코드 입력 오타 등) 한 번은 그대로 전달.
+const BATTLE_NULL_THRESHOLD = 3;
+const BATTLE_NULL_MIN_MS    = 12000;
+function _battleHandleUpdate(room, onUpdate){
+  if(!_battleState) return;
+  if(room){
+    _battleState.nullRunCount = 0;
+    _battleState.lastGoodRoom = room;
+    _battleState.lastGoodAt = Date.now();
+    onUpdate(room);
+    return;
+  }
+  // null 받음 — 임계점까지는 마지막 정상 room 유지
+  _battleState.nullRunCount = (_battleState.nullRunCount || 0) + 1;
+  const sinceGood = _battleState.lastGoodAt ? (Date.now() - _battleState.lastGoodAt) : Infinity;
+  const everSawGood = !!_battleState.lastGoodRoom;
+  if(!everSawGood){
+    // 아직 어떤 정상 응답도 없음 — 첫 null 만 onUpdate 에 전달 (방 코드 오타 등 사용자 즉시 인지 필요)
+    if(_battleState.nullRunCount === 1){
+      onUpdate(null);
+    }
+    return;
+  }
+  // 정상 응답 이력 있음 — 연속 임계 + 시간 임계 둘 다 만족해야 실제 닫힘 확정
+  if(_battleState.nullRunCount >= BATTLE_NULL_THRESHOLD && sinceGood >= BATTLE_NULL_MIN_MS){
+    onUpdate(null);
+  }
+  // 그 외엔 화면 유지 (직전 정상 room 으로 그린 상태 그대로)
 }
 
 // SSE 구독: Firebase RTDB의 EventSource 엔드포인트로 실시간 push 받음
@@ -13254,11 +13297,12 @@ function _battleSubscribeSSE(code, onUpdate){
       if(path === '/' || path === ''){
         // 전체 객체 교체 (또는 초기 fetch)
         if(payload === null){
-          onUpdate(null);   // 방 삭제됨
+          // v57: 단발성 null 무시 (transient SSE 초기화 등) — _battleHandleUpdate 로 임계점 통과 시에만 onUpdate(null)
+          _battleHandleUpdate(null, onUpdate);
           cached = null;
         } else {
           cached = payload;
-          onUpdate(payload);
+          _battleHandleUpdate(payload, onUpdate);
         }
       } else if(cached){
         // 부분 갱신: cached에 path 따라 패치
@@ -13273,12 +13317,12 @@ function _battleSubscribeSSE(code, onUpdate){
         } else {
           cursor[keys[keys.length - 1]] = payload;
         }
-        onUpdate(cached);
+        _battleHandleUpdate(cached, onUpdate);
       } else {
         // cached 없는데 부분 갱신만 옴 — fetch로 보강
         _battleFetchRoom(code).then(r => {
           cached = r;
-          onUpdate(r);
+          _battleHandleUpdate(r, onUpdate);
         });
       }
     } catch(e){
@@ -13327,11 +13371,11 @@ function _battleStartPolling(code, onUpdate){
   if(!_battleState) return;
   _battleState.sseMode = 'poll';
   if(_battleState.pollTimer) clearInterval(_battleState.pollTimer);
-  // 즉시 한 번 fetch
-  _battleFetchRoom(code).then(onUpdate);
+  // 즉시 한 번 fetch — v57: _battleHandleUpdate 경유로 transient null 무시
+  _battleFetchRoom(code).then(r => _battleHandleUpdate(r, onUpdate));
   _battleState.pollTimer = setInterval(async () => {
     const r = await _battleFetchRoom(code);
-    onUpdate(r);
+    _battleHandleUpdate(r, onUpdate);
   }, BATTLE_POLL_MS);
 }
 
@@ -13340,8 +13384,12 @@ function _battleStartPolling(code, onUpdate){
 function _battleSubscribe(code, onUpdate){
   if(!_battleState) return;
   _battleState.onUpdate = onUpdate;
-  // 즉시 한 번 fetch (SSE open 전 빈 화면 방지)
-  _battleFetchRoom(code).then(r => { if(r !== null) onUpdate(r); });
+  // v57: subscribe 시작 시 null robustness 카운터 초기화
+  _battleState.nullRunCount = 0;
+  _battleState.lastGoodRoom = null;
+  _battleState.lastGoodAt = 0;
+  // 즉시 한 번 fetch — v57: _battleHandleUpdate 경유 (이전엔 `if(r !== null) onUpdate(r)` 였으나 wrapper 가 더 일반화)
+  _battleFetchRoom(code).then(r => _battleHandleUpdate(r, onUpdate));
   // SSE 시도
   const sseOk = _battleSubscribeSSE(code, onUpdate);
   if(!sseOk){
@@ -13573,14 +13621,49 @@ async function renderBattleLobby(){
 
   const draw = (room) => {
     if(!room){
+      // v57: 진단 정보 + 재연결 시도 버튼. _battleHandleUpdate 의 임계점 통과 시에만 도달.
+      const sinceGood = (_battleState && _battleState.lastGoodAt) ? Math.round((Date.now() - _battleState.lastGoodAt)/1000) : null;
+      const diagTxt = sinceGood != null
+        ? `약 ${sinceGood}초 동안 응답 없음 — 호스트 이탈 또는 네트워크 문제`
+        : '호스트가 방을 종료했거나 네트워크 오류입니다.';
       view.innerHTML = `
         <button class="btn btn-sm btn-o" onclick="renderBattle()">← 배틀</button>
         <div class="card warm" style="margin-top:14px">
-          <b>방이 닫혔습니다</b>
-          <div style="font-size:13px;margin-top:6px">호스트가 방을 종료했거나 네트워크 오류입니다.</div>
+          <b>방 연결 끊김</b>
+          <div style="font-size:13px;margin-top:6px;line-height:1.5">${diagTxt}</div>
+          <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-sm" id="bat-retry-conn">🔄 다시 연결 시도</button>
+            <button class="btn btn-sm btn-o" onclick="renderBattle()">메뉴로</button>
+          </div>
         </div>
       `;
       _battleStopPoll();
+      const retry = document.getElementById('bat-retry-conn');
+      if(retry){
+        retry.addEventListener('click', () => {
+          // 재구독 — null 카운터 리셋된 채로 다시 시도. _battleState 가 살아있을 때만.
+          if(_battleState && _battleState.roomCode){
+            _battleStopPoll();
+            _battleState.nullRunCount = 0;
+            _battleState.lastGoodRoom = null;
+            _battleState.lastGoodAt = 0;
+            view.innerHTML = `<div class="card" style="margin-top:14px;text-align:center"><div style="font-size:13px;color:var(--clay-d)">재연결 중...</div></div>`;
+            _battleSubscribe(_battleState.roomCode, draw);
+          } else {
+            renderBattle();
+          }
+        });
+      }
+      return;
+    }
+    // v57: 인트로 컷 표시 중이면 화면 안 만지고 최신 room 만 보존. 인트로 종료 시 그 room 으로 진행.
+    if(_battleState && _battleState.introActive){
+      _battleState.latestRoomDuringIntro = room;
+      // status='finished' 만 예외 — 인트로 깨고 결과로 점프해야 함
+      if(room.meta && room.meta.status === 'finished'){
+        _battleState.introActive = false;
+        return renderBattleResult(code, room);
+      }
       return;
     }
     const players = Object.entries(room.players || {});
@@ -13816,7 +13899,12 @@ function _renderBattleIntro(code, room, onContinue){
   const allPlayers = Object.entries(room.players || {});
   const me = allPlayers.find(([uid]) => uid === myId);
   const opponents = allPlayers.filter(([uid]) => uid !== myId);
-  if(!me){ onContinue(); return; }
+  if(!me){ onContinue(room); return; }
+  // v57: 인트로 표시 중에는 SSE/polling 의 onUpdate 가 view.innerHTML 을 갈아엎지 못하게 플래그 설정
+  if(_battleState){
+    _battleState.introActive = true;
+    _battleState.latestRoomDuringIntro = room;
+  }
 
   const CHQ = (typeof window !== 'undefined' && window.CHARACTER_QUOTES) || {};
   const CHI = (typeof CHARACTERS_BY_ID !== 'undefined') ? CHARACTERS_BY_ID : {};
@@ -13957,7 +14045,14 @@ function _renderBattleIntro(code, room, onContinue){
     if(advanced) return;
     advanced = true;
     clearTimeout(autoTm);
-    onContinue();
+    // v57: 인트로 중 SSE/polling 으로 받은 최신 room 으로 본 게임 진입 (없으면 인트로 시작 시 room)
+    let nextRoom = room;
+    if(_battleState){
+      _battleState.introActive = false;
+      if(_battleState.latestRoomDuringIntro) nextRoom = _battleState.latestRoomDuringIntro;
+      _battleState.latestRoomDuringIntro = null;
+    }
+    onContinue(nextRoom);
   }
   const skipBtn = document.getElementById('intro-skip-btn');
   if(skipBtn) skipBtn.addEventListener('click', advance);
@@ -13980,9 +14075,10 @@ async function renderBattleGame(code, room){
   // v56: 첫 진입이면 인트로 컷 표시 후 본 게임으로
   if(!_battleIntroShown[code]){
     _battleIntroShown[code] = true;
-    _renderBattleIntro(code, room, () => {
-      // 인트로 종료 후 본 게임 진입 (재호출, 이제 _battleIntroShown true)
-      renderBattleGame(code, room);
+    _renderBattleIntro(code, room, (latestRoom) => {
+      // 인트로 종료 후 본 게임 진입 (재호출, 이제 _battleIntroShown true).
+      // v57: 인트로 중 SSE/polling 으로 받은 최신 room 으로 진입 (없으면 인트로 시작 시 room).
+      renderBattleGame(code, latestRoom || room);
     });
     return;
   }
