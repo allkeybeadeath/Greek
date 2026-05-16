@@ -1,5 +1,5 @@
 /* ============================================================================
-   Ἑλληνικὴ Παιδεία — Service Worker (v52)
+   Ἑλληνικὴ Παιδεία — Service Worker (v43)
    
    캐시 전략:
    - CRITICAL_SHELL: install 시 즉시 캐시 (≈150 KB) — 첫 SW 활성 빠름
@@ -14,8 +14,6 @@
                      처리. v42 의 SCHOLAR_AUDIO 카탈로그가 이들을 참조.
    - Wikimedia 이미지: cache-first (이미지는 거의 안 변함, 한국→Wikimedia
                                      latency 절감, 두 번째 사용부터 즉시)
-                       v52: 캐릭터 아바타 50종도 이 경로로 자동 캐시됨
-                       (Special:FilePath redirect → upload.wikimedia.org)
    - Google Fonts: stale-while-revalidate
    
    새 버전 배포 시 CACHE_VERSION만 올리면 됩니다.
@@ -40,6 +38,7 @@ const DATA_BUNDLE = [
   './data-works.js',
   './data-morph.js',
   './data-dialogues.js',
+  './data-translations.js',   // v52: 원문 한국어 정역
 ];
 
 self.addEventListener('install', (event) => {
