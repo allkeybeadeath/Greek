@@ -4,9 +4,9 @@
 
 > **다음 작업자에게**: §7 라운드별 changelog 의 *맨 마지막 항목 (v56)* 이 현재 상태다. 그 위 라운드들은 어떻게 여기까지 왔는지의 기록. 새 작업을 시작하기 전에 §7 의 가장 최근 항목과 §0 의 현재 스냅샷을 먼저 읽기.
 
-## 0. 현재 상태 스냅샷 (v57, 2026-05)
+## 0. 현재 상태 스냅샷 (v58, 2026-05)
 
-**배포 산출물**: `index.html` (~920 KB, IIFE 약 420K chars, 15.2K lines — v56 의 멀티 인트로·강탈·BGM·feedback·presence 모듈 ~600 lines 추가) · `sw.js` · `data-works.js` (3 MB, 45 작품 545 섹션) · `data-morph.js` (4 MB, AGDT v2.1 37K 어형 11.8K lemma) · `data-dialogues.js` (45 KB, 10 콩트 시나리오) · `data-translations.js` (~55 KB, v53 확장 — 19 발췌 정역 ~330 문장 + 34 짧은 발췌 정역) · **`data-characters.js` (~22 KB, v56 — 50 캐릭터 사진 + 50 명언 인용)** · `espeakng.worker.js` (760 KB) · `manifest.json` · `reset.html`.
+**배포 산출물**: `index.html` (~960 KB, IIFE ~440K chars, 16.1K lines — v58 의 공개 lobby ~430 lines + 3 신규 모드 빌더 ~200 lines + 모드 dispatch 패치 추가) · `sw.js` · `data-works.js` (3 MB, 45 작품 545 섹션) · `data-morph.js` (4 MB, AGDT v2.1 37K 어형 11.8K lemma) · `data-dialogues.js` (45 KB, 10 콩트 시나리오) · `data-translations.js` (~55 KB, v53 확장 — 19 발췌 정역 ~330 문장 + 34 짧은 발췌 정역) · **`data-characters.js` (~22 KB, v56 — 50 캐릭터 사진 + 50 명언 인용)** · `espeakng.worker.js` (760 KB) · `manifest.json` · `reset.html`.
 
 **기능 카탈로그**:
 - 어휘 학습: 교재 어휘 + DCC 523 + DAILY_W 51 + CIVIC_W 80 + 콩트 vocab 60 = 1142 어휘
@@ -19,7 +19,7 @@
 - 변화표: 76 표제어 큐레이션 (55 명사 · 12 형용사 · 9 대명사)
 - **캐릭터 (Παίγνια · v52~v55)**: 50 캐릭터 SVG 메달리온 + 50 검증된 Wikimedia 사진. 5 표시 위치 (홈·프로필·명예의 전당·라이브 순위·멀티 배틀).
 - **원문 해석 (Ἑρμηνεία · v52~v53)**: 19 발췌 큐레이션 정역 + 단어 풀이 폴백.
-- **멀티 배틀 (v56 대폭 확장, v57 안정성 핫픽스)**: 호스트가 방 생성 → 게스트 참가 → **(v56) 인트로 컷** (적·나 캐릭터 상하단 + 중앙 VS + 캐릭터별 명언 말풍선) → 어휘 객관식 10문제 → **(v56) Q3/Q6/Q9 는 점수 강탈 문제** (정답 시 다른 모든 플레이어로부터 8점씩 빼앗음, race-free 설계). 시간 12초/문제. XP 보상 30/18/12/5. **(v57)** 단발성 fetch null 이 "방이 닫혔습니다" 로 직결되던 fragility 해소 — 연속 3회 *그리고* 12초 임계점 둘 다 만족해야 실제 닫힘 확정. 인트로 컷 표시 중 SSE/polling update 가 화면을 깨뜨리지 못하게 보호.
+- **멀티 배틀 (v58 구조 전환)**: **(v58 신규) 공개 lobby (Ἀγορά)** — 호스트 없는 자율 매치. `lobby:waiters:<uid>` 큐에 입장 → 가장 오래 기다린 선임자가 모드 선택 + "지금 시작" → 시드 기반 questions 가 `lobby:matches:<mid>` 에 *시작 시점에 결정론적으로 publish* → 모든 waiter 자동 합류. 진행 중 매치는 입장 봉쇄. visibilitychange/beforeunload 시 ghost waiter 즉시 정리. **(v58 신규) 4 게임 모드** — vocab (기본 어휘) + quote (명언의 주인) + verse (행 잇기) + riddle (역방향). 모두 4-option MC + 12초 + Q3/Q6/Q9 강탈 공유. **비공개 코드방** (legacy) 도 details 로 접어서 유지. **(v56) 인트로 컷** (적·나 캐릭터 상하단 + VS + 명언 말풍선). **(v57)** null robustness wrapper.
 - **(v56 신규) BGM**: 절차적 고대 그리스 양식 음악 (Web Audio API, 도리아 모드 E F G A B C D, 키타라/리라 톤 합성). 홈 화면 BGM 토글 버튼. **양식적 모방** (재현 아님) 명시. Self-contained · 오프라인 · 라이선스 위험 없음.
 - **(v56 신규) 건의 사항**: 홈 푸터의 `건의` 링크 → modal (textarea 2000자) → `STORAGE.setShared('feedback:<ts>:<userId>', ...)`. 운영자는 console 에서 `STORAGE.listShared('feedback:')` 로 수집. 오프라인 시 localStorage 큐 (`paideia.feedbackQueue`).
 - **(v56 신규) 동시 학습자 카운트**: 4분 간격 `presence:<userId>` heartbeat. 홈 화면 카드에 `현재 N명 공부 중` 표시 (5분 이내 ping 한 사용자만). 60초 카운트 캐시.
@@ -35,25 +35,28 @@
 - 콩트: `DIALOGUES` (data-dialogues.js)
 - 학자 낭독: `SCHOLAR_AUDIO` (본문 매칭) + `SCHOLAR_LIBRARY` (도서관)
 - **캐릭터 (v52~v56)**: `CHARACTERS` 50 · `CHARACTERS_BY_ID` · `CHAR_SYMBOLS` 32 · `CHAR_PALETTES` 5 · `CHARACTER_IMAGES` (v53~v55, 50 사진) · **`CHARACTER_QUOTES` (v56, 50 명언)** · `_charMedallion` / `_charPhotoMedallion`
-- **멀티 배틀 (v56 강화, v57 안정화)**: `_battleGameLocal` (로컬 진행 + `stolen[]`) · `_battleIntroShown` (인트로 1회 가드) · `_battleEffectiveScores` (강탈 반영) · `_renderBattleIntro` · 상수 `BATTLE_STEAL_INTERVAL=3`, `BATTLE_STEAL_AMOUNT=8`, `BATTLE_INTRO_MS=5200` · **(v57) `_battleHandleUpdate(room, onUpdate)`** null robustness wrapper · 상수 `BATTLE_NULL_THRESHOLD=3`, `BATTLE_NULL_MIN_MS=12000` · `_battleState` 추가 필드 `nullRunCount` · `lastGoodRoom` · `lastGoodAt` · `introActive` · `latestRoomDuringIntro`
+- **멀티 배틀 (v58 구조 전환)**: `_battleState.roomPath` (v58 신규 — 코드방·lobby 통합 path 일반화) · `_battleState.role ∈ {'host','guest','lobby'}` · `BATTLE_MODES` 4종 (vocab/quote/verse/riddle) · `BATTLE_MODE_DEFAULT='vocab'` · `_battleBuildQuestions(seed, mode)` dispatch → `_battleBuildVocab/Quote/Verse/Riddle` · q 객체 신 shape `{mode, prompt, options, correctIdx, isSteal, ...}` (vocab `ko`, quote `promptKo+src`, verse `tail+src`, riddle `promptHint+correctGreek`). 기존 강탈·인트로·null wrapper 모두 그대로.
+- **공개 lobby (v58 신규)**: `_lobbyState` (phase: idle/waiting/starting/inMatch, pollTimer, heartbeatTimer, waiters[], matches[], chosenMode, visListener) · 상수 `LOBBY_POLL_MS=3000`, `LOBBY_WAITER_TTL_MS=60000`, `LOBBY_HEARTBEAT_MS=20000`, `LOBBY_MATCH_TTL_MS=360000`, `LOBBY_MID_LEN=8` · 함수 `renderPublicLobby` · `_lobbyFetchState` · `_lobbyTick` · `_lobbyDraw` · `_lobbyEnterQueue` · `_lobbyExitQueue` · `_lobbyExit` · `_lobbyPingWaiter` · `_lobbyRemoveWaiter` · `_lobbyStartMatch(mode)` · `_lobbyJoinExistingMatch(mid, matchObj)` · `_lobbyGenMid` · `_lobbyStop` · `_lobbyCleanup` · STORAGE 경로 `lobby:waiters:<uid>` + `lobby:matches:<mid>`
 - **BGM (v56)**: `BGM` IIFE 모듈 (`window.BGM.start/stop/isRunning/isAvailable`) · `toggleBgm` · `S.bgmEnabled` · `_ensureBgmPref`
 - **Feedback (v56)**: `openFeedbackModal` · `STORAGE` 의 `feedback:<ts>:<userId>` 키 · localStorage `paideia.feedbackQueue`
 - **Presence (v56)**: `pingPresence` · `startPresenceHeartbeat` · `fetchPresenceCount` · 상수 `PRESENCE_TTL_MS=5min`, `PRESENCE_PING_MS=4min` · `_presenceCountCache` (60초 TTL)
 
-**현재 미해결·defer 상태** (§7 의 v57 끝 defer 블록 참조):
+**현재 미해결·defer 상태** (§7 의 v58 끝 defer 블록 참조):
 - 외부 의존 3 항목 (SoundCloud slugs · Plato Crito sample · ScorpioMartianus) — 새 정보 없음
 - 단어 단위 시간 동기 (현재 행/단락)
 - plato-apology Stratakis cue points
 - PARADIGM_LIB 분사·비교급·최상급 확장
 - μι-동사 가정법/희구법 quiz 통합 (v50 의 5 표 학습만 있고 시험 없음)
-- **정역 확장 (v53 의 권장 작업, v56·v57 에서도 이월)**: 19 발췌 → 25 발췌 (Plato Apology §23-26, Iliad 1.151-200+, Sophocles Oedipus 1-100, Plato Crito §44-47). 사용자가 v56 멀티 확장 + v57 핫픽스를 우선했기에 v58 로 이월.
+- **정역 확장 (v53 의 권장 작업, v54~v58 에서도 이월)**: 19 발췌 → 25 발췌 (Plato Apology §23-26, Iliad 1.151-200+, Sophocles Oedipus 1-100, Plato Crito §44-47). 사용자가 v58 에서도 구조 전환 + 신규 모드를 우선했기에 v59 로 이월.
 - 캐릭터 잠금 시스템 (XP/배지/완독 기반)
 - 사진 prefetch
 - AI 기반 정역 (Anthropic API)
-- **BGM 확장**: 추가 모드 (Phrygian, Lydian, Mixolydian), 모티프 다양화, 실제 학자 복원 곡 (Seikilos Epitaph 의 *진짜* 멜로디) 외부 mp3 옵션
+- **BGM 확장**: 추가 모드 (Phrygian, Lydian, Mixolydian), 모티프 다양화, 실제 학자 복원 곡 외부 mp3 옵션, 음량 슬라이더
 - **Feedback 운영 UI**: 현재는 console 수집만. 별도 `/admin` 페이지 또는 명예의 전당 옆에 운영자 전용 진입 (운영자 인증은 STORAGE 의 `admin:` 키 토큰)
 - **Presence 통계**: 현재 카운트만. 시간대별 분포·요일별 분포 등 통계 분석 (운영자 전용)
-- **(v57 신규 defer) 멀티 배틀 종료 시 자동 정리**: 사용자가 모바일에서 브라우저를 닫거나 백그라운드로 가면 SSE/polling 이 끊긴 채 player 객체가 방에 남아 다른 학습자에게 "ghost 참가자" 로 보임. `visibilitychange` 핸들러 + heartbeat 기반 stale player 제거 필요 (v57 의 null-robustness 와 별개 작업)
+- **(v57 defer, v58 lobby 에선 처리됨)** 멀티 배틀 ghost player 정리 — 공개 lobby 의 waiters 는 v58 의 visibilitychange/beforeunload/pagehide 핸들러로 즉시 정리됨. **그러나 코드방 (private) 매치 진행 중 ghost** 는 미해결 (v59 우선순위 3).
+- **(v58 신규 defer) 추가 게임 모드** — v58 의 4 모드 (vocab/quote/verse/riddle) 골격이 plug-in 식 확장 가능. 후보: Ἀκόντισμα (속도전), Δίφθογγος (악센트 위치), Ὀρθογραφία (받아쓰기 race), Ἑρμηνεία (정역 race), Δίκη (문맥 추론), Κλήρωσις (베팅 modifier). 가장 가성비 좋은 후보는 Ἀκόντισμα.
+- **(v58 신규 defer) 재연결 시 인트로 컷 재진입 옵션** — 현재 `_battleIntroShown[code]=true` 가드라 재연결해도 인트로 안 보임.
 
 **영구 제외** (사용자 정책):
 - 다국어 UI (i18n)
@@ -1405,5 +1408,201 @@ Wikipedia, *Ancient Greek phonology*. 빠른 reference 용.
 본 인수인계 문서는 repo 의 `HANDOVER.md` 또는 별도 lab 위키에 보관 권장. 코드 내 주석에는 각 fix 의 학술적 근거와 버전 메모가 인라인으로 기록되어 있으므로, 의문이 생기면 먼저 해당 함수의 주석을 확인하라.
 
 기존 테스트 스크립트는 prototype 디렉토리에 남아 있으며 (`test-translit.js`, `test-tts-fallback.js`, `test-espeak-race.js`, `test-monotonic.js`, `test-v38-fixes.js` 등), 새 기능 추가 시 회귀 테스트 작성 시 참고.
+
+---
+
+**v58**: 멀티 배틀 구조 전환 — 호스트 단일 실패점 제거 + 4종 게임 모드. 사용자 결정 *"3, 1, 옵션 유지, 이외 더 창의적이고 재밌는 게임 방식 구상"* 처리.
+
+배경: v57 의 null-robustness wrapper (BATTLE_NULL_THRESHOLD=3, MIN_MS=12000) 는 *증상 완화*였지만 호스트가 진짜로 끊기면 매치 자체가 중단되는 근본 문제는 미해결. iPad Safari 환경에서 사용자가 같은 fragility 를 다시 겪음 ("방 연결 끊김" — v57 의 새 메시지). 진짜 해법은 *호스트 개념 자체를 제거*하는 것. 사용자가 결정한 세 갈래 (1) 매치 시작 트리거는 "지금 시작" 버튼 (오래된 waiter), (2) 매치 중 합류 봉쇄, (3) Private 코드방은 유지.
+
+**(1) `_battleState.roomPath` 일반화 — 코드방·lobby 통합 path**:
+
+기존 `_battleFetchRoom` / `_battleSaveRoom` / `_battleSubscribeSSE` 가 모두 `battles:<code>` 를 하드코딩. 이를 `_battleState.roomPath` 가 있으면 그걸 사용, 없으면 legacy 로 폴백하도록 일반화. 같은 함수가 코드방 (`battles:<code>`) 과 lobby 매치 (`lobby:matches:<mid>`) 둘 다 처리.
+
+```js
+async function _battleFetchRoom(code){
+  if(!STORAGE.supportsShared) return null;
+  const path = (_battleState && _battleState.roomPath) ? _battleState.roomPath : `battles:${code}`;
+  // ...
+}
+```
+
+SSE URL 빌더도 동일 패턴 + Firebase RTDB 의 콜론→슬래시 변환 적용 (`fbPath(k)` 와 일관):
+
+```js
+const sseTail = (_battleState && _battleState.roomPath)
+  ? _battleState.roomPath.replace(/:/g,'/')
+  : `battles/${code}`;
+const url = `${base}/${sseTail}.json?accept=text/event-stream`;
+```
+
+`_battleLeave` 와 `renderBattleResult` 의 cleanup 도 동일하게 `roomPath || 'battles:<code>'` 로 일반화. role 에 'lobby' 추가 — lobby 매치 참가자는 host 도 guest 도 아니므로 `_battleLeave` 가 자기 player 만 제거 (방 삭제 안 함).
+
+**(2) 4종 게임 모드 — `BATTLE_MODES`**:
+
+기존은 vocab 모드만 존재. v58 에서 plug-in 식 모드 시스템 도입:
+
+```js
+const BATTLE_MODES = {
+  vocab:  { id:'vocab',  grk:'Ἀγών',          ko:'어휘 결투',     desc:'…' },
+  quote:  { id:'quote',  grk:'Μάχη Ποιητῶν',  ko:'명언의 주인',   desc:'…' },
+  verse:  { id:'verse',  grk:'Στίχοι',        ko:'행 잇기',       desc:'…' },
+  riddle: { id:'riddle', grk:'Σφίγξ',         ko:'역방향 추론',   desc:'…' },
+};
+const BATTLE_MODE_DEFAULT = 'vocab';
+```
+
+모든 모드는 동일 골격을 공유:
+- 4-option MC
+- 12초 타이머
+- 정답 시 속도 보너스 (10 + ceil(remainSec), 최대 22)
+- Q3/Q6/Q9 강탈 (8점 × N명)
+- 시드 결정성 (LCG `_battleSeededRng(seed)`)
+
+다른 점:
+- (a) **풀의 출처** — vocab/riddle 은 ALL_VOCAB, quote/verse 는 CHARACTER_QUOTES
+- (b) **프롬프트 렌더링** — `renderBattleGame` 의 promptBlock 이 `q.mode` 로 분기
+
+`_battleBuildQuestions(seed, mode)` 가 dispatch:
+- **`_battleBuildVocab`** — Greek → Korean. 무작위 distractors 3개.
+- **`_battleBuildQuote`** — Greek 명언 → 누가 한 말? distractor 는 *같은 카테고리* 우선 (god/hero/heroine/philo/poet). 옵션은 한국어 이름 + 별칭 (예: "아테나 · 지혜의 여신").
+- **`_battleBuildVerse`** — 명언 앞부분 → 뒤를 잇는 부분. 분절 알고리즘: ano teleia (·) → comma (,) → semicolon (;) → 중앙 근처 공백 우선순위. 양쪽 6자 이상 조건. distractor 는 다른 명언의 tail.
+- **`_battleBuildRiddle`** — Korean → Greek. distractor 는 *같은 품사* 우선 (POS 매칭). 인출형 학습.
+
+q 객체 shape 신·구 비교:
+- 기존 (v57 이하): `{g, ko, options, correctIdx, isSteal}`
+- v58: `{mode, prompt, options, correctIdx, isSteal, ...mode별 부가}`
+  - vocab: `+ ko`
+  - quote: `+ promptKo, src, ko`
+  - verse: `+ tail, src`
+  - riddle: `+ promptHint, ko, correctGreek`
+
+`renderBattleGame` 의 promptBlock 분기:
+- vocab: 32px 그리스어 + "이 단어의 뜻은?"
+- quote: 22px 그리스어 + 한국어 보조 + "이 말을 한 사람은?"
+- verse: 22px 그리스어 + "뒤를 잇는 구절은?"
+- riddle: 24px 한국어 + 품사 힌트 + "이 뜻의 그리스어 단어는?"
+
+옵션 표시도 분기 — verse/riddle 은 그리스어 옵션이라 `lang="grc"` + Cormorant Garamond 폰트 적용 (스크린 리더 안내).
+
+`answered` 기록에 `mode` 필드 추가 — 결과 화면의 오답 review 가 모드별 다른 표시 (riddle 은 prompt 가 한국어, 정답은 그리스어 등). 오답함 자동 적립은 **vocab 모드만** (다른 모드는 어휘 학습 흐름이 아님).
+
+**검증 (sandboxed)**: 50 CHARACTER_QUOTES + 200 stub VOCAB 에서 모든 4 모드가 10 questions 생성. Q3/Q6/Q9 강탈 마킹 정확. 시드=99 두 번 호출 시 결정성 ✓. 모든 q 의 정답이 options 에 존재 ✓. verse 의 q.tail === options[correctIdx] ✓. quote 의 promptKo/src 비공 ✓. riddle 의 correctGreek === options[correctIdx] ✓. prompt 가 한국어 (그리스 문자 없음) ✓.
+
+**(3) 공개 lobby (Ἀγορά) — 호스트 없는 자율 매치**:
+
+저장 path:
+- `lobby:waiters:<uid>` — 각 대기자가 자기 키만 작성 (race-free)
+- `lobby:matches:<mid>` — 매치 객체 (room shape 동일, meta.mode 추가)
+- `battles:<code>` — 코드방 (legacy, 그대로 작동)
+
+상수:
+- `LOBBY_POLL_MS = 3000` — 대기실 polling 간격
+- `LOBBY_WAITER_TTL_MS = 60000` — 대기자 stale 임계
+- `LOBBY_HEARTBEAT_MS = 20000` — 대기자 자기 키 갱신 (TTL/3)
+- `LOBBY_MATCH_TTL_MS = 360000` — 매치 6분 보존 (5분 한도 + 1분 결과)
+- `LOBBY_MID_LEN = 8` — mid 길이
+
+상태:
+```js
+let _lobbyState = null;
+// { phase: 'idle'|'waiting'|'starting'|'inMatch',
+//   pollTimer, heartbeatTimer, waiters, matches,
+//   joinedAt, chosenMode, visListener, lastTick }
+```
+
+흐름:
+1. 홈 → 멀티 배틀 → **공개 lobby** 진입 → `renderPublicLobby` → `_lobbyState = {phase:'idle', ...}` + 첫 fetch + 3초 interval
+2. `_lobbyTick` 이 매번 (a) waiters 목록, (b) matches 목록 fetch. waiter 중 자기가 player 로 등록된 playing 매치 있으면 즉시 `_lobbyJoinExistingMatch` 트리거
+3. 사용자가 "큐 입장" 버튼 → `_lobbyEnterQueue` → `_lobbyState.phase='waiting'` + `_lobbyPingWaiter` (자기 키 PUT) + 20초 heartbeat 시작
+4. waiters≥2 그리고 가장 오래 기다린 (선임자) 이 자기 자신이면 "지금 시작" 버튼 활성. 모드 선택 카드 4개 (사용자가 선택, default 'vocab')
+5. 선임자가 "지금 시작" 누름 → `_lobbyStartMatch(mode)`:
+   - 최신 waiters 재조회 (체크-시작 race 대응)
+   - waiters[0].uid === S.userId 확인 (선임자 검증)
+   - `_lobbyGenMid()` 생성 + `seed = Date.now() + random` + `_battleBuildQuestions(seed, mode)` *즉시 publish*
+   - 풀 부족 시 vocab 으로 폴백
+   - waiters[0..6] 을 players 로 변환 (max 6명)
+   - `STORAGE.setShared('lobby:matches:<mid>', matchObj)` (status='playing', startedAt 동시 publish)
+   - 자기 waiter 키 삭제 + `_lobbyJoinExistingMatch(mid, matchObj)` (자기 즉시 진입)
+6. 다른 waiter 의 polling tick 이 `myMatch` 발견 → 자동 합류 (waiter 키 삭제 + renderBattleGame)
+7. 매치 진행 중인 동안 lobby 신규 진입자는 `activeMatches.length > 0` 이라 "큐 입장" 버튼 비활성 + "진행 중, 종료 후 입장 가능" 메시지
+8. 매치 종료 시 `meta.status='finished'`, 모든 player 결과 화면. 매치 객체는 LOBBY_MATCH_TTL_MS (6분) 후 자동 표시 제외 (실제 삭제는 안 함 — Firebase TTL 정책 부재)
+
+**Ghost player cleanup** (v57 의 defer, v58 lobby 측 처리):
+- `document.addEventListener('visibilitychange', ...)` — `document.hidden` 시 `_lobbyRemoveWaiter()` fire-and-forget
+- `window.addEventListener('beforeunload', ...)` — 동일
+- `window.addEventListener('pagehide', ...)` — 동일 (iOS Safari 호환)
+- 모든 핸들러는 `_lobbyState.phase === 'waiting'` 일 때만 실제 DELETE (idle/inMatch 시 무관)
+- `_lobbyCleanup` 이 호출되면 listener 도 removeEventListener
+
+추가 안전망: `_lobbyFetchState` 가 `lastSeen` 기준으로 stale waiter (60초 이상 ping 없음) 자동 필터링. heartbeat 가 20초 주기라 정상 사용자는 안 걸림.
+
+**(4) 비공개 코드방 — 유지 (사용자 결정)**:
+
+`renderBattle` 진입 화면이 v58 에서 세 부분으로 재구성:
+1. **공개 lobby (강조)** — terracotta border-left, "NEW v58" 배지, 직접 노출
+2. **비공개 코드방 (collapsed)** — `<details>` 로 접힘. "방 만들기" + "방 입장" 둘 다 그 안. 작은 라벨 + 약한 색조 (clay-d)
+3. **하단 안내** — 매치 5분 한도 / 12초 / 강탈 / XP 보상 등 공통
+
+기존 `renderBattleCreate`/`renderBattleJoin`/`renderBattleLobby` 와 `_battleCreateRoom` 등 코드방 코드는 변경 없이 그대로 작동. roomPath 는 자동으로 legacy `battles:<code>` 폴백.
+
+**구현 사항**:
+- `index.html`: ~840 lines 추가/변경
+  - `_battleFetchRoom`/`_battleSaveRoom`/`_battleSubscribeSSE` 일반화 (~30 lines)
+  - `BATTLE_MODES` + 4 빌더 함수 (~200 lines)
+  - `renderBattleGame` 의 promptBlock 분기 (~50 lines 추가)
+  - `_battleAnswer` answered shape 확장 (~10 lines)
+  - `renderBattleResult` 의 모드별 wrong review (~30 lines)
+  - `_battleLeave` / cleanup 의 roomPath 사용 (~10 lines)
+  - `renderBattle` 진입 화면 재구성 (~80 lines)
+  - 공개 lobby 모듈 (`renderPublicLobby` + helpers, 15 함수, ~430 lines)
+- `sw.js`: CACHE_VERSION v57 → v58 (1 line)
+- `index.html`: APP_VERSION v57 → v58 (1 line)
+- `test-v58.js`: 신규 (~270 lines, 104 assertions — 11 섹션, sandbox 빌더 검증 포함)
+
+**검증** (test-v58.js, 104/104 PASS):
+- 버전 상수, path 일반화 4 위치, BATTLE_MODES 4종, 빌더 dispatch + 정의, sandbox 실행 4 모드 × 10 questions × Q3/Q6/Q9 강탈 × 시드 결정성, renderBattleGame mode dispatch, 5 lobby 상수, 15 lobby 함수, ghost cleanup 3 이벤트, renderBattle 3 옵션 + collapsed details, v57 invariant 7 항목 보존.
+
+`test-v57.js` 43/45 (fail 2 = APP/CACHE_VERSION 의도된 reversal). `test-v56.js` 63/66 (fail 3 = 동일 + intro callback signature — v57 변경의 carry-over). 모두 *건강한 신호*.
+
+**라이브 작동 검증 시나리오 (사용자 측 수동 점검 권장)**:
+1. 두 브라우저 (또는 iPad+iPhone) 에서 멀티 배틀 → 공개 lobby 진입 → 양측 "큐 입장" → 선임자 (먼저 입장한 쪽) 가 모드 선택 (vocab/quote/verse/riddle) + "지금 시작" → 양측 인트로 컷 5.2초 → 10문제 → 결과
+2. 셋째 브라우저가 매치 진행 중 lobby 진입 → "큐 입장" 버튼 disabled, "진행 중 매치 종료 후 입장 가능" 안내 확인
+3. quote 모드 시도 — 호메로스 정형구가 4 영웅 중 누구 것인지 추론. 같은 카테고리 distractor 라 학습 가치 ↑
+4. verse 모드 시도 — "πατὴρ ἀνδρῶν …" 같은 짧은 명언의 뒤 잇기
+5. riddle 모드 시도 — 한국어 → 그리스어. 같은 품사 distractor 라 단순 reverse 가 아닌 의미 변별 필요
+6. 한 사용자가 큐 입장 후 *기내 모드 토글 또는 탭 백그라운드* → 다른 사용자 lobby 에서 1분 이내 그 사용자가 waiters 에서 사라짐 확인 (visibilitychange 핸들러 작동)
+7. 비공개 코드방 (details 접힘) 펼쳐 보고 기존 방식대로 코드 공유 매치 — legacy 호환 확인
+
+**의도된 결과**:
+- 호스트 끊김으로 인한 매치 중단 불가능 (questions 사전 publish)
+- 4 게임 모드로 학습 다양성 ↑
+- ghost waiter 즉시 정리 (lobby 측)
+- legacy 코드방 그대로 작동 (사용자 선호 보존)
+
+**솔직한 한계**:
+- 매치 진행 중 ghost *player* 는 여전히 잔존 (v59 우선순위 3). 결과 화면의 stale player 표시만 영향 — 매치 진행에는 영향 없음 (questions 가 매치 시작 시점에 결정됐기 때문).
+- 인트로 컷 5.2초 동안 lobby 의 모든 waiter 가 동기 진입한다는 보장은 없음 (polling 주기 3초 × 임계 시간). 약 3-5초 내 모두 합류하나 *완벽한 동기* 는 아님. 실제 게임 시작 자체는 자기 시점에서 진행되므로 문제 없음.
+- 매치 객체의 자동 정리 (cleanup) 는 안 함 — Firebase RTDB 의 free-tier 가 시간 기반 TTL 미지원이라, 운영자가 주기적으로 console 에서 `STORAGE.listShared('lobby:matches:')` + 오래된 mid DELETE 필요. UI 카운트는 LOBBY_MATCH_TTL_MS 로 자동 필터링되어 사용자엔 영향 없음.
+- 5명 이상 동시 큐 입장은 미테스트. 6명 한도는 인트로 컷 디자인 제약 (v56) — lobby 도 max 6명까지만 매치 시작.
+
+defer (다음 라운드 후보, v59+):
+- **v59 권장 = 정역 확장** (v53 부터 누적 defer, v54~v58 에서도 다른 우선순위에 밀림) — Apology §23-26, Iliad 1.151-200+, Sophocles Oedipus 1-100, Plato Crito §44-47
+- 추가 게임 모드 (v58 의 plug-in 골격 활용) — Ἀκόντισμα (속도전, 가장 작음), Δίφθογγος (악센트), Ὀρθογραφία (받아쓰기 race), Ἑρμηνεία (정역 race), Δίκη (문맥 추론), Κλήρωσις (베팅 modifier)
+- 매치 진행 중 ghost player 정리 (lobby 의 waiters cleanup 과 별개 — 매치 내 player 의 stale 표시)
+- 재연결 시 인트로 컷 재진입 옵션 (`_battleIntroShown[code]` 옵트인 리셋)
+- 외부 의존 3 항목 — 새 정보 없음
+- BGM 확장 (음량 슬라이더, 추가 모드)
+- Feedback 운영 UI
+- Presence 통계
+- 캐릭터 명언 TTS 자동 발화
+- 사진 prefetch
+- 캐릭터 잠금 시스템
+- PARADIGM_LIB 분사·비교급 확장
+- μι-동사 quiz 통합
+- AI 기반 정역 (Anthropic API)
+
+영구 제외 (사용자 정책):
+  · 다국어 UI (i18n)
 
 — *finis*

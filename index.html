@@ -4609,7 +4609,7 @@ function imageURL(imgId, width){
 
 // 앱 버전 — sw.js CACHE_VERSION과 동기화 유지. 홈 화면 푸터에 표시되어
 // 사용자가 자신이 어느 버전을 사용 중인지 확인 가능 (캐시 갱신 진단용).
-const APP_VERSION = 'v57';
+const APP_VERSION = 'v58';
 window.__paideiaVersion = APP_VERSION;
 
 // ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
@@ -13206,8 +13206,10 @@ function _battleCleanup(){
 
 async function _battleFetchRoom(code){
   if(!STORAGE.supportsShared) return null;
+  // v58: _battleState.roomPath 가 있으면 그걸 사용 (lobby matches 등). 없으면 legacy `battles:<code>`.
+  const path = (_battleState && _battleState.roomPath) ? _battleState.roomPath : `battles:${code}`;
   try {
-    const r = await STORAGE.getShared(`battles:${code}`);
+    const r = await STORAGE.getShared(path);
     if(!r || !r.value) return null;
     return JSON.parse(r.value);
   } catch(e){
@@ -13261,7 +13263,9 @@ function _battleSubscribeSSE(code, onUpdate){
   if(!FIREBASE_URL) return false;
 
   const base = FIREBASE_URL.replace(/\/$/, '');
-  const url = `${base}/battles/${code}.json?accept=text/event-stream`;
+  // v58: roomPath 가 있으면 그걸 SSE URL 로 (lobby matches 등). 없으면 legacy battles/<code>.json.
+  const sseTail = (_battleState && _battleState.roomPath) ? _battleState.roomPath.replace(/:/g,'/') : `battles/${code}`;
+  const url = `${base}/${sseTail}.json?accept=text/event-stream`;
   let es;
   try {
     es = new EventSource(url);
@@ -13402,8 +13406,10 @@ async function _battleSaveRoom(code, room){
     try { window._battleLastError = { op: 'save', code, msg: 'STORAGE.supportsShared=false ('+(STORAGE.label||'unknown')+')', ts: Date.now() }; } catch(_){}
     return false;
   }
+  // v58: _battleState.roomPath 가 있으면 그걸 사용 (lobby matches 등). 없으면 legacy `battles:<code>`.
+  const path = (_battleState && _battleState.roomPath) ? _battleState.roomPath : `battles:${code}`;
   try {
-    await STORAGE.setShared(`battles:${code}`, JSON.stringify(room));
+    await STORAGE.setShared(path, JSON.stringify(room));
     return true;
   } catch(e){
     // v56.1: 진단성 강화 — 사용자 보고용
@@ -13422,7 +13428,7 @@ function renderBattle(){
   view.innerHTML = `
     <button class="btn btn-sm btn-o" onclick="setTab('vocab')">← 어휘</button>
     <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Ἀγών</span>멀티 배틀</h2>
-    <div class="view-sub">실시간 어휘 경기 · ${supported ? '동시 2~6명' : '⚠ 미지원'}</div>
+    <div class="view-sub">실시간 다인 경기 · ${supported ? '4개 게임 모드' : '⚠ 미지원'}</div>
 
     ${!supported ? `
     <div class="card warm">
@@ -13434,10 +13440,10 @@ function renderBattle(){
     </div>
     ` : `
 
-    <div class="card">
+    <div class="card" style="background:var(--ivory-d);border-left:3px solid var(--terracotta)">
       <div style="font-size:13px;line-height:1.7;color:var(--black-glaze-l)">
-        🎮 같은 어휘 문제 10개를 동시에 풀고 정답·속도로 순위를 가립니다.
-        방을 만들어 코드를 공유하거나, 친구의 6자리 코드를 입력해 입장하세요.
+        🎮 같은 10문제를 동시에 풀고 정답·속도·강탈로 순위를 가립니다.<br>
+        <span style="font-size:11.5px;color:var(--clay-d)">v58: 공개 lobby (호스트 없이 자동 매치) + 4종 게임 모드</span>
       </div>
     </div>
 
@@ -13451,37 +13457,57 @@ function renderBattle(){
         <button class="btn btn-sm" id="battle-save-name" style="margin-top:8px">저장</button>
       </div>
     ` : `
-      <div class="card" style="background:var(--ivory-d);border-left:3px solid var(--terracotta)">
+      <div class="card" style="background:var(--ivory-d);border-left:3px solid var(--clay)">
         <div style="font-size:12px;color:var(--clay-d)">참가 이름</div>
         <div style="font-family:var(--font-display);font-size:18px;color:var(--terracotta-d);font-weight:600;margin-top:2px">${myName}</div>
       </div>
 
-      <button class="card" id="battle-create" style="width:100%;text-align:left;cursor:pointer;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-top:10px">
+      <button class="card" id="battle-public" style="width:100%;text-align:left;cursor:pointer;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-top:14px">
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <div>
-            <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">방 만들기</div>
-            <div style="font-size:12.5px;color:var(--clay-d);margin-top:3px">호스트가 되어 코드를 공유합니다</div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Ἀγορά</div>
+              <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:2px 7px;border-radius:8px;letter-spacing:.04em">NEW v58</span>
+            </div>
+            <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">⚔ 공개 lobby — 누구나 참가</div>
+            <div style="font-size:11.5px;color:var(--clay-d);margin-top:3px;line-height:1.5">호스트 없이 대기 → 2명 이상 모이면 자동 매치 시작 · 4종 게임 모드 선택</div>
           </div>
-          <div style="font-size:22px;color:var(--terracotta)">→</div>
+          <div style="font-size:22px;color:var(--terracotta);flex-shrink:0;margin-left:8px">→</div>
         </div>
       </button>
 
-      <button class="card" id="battle-join" style="width:100%;text-align:left;cursor:pointer;border:1px solid var(--clay);border-left:3px solid var(--clay-d);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-top:10px">
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <div>
-            <div style="font-family:var(--font-grk);font-size:20px;color:var(--clay-d);font-weight:600">방 입장</div>
-            <div style="font-size:12.5px;color:var(--clay-d);margin-top:3px">호스트가 알려준 6자리 코드 입력</div>
+      <details style="margin-top:10px">
+        <summary style="cursor:pointer;font-size:13px;color:var(--clay-d);padding:8px 10px;background:var(--ivory-d);border-radius:6px;list-style:none">
+          <span style="margin-right:6px">▸</span>비공개 코드방 (친구끼리 · 기존 방식)
+        </summary>
+        <div style="margin-top:8px">
+          <button class="card" id="battle-create" style="width:100%;text-align:left;cursor:pointer;border:1px solid var(--clay);border-left:3px solid var(--clay-d);background:var(--ivory)">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div>
+                <div style="font-family:var(--font-grk);font-size:18px;color:var(--clay-d);font-weight:600">방 만들기</div>
+                <div style="font-size:12px;color:var(--clay-d);margin-top:2px">호스트가 되어 6자리 코드 공유</div>
+              </div>
+              <div style="font-size:18px;color:var(--clay-d)">→</div>
+            </div>
+          </button>
+          <button class="card" id="battle-join" style="width:100%;text-align:left;cursor:pointer;border:1px solid var(--clay);border-left:3px solid var(--clay-d);background:var(--ivory);margin-top:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div>
+                <div style="font-family:var(--font-grk);font-size:18px;color:var(--clay-d);font-weight:600">방 입장</div>
+                <div style="font-size:12px;color:var(--clay-d);margin-top:2px">호스트가 알려준 6자리 코드 입력</div>
+              </div>
+              <div style="font-size:18px;color:var(--clay-d)">→</div>
+            </div>
+          </button>
+          <div style="font-size:10.5px;color:var(--clay-d);margin-top:6px;line-height:1.6;font-style:italic;padding:0 4px">
+            ⚠ 호스트가 끊기면 매치 중단 가능. 안정성 우선이면 위 공개 lobby 권장.
           </div>
-          <div style="font-size:22px;color:var(--terracotta)">→</div>
         </div>
-      </button>
+      </details>
 
       <div class="card" style="margin-top:14px;background:var(--ivory-d);border-left:3px solid var(--clay-d)">
         <div style="font-size:11px;color:var(--clay-d);font-style:italic;line-height:1.6">
-          🎮 호스트가 방을 만들면 6자리 코드 발급 → 친구·동료에게 공유.
-          입장 후 호스트가 "시작" 누르면 <b>모두 동시에</b> 같은 10문제(어휘) 시작.
-          빠르고 정확하게 푼 사람이 1위.<br>
-          ⚠ 매치 5분 한도 · 문제당 12초 · 연결 끊김 시 자동 미완료 처리.
+          ⚙ 매치 5분 한도 · 문제당 12초 · Q3/Q6/Q9 점수 강탈 · 1위 +30 XP · 2위 +18 · 3위 +12 · 그 외 +5
         </div>
       </div>
     `}
@@ -13499,8 +13525,10 @@ function renderBattle(){
         renderBattle();   // 다시 그리기
       });
     }
+    const pb = document.getElementById('battle-public');
     const cb = document.getElementById('battle-create');
     const jb = document.getElementById('battle-join');
+    if(pb) pb.addEventListener('click', () => renderPublicLobby());
     if(cb) cb.addEventListener('click', () => renderBattleCreate());
     if(jb) jb.addEventListener('click', () => renderBattleJoin());
   }
@@ -13612,6 +13640,501 @@ function renderBattleJoin(){
   inp.addEventListener('keypress', e => { if(e.key === 'Enter') attempt(); });
 }
 window.renderBattleJoin = renderBattleJoin;
+
+// ============================================================================
+// v58 — 공개 lobby (Ἀγορά) · 호스트 없는 자율 매치 시스템
+// ============================================================================
+// 핵심 아이디어: 코드방의 단일 실패점 (호스트) 제거. 누구든 큐에 입장하고,
+// 2명 이상 모이면 가장 오래 기다린 사람 ("선임자") 이 "지금 시작" 버튼으로
+// 매치를 publish. 매치 시작 시점에 questions[] 가 결정적으로 생성·저장되어
+// 진행 중 host 의존 0. 각 player 는 자기 path 에만 PUT (race-free, v56 의 강탈
+// 메커니즘과 동일 패턴). 매치 중 lobby 입장은 봉쇄 ("진행 중, 종료 후 입장 가능").
+//
+// 저장 path 구조:
+//   lobby:waiters:<uid>   — 대기자 (각자 자기 키만)
+//   lobby:matches:<mid>   — 매치 객체 (room shape 동일, meta.mode 추가)
+//   battles:<code>        — 코드방 (legacy, 그대로 작동)
+//
+// 모든 시간 단위는 ms.
+const LOBBY_POLL_MS         = 3000;        // 대기실 polling 간격
+const LOBBY_WAITER_TTL_MS   = 60000;       // 대기자 stale 임계 (이 시간 지나면 ghost)
+const LOBBY_HEARTBEAT_MS    = 20000;       // 대기자 자기 키 갱신 주기
+const LOBBY_MATCH_TTL_MS    = 6*60*1000;   // 매치 6분 보존 후 정리 후보 (5분 한도 + 1분 결과)
+const LOBBY_MID_LEN         = 8;           // mid 길이
+let _lobbyState = null;
+// { phase: 'idle'|'waiting'|'starting'|'inMatch', pollTimer, heartbeatTimer,
+//   waiters: [...], matches: [...], joinedAt: ts, chosenMode: 'vocab', visListener }
+
+function _lobbyGenMid(){
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let s = '';
+  for(let i = 0; i < LOBBY_MID_LEN; i++){
+    s += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return s;
+}
+
+function _lobbyStop(){
+  if(!_lobbyState) return;
+  if(_lobbyState.pollTimer){ clearInterval(_lobbyState.pollTimer); _lobbyState.pollTimer = null; }
+  if(_lobbyState.heartbeatTimer){ clearInterval(_lobbyState.heartbeatTimer); _lobbyState.heartbeatTimer = null; }
+  if(_lobbyState.visListener){
+    try { document.removeEventListener('visibilitychange', _lobbyState.visListener); } catch(_){}
+    try { window.removeEventListener('beforeunload', _lobbyState.visListener); } catch(_){}
+    try { window.removeEventListener('pagehide', _lobbyState.visListener); } catch(_){}
+    _lobbyState.visListener = null;
+  }
+}
+
+function _lobbyCleanup(){
+  _lobbyStop();
+  _lobbyState = null;
+}
+
+// 현재 사용자가 큐에 있는지 + 매치 진행 중 사용자 자신이 player 인지 동시 fetch.
+// 반환 객체: { waiters: [...sorted], matches: [...], myMatch }
+async function _lobbyFetchState(){
+  if(!STORAGE.supportsShared) return { waiters: [], matches: [], myMatch: null };
+  const myId = S.userId;
+  // 1) 대기자 목록
+  let waiterKeys = [];
+  try {
+    const ws = await STORAGE.listShared('lobby:waiters:');
+    if(ws && Array.isArray(ws.keys)) waiterKeys = ws.keys;
+  } catch(_){}
+  const now = Date.now();
+  const waiters = [];
+  for(const k of waiterKeys){
+    try {
+      const r = await STORAGE.getShared(k);
+      if(!r || !r.value) continue;
+      const w = JSON.parse(r.value);
+      if(!w || !w.uid) continue;
+      // stale 필터링: lastSeen 이 LOBBY_WAITER_TTL_MS 보다 오래된 항목은 ghost 로 간주
+      const lastSeen = w.lastSeen || w.joinedAt || 0;
+      if(now - lastSeen > LOBBY_WAITER_TTL_MS) continue;
+      waiters.push(w);
+    } catch(_){}
+  }
+  waiters.sort((a,b) => (a.joinedAt||0) - (b.joinedAt||0));
+  // 2) 매치 목록
+  let matchKeys = [];
+  try {
+    const ms = await STORAGE.listShared('lobby:matches:');
+    if(ms && Array.isArray(ms.keys)) matchKeys = ms.keys;
+  } catch(_){}
+  const matches = [];
+  let myMatch = null;
+  for(const k of matchKeys){
+    try {
+      const r = await STORAGE.getShared(k);
+      if(!r || !r.value) continue;
+      const m = JSON.parse(r.value);
+      if(!m || !m.meta) continue;
+      // mid 추출 (key: 'lobby:matches:<mid>')
+      const mid = k.replace(/^lobby:matches:/, '');
+      const info = { mid, meta: m.meta, players: m.players || {} };
+      // TTL 초과 매치는 표시 안 함 (운영자 청소 부담 회피)
+      const startedAt = (m.meta && m.meta.startedAt) || 0;
+      if(startedAt && now - startedAt > LOBBY_MATCH_TTL_MS) continue;
+      matches.push(info);
+      // 내가 player 인 playing 매치 — 자동 합류 트리거
+      if(m.meta.status === 'playing' && m.players && m.players[myId]){
+        myMatch = info;
+      }
+    } catch(_){}
+  }
+  // 최신 매치 먼저
+  matches.sort((a,b) => (b.meta.startedAt||0) - (a.meta.startedAt||0));
+  return { waiters, matches, myMatch };
+}
+
+async function _lobbyPingWaiter(){
+  if(!S.userId || !_lobbyState || _lobbyState.phase !== 'waiting') return;
+  const payload = {
+    uid: S.userId,
+    name: S.displayName || '익명',
+    character: (typeof _ensureCharacter==='function' ? _ensureCharacter() : (S.character || 'athena')),
+    joinedAt: _lobbyState.joinedAt || Date.now(),
+    lastSeen: Date.now(),
+  };
+  try {
+    await STORAGE.setShared(`lobby:waiters:${S.userId}`, JSON.stringify(payload));
+  } catch(_){}
+}
+
+async function _lobbyRemoveWaiter(){
+  if(!S.userId) return;
+  try { await STORAGE.delShared(`lobby:waiters:${S.userId}`); } catch(_){}
+}
+
+// 매치 시작 — 선임자만 호출. waiters 를 players 로 변환, questions 미리 publish, status='playing'.
+// first-write-wins: 동시 시도 시 한 번만 성공해도 충분 (다른 시도자의 PUT 도 같은 mid 면 덮어쓰지 않게 mid 를 시간 기반 + 자기 uid 해시로 충돌 회피).
+async function _lobbyStartMatch(mode){
+  if(!_lobbyState || _lobbyState.phase !== 'waiting') return false;
+  const m = (mode && BATTLE_MODES[mode]) ? mode : BATTLE_MODE_DEFAULT;
+  // 최신 waiters 재조회 (체크 → 시작 사이 새로 입장한 사람도 포함)
+  const st = await _lobbyFetchState();
+  const waiters = st.waiters;
+  if(waiters.length < 2){
+    toast('대기자가 2명 이상이어야 시작할 수 있습니다');
+    return false;
+  }
+  // 선임자 = sorted waiters 의 첫번째. 자기 자신이어야만 시작 가능.
+  if(waiters[0].uid !== S.userId){
+    toast('가장 오래 기다린 사람만 시작할 수 있습니다');
+    return false;
+  }
+  // mid 생성 + questions 미리 publish (호스트 의존 0)
+  const mid = _lobbyGenMid();
+  const seed = Date.now() + Math.floor(Math.random() * 1000000);
+  // 검증: 모드별 풀이 충분한지 미리 확인 (실패하면 vocab 으로 폴백)
+  let actualMode = m;
+  let testQs = _battleBuildQuestions(seed, actualMode);
+  if(testQs.length < BATTLE_N_Q){
+    console.warn('[lobby] mode', actualMode, 'pool insufficient, falling back to vocab');
+    actualMode = 'vocab';
+    testQs = _battleBuildQuestions(seed, actualMode);
+    if(testQs.length < BATTLE_N_Q){
+      toast('어휘 데이터 부족 — 매치 시작 불가');
+      return false;
+    }
+  }
+  // players 구성 (max 6 — 7명 이상이면 선임 6명만)
+  const playersForMatch = waiters.slice(0, 6);
+  const players = {};
+  const startedAt = Date.now();
+  for(const w of playersForMatch){
+    players[w.uid] = {
+      name: w.name || '익명',
+      character: w.character || 'athena',
+      joinedAt: w.joinedAt || startedAt,
+      score: 0, correctCount: 0, currentQ: 0,
+      ready: true, finished: false,
+    };
+  }
+  const matchObj = {
+    meta: {
+      mid,
+      starterId: S.userId,
+      mode: actualMode,
+      seed,
+      status: 'playing',
+      startedAt,
+      createdAt: startedAt,
+    },
+    players,
+  };
+  // 일시적 phase 전환 (다른 polling tick 이 인터럽트 못 하게)
+  _lobbyState.phase = 'starting';
+  // PUT 매치
+  let saveOk = false;
+  try {
+    // _battleSaveRoom 은 _battleState.roomPath 를 보므로, 직접 STORAGE.setShared 사용
+    await STORAGE.setShared(`lobby:matches:${mid}`, JSON.stringify(matchObj));
+    saveOk = true;
+  } catch(e){
+    console.warn('[lobby] saveMatch failed:', e);
+  }
+  if(!saveOk){
+    _lobbyState.phase = 'waiting';
+    toast('매치 시작 실패 — 네트워크 확인');
+    return false;
+  }
+  // 매치에 포함된 모든 waiter 들의 waiter 키 청소 — 자기 것은 직접, 다른 것은
+  // (race 방지) 다른 클라이언트가 자체적으로 정리하게 두지만, 자기 것은 즉시 제거
+  await _lobbyRemoveWaiter();
+  // 자신은 즉시 매치로 진입
+  _lobbyJoinExistingMatch(mid, matchObj);
+  return true;
+}
+
+// 이미 진행 중인 매치에 합류 — polling tick 이 myMatch 를 발견했을 때, 또는
+// 시작자 본인이 매치 publish 직후 자기 자신 합류.
+function _lobbyJoinExistingMatch(mid, matchObj){
+  if(!_lobbyState) return;
+  _lobbyState.phase = 'inMatch';
+  _lobbyStop();
+  // 자기 waiter 키 정리
+  _lobbyRemoveWaiter();
+  // _battleState 를 lobby 매치 path 로 세팅
+  _battleState = {
+    roomCode: mid,
+    role: 'lobby',         // host 도 guest 도 아님 (v58 신규)
+    roomPath: `lobby:matches:${mid}`,
+    pollTimer: null,
+  };
+  // 인트로 컷 + 게임 시작 (renderBattleGame 이 첫 진입에 인트로 표시)
+  renderBattleGame(mid, matchObj);
+  // 실시간 구독 시작 (점수보드 갱신용)
+  _battleSubscribe(mid, (room) => {
+    if(!room) return;
+    // 다른 사람 진척으로 인한 인트로 깨짐 방지는 _battleHandleUpdate + introActive 가 이미 처리
+    // status=finished 면 결과로
+    if(room.meta && room.meta.status === 'finished'){
+      _battleStopPoll();
+      renderBattleResult(mid, room);
+      return;
+    }
+    // 부분 갱신 — 답 중이면 점수보드만
+    if(_battleGameLocal && _battleGameLocal.answeredThisQ){
+      const sb = document.getElementById('bat-scoreboard-wrap');
+      if(sb){
+        const ps = Object.entries(room.players || {});
+        sb.innerHTML = _battleScoreboardHTML(ps);
+      }
+    }
+  });
+}
+
+// 공개 lobby 메인 화면 — polling 으로 대기자/매치 갱신
+async function renderPublicLobby(){
+  if(!STORAGE.supportsShared){ renderBattle(); return; }
+  if(!S.displayName){ toast('먼저 표시 이름을 정해주세요'); renderBattle(); return; }
+  if(!S.userId){
+    S.userId = 'u' + Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
+    saveState();
+  }
+  // 기존 state 정리 후 새로 시작
+  _battleCleanup();
+  _lobbyCleanup();
+  _lobbyState = {
+    phase: 'idle',
+    pollTimer: null, heartbeatTimer: null,
+    waiters: [], matches: [],
+    joinedAt: 0,
+    chosenMode: BATTLE_MODE_DEFAULT,
+    visListener: null,
+    lastTick: 0,
+  };
+
+  // 자기 키가 이미 남아있다면 (이전 세션 잔존) 정리하지 말고 lastSeen 갱신 (즉시 재진입 시 자연스럽게)
+  // — 그러나 초기 진입은 idle 상태이므로 일단 안 만지고 사용자가 명시적으로 "큐 입장" 눌러야 작성됨
+
+  // visibilitychange / beforeunload 핸들러 — 백그라운드/탭 닫기 시 ghost waiter 방지
+  const cleanup = () => {
+    if(_lobbyState && _lobbyState.phase === 'waiting'){
+      // 비동기 fire-and-forget — fetch 가 beforeunload 에서도 통할 가능성 ↑ (sendBeacon 없이도 대부분 됨)
+      try { _lobbyRemoveWaiter(); } catch(_){}
+    }
+  };
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState === 'hidden') cleanup();
+  });
+  window.addEventListener('beforeunload', cleanup);
+  window.addEventListener('pagehide', cleanup);
+  _lobbyState.visListener = cleanup;
+
+  _lobbyDraw();              // 초기 placeholder
+  // 첫 fetch 즉시 + interval
+  await _lobbyTick();
+  _lobbyState.pollTimer = setInterval(_lobbyTick, LOBBY_POLL_MS);
+}
+window.renderPublicLobby = renderPublicLobby;
+
+async function _lobbyTick(){
+  if(!_lobbyState || (_lobbyState.phase !== 'idle' && _lobbyState.phase !== 'waiting')) return;
+  _lobbyState.lastTick = Date.now();
+  const st = await _lobbyFetchState();
+  _lobbyState.waiters = st.waiters;
+  _lobbyState.matches = st.matches;
+  // 자동 합류: 내가 player 인 playing 매치가 있으면 즉시 진입
+  if(st.myMatch){
+    const mid = st.myMatch.mid;
+    // 매치 풀 fetch (state 의 myMatch 는 meta+players 정보만)
+    let full = null;
+    try {
+      const r = await STORAGE.getShared(`lobby:matches:${mid}`);
+      if(r && r.value) full = JSON.parse(r.value);
+    } catch(_){}
+    if(full){
+      _lobbyJoinExistingMatch(mid, full);
+      return;
+    }
+  }
+  _lobbyDraw();
+}
+
+function _lobbyDraw(){
+  if(!_lobbyState) return;
+  const waiters = _lobbyState.waiters || [];
+  const matches = _lobbyState.matches || [];
+  const myId = S.userId;
+  const iAmWaiting = waiters.some(w => w.uid === myId);
+  const oldestUid = waiters.length > 0 ? waiters[0].uid : null;
+  const iAmOldest = (oldestUid === myId);
+  const canStart = iAmWaiting && iAmOldest && waiters.length >= 2;
+  const activeMatches = matches.filter(m => m.meta && m.meta.status === 'playing');
+  const finishedMatches = matches.filter(m => m.meta && m.meta.status === 'finished');
+
+  // 모드 선택 UI (선임자만 의미 있으나 모든 사람에게 표시 — 자기가 선임이 되면 그대로 적용)
+  const chosen = _lobbyState.chosenMode || BATTLE_MODE_DEFAULT;
+  const modeCards = Object.values(BATTLE_MODES).map(m => `
+    <button class="lobby-mode-btn ${chosen===m.id?'on':''}" data-mode="${m.id}" style="
+      display:block;width:100%;text-align:left;margin:5px 0;padding:9px 11px;
+      background:${chosen===m.id?'var(--terracotta)':'var(--ivory)'};
+      color:${chosen===m.id?'var(--ivory-w)':'var(--black-glaze)'};
+      border:1px solid ${chosen===m.id?'var(--terracotta-d)':'var(--clay)'};
+      border-radius:6px;cursor:pointer;font-family:inherit;font-size:12.5px;line-height:1.45;
+    ">
+      <div style="display:flex;align-items:baseline;gap:6px">
+        <span class="grk" style="font-size:14px;font-weight:600">${m.grk}</span>
+        <span style="font-weight:600">${m.ko}</span>
+      </div>
+      <div style="font-size:10.5px;opacity:.82;margin-top:2px">${m.desc}</div>
+    </button>
+  `).join('');
+
+  // 대기자 목록 행
+  const waitersHtml = waiters.length === 0 ? `
+    <div style="color:var(--clay-d);font-size:13px;text-align:center;padding:14px;font-style:italic">
+      아직 아무도 없습니다. 큐에 입장해 첫 번째가 되어 보세요.
+    </div>
+  ` : waiters.map((w, i) => {
+    const charId = (w.character && CHARACTERS_BY_ID && CHARACTERS_BY_ID[w.character]) ? w.character : null;
+    const med = (charId && typeof _charMedallion === 'function') ? _charMedallion(charId, 36) : '';
+    const waitSec = Math.floor((Date.now() - (w.joinedAt || Date.now())) / 1000);
+    const mine = (w.uid === myId);
+    return `<div style="display:flex;align-items:center;gap:9px;padding:7px 9px;border-bottom:${i<waiters.length-1?'1px dashed var(--clay)':'none'};background:${mine?'var(--ivory-d)':'transparent'};border-radius:4px">
+      <div style="font-size:11px;color:var(--clay-d);font-weight:600;min-width:18px">${i+1}</div>
+      <div style="flex-shrink:0">${med}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:var(--font-display);font-size:14px;font-weight:600;color:var(--black-glaze)">
+          ${(w.name || '익명').replace(/</g,'&lt;')}${mine?' <span style="font-size:10px;color:var(--terracotta-d);font-weight:400">(나)</span>':''}${i===0?' <span style="font-size:9.5px;background:var(--clay);color:var(--ivory-w);padding:1px 5px;border-radius:5px;letter-spacing:.04em">선임</span>':''}
+        </div>
+        <div style="font-size:10.5px;color:var(--clay-d);margin-top:1px">대기 ${waitSec}초</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // 진행 중 매치 (참가 불가, 봉쇄)
+  const activeHtml = activeMatches.length === 0 ? '' : `
+    <div class="card" style="background:var(--ivory-d);border-left:3px solid var(--clay-d)">
+      <div style="font-family:var(--font-display);font-size:12px;color:var(--clay-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">
+        🎮 진행 중인 매치 (${activeMatches.length})
+      </div>
+      ${activeMatches.map(m => {
+        const ms = m.meta || {};
+        const mm = BATTLE_MODES[ms.mode || 'vocab'] || BATTLE_MODES.vocab;
+        const playersN = Object.keys(m.players || {}).length;
+        const sinceSec = Math.floor((Date.now() - (ms.startedAt || Date.now())) / 1000);
+        const remainSec = Math.max(0, Math.floor((BATTLE_GAME_TTL_MS - (Date.now() - (ms.startedAt || Date.now())))/1000));
+        return `<div style="font-size:12px;color:var(--clay-d);padding:5px 0;line-height:1.5">
+          <span class="grk" style="font-weight:600;color:var(--terracotta-d)">${mm.grk}</span> ${mm.ko}
+          · ${playersN}명 · 진행 ${sinceSec}초 · 종료까지 약 ${remainSec}초
+        </div>`;
+      }).join('')}
+      <div style="font-size:10.5px;color:var(--clay-d);font-style:italic;margin-top:4px;line-height:1.5">
+        진행 중인 매치는 종료 후에만 새 매치 가능 — 큐에서 함께 대기하세요.
+      </div>
+    </div>
+  `;
+
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="_lobbyExit()">← 배틀</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Ἀγορά</span>공개 lobby</h2>
+    <div class="view-sub">v58 · 호스트 없이 자동 매치 · 4개 모드</div>
+
+    ${activeHtml}
+
+    <div class="card" style="background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);border-left:3px solid var(--terracotta)">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
+        <div style="font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em">
+          📍 대기열 (${waiters.length}/6${waiters.length>=2?' · 시작 가능':''})
+        </div>
+        ${iAmWaiting ? `
+          <button class="btn btn-sm btn-o" id="lobby-leave-queue" style="font-size:11px;padding:3px 9px">큐 나가기</button>
+        ` : `
+          <button class="btn btn-sm" id="lobby-join-queue" style="font-size:11px;padding:3px 11px"${activeMatches.length>0?' disabled title="진행 중 매치 종료 후 입장 가능"':''}>큐 입장 →</button>
+        `}
+      </div>
+      ${waitersHtml}
+      ${waiters.length >= 6 ? `<div style="font-size:10.5px;color:var(--clay-d);font-style:italic;margin-top:6px;text-align:center">대기열 가득 (6명) — 다음 매치 시 선임 6명이 자동 입장</div>` : ''}
+    </div>
+
+    ${iAmWaiting ? `
+      <div class="card">
+        <div style="font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">
+          🎲 게임 모드 선택
+        </div>
+        <div style="font-size:11px;color:var(--clay-d);margin-bottom:8px;line-height:1.5">
+          ${iAmOldest ? '<b>당신이 선임자입니다.</b> 모드를 선택하고 시작하세요.' : '선임자가 모드를 선택합니다. 큐의 자리가 위로 올라가면 권한이 넘어옵니다.'}
+        </div>
+        ${modeCards}
+        ${canStart ? `
+          <button class="btn" id="lobby-start" style="width:100%;margin-top:10px">
+            ⚔ 지금 시작 (${waiters.length}명) →
+          </button>
+          <div style="font-size:10.5px;color:var(--clay-d);font-style:italic;margin-top:6px;text-align:center;line-height:1.5">
+            시작하면 모든 대기자에게 즉시 인트로 컷이 표시됩니다.
+          </div>
+        ` : iAmOldest ? `
+          <div style="font-size:11.5px;color:var(--clay-d);text-align:center;margin-top:10px;padding:8px;background:var(--ivory-d);border-radius:6px">
+            대기자가 2명 이상이어야 시작할 수 있습니다.
+          </div>
+        ` : ''}
+      </div>
+    ` : ''}
+
+    <div class="card" style="background:var(--ivory-d);border-left:3px solid var(--clay-d)">
+      <div style="font-size:11px;color:var(--clay-d);font-style:italic;line-height:1.6">
+        ⓘ 큐에 입장하면 4분마다 활동 신호 전송. 1분 이상 신호 없으면 자동 퇴장.
+        탭을 닫거나 백그라운드로 가면 즉시 퇴장. 매치 진행 중 새 입장 봉쇄.
+      </div>
+    </div>
+  `;
+
+  // 이벤트 바인딩
+  const joinBtn = document.getElementById('lobby-join-queue');
+  if(joinBtn) joinBtn.addEventListener('click', _lobbyEnterQueue);
+  const leaveBtn = document.getElementById('lobby-leave-queue');
+  if(leaveBtn) leaveBtn.addEventListener('click', _lobbyExitQueue);
+  const startBtn = document.getElementById('lobby-start');
+  if(startBtn) startBtn.addEventListener('click', async () => {
+    startBtn.disabled = true; startBtn.textContent = '시작 중...';
+    const ok = await _lobbyStartMatch(_lobbyState ? _lobbyState.chosenMode : BATTLE_MODE_DEFAULT);
+    if(!ok && _lobbyState && _lobbyState.phase === 'waiting'){
+      startBtn.disabled = false; startBtn.textContent = `⚔ 지금 시작 (${waiters.length}명) →`;
+    }
+  });
+  view.querySelectorAll('.lobby-mode-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      if(!_lobbyState) return;
+      const m = b.getAttribute('data-mode');
+      if(BATTLE_MODES[m]){ _lobbyState.chosenMode = m; _lobbyDraw(); }
+    });
+  });
+}
+
+async function _lobbyEnterQueue(){
+  if(!_lobbyState) return;
+  _lobbyState.phase = 'waiting';
+  _lobbyState.joinedAt = Date.now();
+  await _lobbyPingWaiter();
+  // heartbeat 시작
+  if(_lobbyState.heartbeatTimer) clearInterval(_lobbyState.heartbeatTimer);
+  _lobbyState.heartbeatTimer = setInterval(_lobbyPingWaiter, LOBBY_HEARTBEAT_MS);
+  await _lobbyTick();
+}
+window._lobbyEnterQueue = _lobbyEnterQueue;
+
+async function _lobbyExitQueue(){
+  if(!_lobbyState) return;
+  _lobbyState.phase = 'idle';
+  if(_lobbyState.heartbeatTimer){ clearInterval(_lobbyState.heartbeatTimer); _lobbyState.heartbeatTimer = null; }
+  await _lobbyRemoveWaiter();
+  await _lobbyTick();
+}
+window._lobbyExitQueue = _lobbyExitQueue;
+
+async function _lobbyExit(){
+  if(_lobbyState && _lobbyState.phase === 'waiting'){
+    await _lobbyRemoveWaiter();
+  }
+  _lobbyCleanup();
+  renderBattle();
+}
+window._lobbyExit = _lobbyExit;
 
 // 대기실 — 호스트·게스트 공통. 호스트만 "시작" 버튼.
 async function renderBattleLobby(){
@@ -13783,17 +14306,19 @@ async function renderBattleLobby(){
 window.renderBattleLobby = renderBattleLobby;
 
 // 방 나가기 — 호스트면 방 삭제, 게스트면 자기만 제거
+// v58: lobby 매치는 host 개념 없음 — role==='lobby' 인 경우 자기 player 만 제거 (게스트와 같은 처리)
 async function _battleLeave(){
   if(!_battleState){ renderBattle(); return; }
   const code = _battleState.roomCode;
-  const isHost = _battleState.role === 'host';
+  const isHost = _battleState.role === 'host';   // lobby 매치는 false
+  const path = _battleState.roomPath || `battles:${code}`;
   _battleStopPoll();
   try {
     if(isHost){
-      // 호스트 이탈 — 방 자체 삭제
-      await STORAGE.delShared(`battles:${code}`);
+      // 호스트 이탈 — 방 자체 삭제 (코드방만 해당)
+      await STORAGE.delShared(path);
     } else {
-      // 게스트 이탈 — 자기만 제거
+      // 게스트 또는 lobby 매치 참가자 — 자기 player 객체만 제거
       const room = await _battleFetchRoom(code);
       if(room && room.players){
         delete room.players[S.userId];
@@ -13823,12 +14348,37 @@ let _battleGameLocal = null;
 let _battleIntroShown = Object.create(null);   // {code: true} — 인트로 1회만 표시
 // { code, idx, score, answeredThisQ, startedAt, questions, stolen: [{victim,points,qIdx}] }
 
+// v58: 게임 모드 카탈로그. 모든 모드는 동일한 4-option MC 골격을 공유한다
+// (12초 타이머, 강탈 메커니즘 Q3/Q6/Q9, 정답 시 속도 보너스 등). 다른 점은
+// (a) 풀(pool) 의 출처와 (b) 프롬프트 렌더링 방식. _battleBuildQuestions 가 mode
+// 파라미터로 분기하여 q 객체에 mode 별 부가 정보를 채워 넣고, _battleRenderPrompt
+// 가 q.mode 로 분기하여 시각 표현을 결정한다.
+const BATTLE_MODES = {
+  vocab:  { id:'vocab',  grk:'Ἀγών',          ko:'어휘 결투',     desc:'그리스어 단어 → 한국어 뜻 (기본 모드)' },
+  quote:  { id:'quote',  grk:'Μάχη Ποιητῶν',  ko:'명언의 주인',   desc:'정전 인용 → 누가 한 말인가? (50 캐릭터 명언)' },
+  verse:  { id:'verse',  grk:'Στίχοι',        ko:'행 잇기',       desc:'명언의 앞부분 → 뒤를 잇는 구절은?' },
+  riddle: { id:'riddle', grk:'Σφίγξ',         ko:'역방향 추론',   desc:'한국어 뜻 → 그리스어 단어 (인출형 학습)' },
+};
+const BATTLE_MODE_DEFAULT = 'vocab';
+
 // LCG seeded random — 호스트 시드로 모두 동일 문제 생성
 function _battleSeededRng(seed){
   let s = (seed >>> 0) || 1;
   return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 0x100000000; };
 }
-function _battleBuildQuestions(seed){
+
+// v58: 모드별 문제 빌더 분기. mode 가 없으면 기본 'vocab'.
+function _battleBuildQuestions(seed, mode){
+  const m = (mode && BATTLE_MODES[mode]) ? mode : BATTLE_MODE_DEFAULT;
+  if(m === 'vocab')  return _battleBuildVocab(seed);
+  if(m === 'quote')  return _battleBuildQuote(seed);
+  if(m === 'verse')  return _battleBuildVerse(seed);
+  if(m === 'riddle') return _battleBuildRiddle(seed);
+  return _battleBuildVocab(seed);
+}
+
+// 모드 1 (기본 · vocab): Greek → Korean. ALL_VOCAB 에서 추출, 무작위 distractors.
+function _battleBuildVocab(seed){
   const rng = _battleSeededRng(seed);
   const pool = (typeof ALL_VOCAB !== 'undefined') ? ALL_VOCAB.filter(w => w.g && w.ko) : [];
   if(pool.length < BATTLE_N_Q + 3) return [];
@@ -13852,11 +14402,201 @@ function _battleBuildQuestions(seed){
     const correctIdx = Math.floor(rng() * 4);
     const options = [...distractors];
     options.splice(correctIdx, 0, w.ko);
-    // v56: 매 BATTLE_STEAL_INTERVAL 번째 문제(1-indexed)를 강탈 문제로 마킹.
-    // 모든 플레이어가 동일 시드로 같은 인덱스에서 강탈 문제를 봄.
     const qNum = qs.length + 1;
     const isSteal = (qNum % BATTLE_STEAL_INTERVAL === 0);
-    qs.push({ g: w.g, ko: w.ko, options, correctIdx, isSteal });
+    qs.push({ mode:'vocab', prompt: w.g, ko: w.ko, options, correctIdx, isSteal });
+  }
+  return qs;
+}
+
+// 모드 2 (v58 · quote · Μάχη Ποιητῶν): Greek 명언 → 누가 한 말?
+// CHARACTER_QUOTES (50 entries) + CHARACTERS_BY_ID 의 한국어 이름 (별칭 ep 포함)
+// 풀이 50 이상이라 BATTLE_N_Q=10 안전. distractor 는 같은 카테고리 우선 (god vs god).
+function _battleBuildQuote(seed){
+  const rng = _battleSeededRng(seed);
+  const CHQ = (typeof window !== 'undefined' && window.CHARACTER_QUOTES) ? window.CHARACTER_QUOTES : null;
+  const CHI = (typeof CHARACTERS_BY_ID !== 'undefined') ? CHARACTERS_BY_ID : null;
+  if(!CHQ || !CHI) return [];
+  // 명언이 있는 캐릭터만
+  const ids = Object.keys(CHQ).filter(id => CHI[id] && CHQ[id] && CHQ[id].grk);
+  if(ids.length < BATTLE_N_Q + 3) return [];
+  // 카테고리별 풀 (god/hero/heroine/philo/poet)
+  const byCat = Object.create(null);
+  for(const id of ids){
+    const c = CHI[id].c || '?';
+    if(!byCat[c]) byCat[c] = [];
+    byCat[c].push(id);
+  }
+  const used = new Set();
+  const qs = [];
+  let safety = 0;
+  while(qs.length < BATTLE_N_Q && safety < 300){
+    safety++;
+    const ix = Math.floor(rng() * ids.length);
+    if(used.has(ix)) continue;
+    used.add(ix);
+    const id = ids[ix];
+    const ch = CHI[id]; const q = CHQ[id];
+    const cat = ch.c || '?';
+    // distractor: 같은 카테고리 우선, 부족하면 다른 카테고리에서 보충
+    const distIds = [];
+    const distUsed = new Set([id]);
+    const sameCat = (byCat[cat] || []).filter(x => x !== id);
+    while(distIds.length < 3 && sameCat.length > 0){
+      const j = Math.floor(rng() * sameCat.length);
+      const pick = sameCat[j];
+      if(distUsed.has(pick)) continue;
+      distUsed.add(pick); distIds.push(pick);
+    }
+    while(distIds.length < 3){
+      const j = Math.floor(rng() * ids.length);
+      const pick = ids[j];
+      if(distUsed.has(pick)) continue;
+      distUsed.add(pick); distIds.push(pick);
+    }
+    const correctIdx = Math.floor(rng() * 4);
+    const options = distIds.map(x => CHI[x].ko + (CHI[x].ep ? ` · ${CHI[x].ep}` : ''));
+    options.splice(correctIdx, 0, ch.ko + (ch.ep ? ` · ${ch.ep}` : ''));
+    const qNum = qs.length + 1;
+    const isSteal = (qNum % BATTLE_STEAL_INTERVAL === 0);
+    qs.push({
+      mode:'quote',
+      prompt: q.grk,          // 그리스어 명언 전체
+      promptKo: q.ko || '',   // 한국어 보조 (작게)
+      src: q.src || '',       // 출처 (정답 공개 후 보여줌)
+      ko: ch.ko,
+      options, correctIdx, isSteal,
+    });
+  }
+  return qs;
+}
+
+// 모드 3 (v58 · verse · Στίχοι): 명언 앞부분 → 뒤를 잇는 부분?
+// CHARACTER_QUOTES 의 grk 를 자연 분절자로 split (· · 콤마 ; , 띄어쓰기).
+// 양쪽이 충분히 길어야 (각 1단어 이상) 사용.
+function _battleBuildVerse(seed){
+  const rng = _battleSeededRng(seed);
+  const CHQ = (typeof window !== 'undefined' && window.CHARACTER_QUOTES) ? window.CHARACTER_QUOTES : null;
+  const CHI = (typeof CHARACTERS_BY_ID !== 'undefined') ? CHARACTERS_BY_ID : null;
+  if(!CHQ || !CHI) return [];
+  // 분절 후보 — 자연 경계 우선 (콤마/콜론/세미콜론). 그리스어 ano teleia (·, U+0387)
+  // 와 통상 콤마/세미콜론 처리. 분절 결과 앞부분·뒷부분 둘 다 6자 이상이어야 사용.
+  const splits = [];
+  for(const id of Object.keys(CHQ)){
+    if(!CHI[id]) continue;
+    const grk = (CHQ[id].grk || '').trim();
+    if(grk.length < 16) continue;
+    // 분절자 후보 — 우선순위: ano teleia (·) > comma > semicolon > 마지막 평균에 가까운 공백
+    const seps = [/·/g, /,/g, /;/g];
+    let chosen = null;
+    for(const re of seps){
+      const matches = [];
+      let m;
+      while((m = re.exec(grk)) !== null) matches.push(m.index);
+      if(matches.length > 0){
+        // 중앙에 가장 가까운 분절자 선택
+        const mid = grk.length / 2;
+        matches.sort((a,b) => Math.abs(a-mid) - Math.abs(b-mid));
+        chosen = matches[0];
+        break;
+      }
+    }
+    if(chosen == null){
+      // 공백 분절 — 중앙 근처
+      const tokens = grk.split(/\s+/);
+      if(tokens.length < 3) continue;
+      const halfIdx = Math.floor(tokens.length / 2);
+      const head = tokens.slice(0, halfIdx).join(' ');
+      const tail = tokens.slice(halfIdx).join(' ');
+      if(head.length >= 6 && tail.length >= 6){
+        splits.push({ id, head, tail, src: CHQ[id].src || '' });
+      }
+      continue;
+    }
+    const head = grk.slice(0, chosen).trim();
+    const tail = grk.slice(chosen + 1).trim();
+    if(head.length >= 6 && tail.length >= 6){
+      splits.push({ id, head, tail, src: CHQ[id].src || '' });
+    }
+  }
+  if(splits.length < BATTLE_N_Q + 3) return [];
+  const used = new Set();
+  const qs = [];
+  let safety = 0;
+  while(qs.length < BATTLE_N_Q && safety < 300){
+    safety++;
+    const ix = Math.floor(rng() * splits.length);
+    if(used.has(ix)) continue;
+    used.add(ix);
+    const s = splits[ix];
+    // distractor: 다른 명언의 tail 3개 (같은 패턴 — 길이 유사하면 더 좋지만 무작위로도 학습성 충분)
+    const distTails = [];
+    const distUsed = new Set([ix]);
+    while(distTails.length < 3){
+      const dj = Math.floor(rng() * splits.length);
+      if(distUsed.has(dj)) continue;
+      distUsed.add(dj);
+      distTails.push(splits[dj].tail);
+    }
+    const correctIdx = Math.floor(rng() * 4);
+    const options = [...distTails];
+    options.splice(correctIdx, 0, s.tail);
+    const qNum = qs.length + 1;
+    const isSteal = (qNum % BATTLE_STEAL_INTERVAL === 0);
+    qs.push({
+      mode:'verse',
+      prompt: s.head + ' …',   // 보여줄 앞부분 + 말줄임
+      tail: s.tail,             // 결과 화면용
+      src: s.src,
+      ko: '', // 모드 3 는 그리스어→그리스어, 한국어 미사용
+      options, correctIdx, isSteal,
+    });
+  }
+  return qs;
+}
+
+// 모드 4 (v58 · riddle · Σφίγξ): Korean → Greek. vocab 의 역방향. 인출 학습 강화.
+function _battleBuildRiddle(seed){
+  const rng = _battleSeededRng(seed);
+  const pool = (typeof ALL_VOCAB !== 'undefined') ? ALL_VOCAB.filter(w => w.g && w.ko) : [];
+  if(pool.length < BATTLE_N_Q + 3) return [];
+  const used = new Set();
+  const qs = [];
+  let safety = 0;
+  while(qs.length < BATTLE_N_Q && safety < 300){
+    safety++;
+    const idx = Math.floor(rng() * pool.length);
+    if(used.has(idx)) continue;
+    used.add(idx);
+    const w = pool[idx];
+    // distractor 는 같은 품사 우선 (vocab 모드의 medium difficulty 와 유사 아이디어)
+    const same = pool.filter((x, j) => j !== idx && x.pos === w.pos);
+    const distractors = [];
+    const distUsed = new Set([idx]);
+    while(distractors.length < 3 && same.length > 0){
+      const j = Math.floor(rng() * same.length);
+      const pickIdx = pool.indexOf(same[j]);
+      if(distUsed.has(pickIdx)) continue;
+      distUsed.add(pickIdx); distractors.push(same[j].g);
+    }
+    while(distractors.length < 3){
+      const j = Math.floor(rng() * pool.length);
+      if(distUsed.has(j)) continue;
+      distUsed.add(j); distractors.push(pool[j].g);
+    }
+    const correctIdx = Math.floor(rng() * 4);
+    const options = [...distractors];
+    options.splice(correctIdx, 0, w.g);
+    const qNum = qs.length + 1;
+    const isSteal = (qNum % BATTLE_STEAL_INTERVAL === 0);
+    qs.push({
+      mode:'riddle',
+      prompt: w.ko,                    // 한국어 뜻
+      promptHint: w.pos || '',         // 품사 힌트 (vocab 의 r 도 가능하나 직접적이므로 pos 만)
+      ko: w.ko,
+      correctGreek: w.g,
+      options, correctIdx, isSteal,
+    });
   }
   return qs;
 }
@@ -14085,7 +14825,9 @@ async function renderBattleGame(code, room){
   // 첫 진입 시 로컬 상태 초기화
   if(!_battleGameLocal || _battleGameLocal.code !== code){
     const seed = (room && room.meta && room.meta.seed) || 0;
-    const questions = _battleBuildQuestions(seed);
+    // v58: 모드 파라미터 전달
+    const mode = (room && room.meta && room.meta.mode) || BATTLE_MODE_DEFAULT;
+    const questions = _battleBuildQuestions(seed, mode);
     if(questions.length < BATTLE_N_Q){
       view.innerHTML = `
         <button class="btn btn-sm btn-o" onclick="_battleLeave()">← 나가기</button>
@@ -14122,8 +14864,43 @@ async function renderBattleGame(code, room){
   const players = Object.entries(room.players || {});
   // v56: 강탈 문제 여부
   const isStealQ = !!(q && q.isSteal);
+  // v58: 모드별 프롬프트 헤더·본체 렌더링 분기
+  const mode = q.mode || 'vocab';
+  const modeMeta = BATTLE_MODES[mode] || BATTLE_MODES.vocab;
+  const modeBadge = mode === 'vocab' ? '' : `<span style="margin-left:8px;font-size:10px;background:var(--clay);color:var(--ivory-w);padding:2px 7px;border-radius:8px;letter-spacing:.04em">${modeMeta.grk}</span>`;
+  // 프롬프트 패널 (모드별 다른 글자 크기·보조 설명)
+  let promptBlock;
+  if(mode === 'quote'){
+    promptBlock = `
+      <div class="grk" style="font-size:22px;color:var(--terracotta-d);font-weight:600;text-align:center;padding:14px 6px 6px;letter-spacing:.01em;line-height:1.5">${(q.prompt||'').replace(/</g,'&lt;')}</div>
+      ${q.promptKo ? `<div style="font-size:12.5px;color:var(--clay-d);text-align:center;margin-bottom:10px;font-style:italic;line-height:1.5">${q.promptKo.replace(/</g,'&lt;')}</div>` : ''}
+      <div style="font-size:12px;color:var(--clay-d);text-align:center;margin-bottom:12px">이 말을 한 사람은?</div>
+    `;
+  } else if(mode === 'verse'){
+    promptBlock = `
+      <div class="grk" style="font-size:22px;color:var(--terracotta-d);font-weight:600;text-align:center;padding:14px 6px 8px;letter-spacing:.01em;line-height:1.55">${(q.prompt||'').replace(/</g,'&lt;')}</div>
+      <div style="font-size:12px;color:var(--clay-d);text-align:center;margin-bottom:12px">뒤를 잇는 구절은?</div>
+    `;
+  } else if(mode === 'riddle'){
+    promptBlock = `
+      <div style="font-size:24px;color:var(--terracotta-d);font-weight:600;text-align:center;padding:18px 6px 6px;line-height:1.4">${(q.prompt||'').replace(/</g,'&lt;')}</div>
+      ${q.promptHint ? `<div style="font-size:11px;color:var(--clay-d);text-align:center;margin-bottom:10px;letter-spacing:.06em;text-transform:uppercase">힌트: ${q.promptHint}</div>` : ''}
+      <div style="font-size:12px;color:var(--clay-d);text-align:center;margin-bottom:12px">이 뜻의 그리스어 단어는?</div>
+    `;
+  } else {
+    // vocab (default)
+    promptBlock = `
+      <div class="grk" style="font-size:32px;color:var(--terracotta-d);font-weight:600;text-align:center;padding:14px 0;letter-spacing:.02em">${(q.prompt||'').replace(/</g,'&lt;')}</div>
+      <div style="font-size:12px;color:var(--clay-d);text-align:center;margin-bottom:12px">이 단어의 뜻은?</div>
+    `;
+  }
+  // 옵션 표시 — verse·riddle 은 그리스어, vocab·quote 은 한국어 (lang 속성으로 스크린 리더 안내)
+  const optsAreGreek = (mode === 'verse' || mode === 'riddle');
+  const optsClass = optsAreGreek ? ' class="grk"' : '';
+  const optsStyle = optsAreGreek ? 'font-size:15px;letter-spacing:.01em' : 'font-size:13.5px';
+  const optsLang  = optsAreGreek ? ' lang="grc"' : '';
   view.innerHTML = `
-    <h2 class="view-title fade-in" style="margin-top:6px"><span class="grk">Ἀγών</span>배틀 진행 중</h2>
+    <h2 class="view-title fade-in" style="margin-top:6px"><span class="grk">${modeMeta.grk}</span>${modeMeta.ko} ${modeBadge}</h2>
 
     <div class="card" id="bat-scoreboard-wrap" style="padding:10px 12px">
       ${_battleScoreboardHTML(players)}
@@ -14140,11 +14917,10 @@ async function renderBattleGame(code, room){
         <div style="font-size:11px;color:var(--clay-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em">문제 ${local.idx+1}/${BATTLE_N_Q}${isStealQ ? ' · ⚡ 강탈' : ''}</div>
         <div id="bat-qtimer" style="font-family:var(--font-display);font-size:18px;color:var(--terracotta-d);font-weight:600">${BATTLE_Q_TIMER_SEC}초</div>
       </div>
-      <div class="grk" style="font-size:32px;color:var(--terracotta-d);font-weight:600;text-align:center;padding:14px 0;letter-spacing:.02em">${q.g}</div>
-      <div style="font-size:12px;color:var(--clay-d);text-align:center;margin-bottom:12px">이 단어의 뜻은?</div>
+      ${promptBlock}
       ${q.options.map((opt, i) => `
-        <button class="btn btn-o" style="display:block;width:100%;margin:6px 0;text-align:left;font-size:13.5px" data-i="${i}">
-          ${opt.replace(/</g,'&lt;')}
+        <button class="btn btn-o"${optsClass}${optsLang} style="display:block;width:100%;margin:6px 0;text-align:left;${optsStyle}" data-i="${i}">
+          ${(opt||'').replace(/</g,'&lt;')}
         </button>`).join('')}
     </div>
 
@@ -14246,15 +15022,20 @@ async function _battleAnswer(chosenIdx){
     } catch(_){}
   }
   // v32: 답변 기록 — 결과 화면 리뷰·오답함 자동 추가에 사용
+  // v58: 모드별 q.prompt 사용 (구버전 q.g 폴백). 오답함 적립은 vocab 모드만 (다른 모드는
+  // 어휘 학습 목적이 아니므로 wrongRoom 에 넣지 않는다).
   local.answered = local.answered || [];
   local.answered.push({
-    q: q.g,
+    q: q.prompt || q.g || '',
+    mode: q.mode || 'vocab',
     correctAnswer: q.options[q.correctIdx],
     chosen: chosenIdx >= 0 ? q.options[chosenIdx] : null,
     correct, points,
     elapsedMs: Math.round(elapsedMs),
     isSteal: !!q.isSteal,
     stealAmount: stealAmountTotal,
+    src: q.src || '',                          // v58: quote/verse 모드는 출처 표시
+    correctGreek: q.correctGreek || '',        // v58: riddle 모드 — 한국어 prompt 옆에 정답 그리스어
   });
   // 시각 피드백
   view.querySelectorAll('[data-i]').forEach(b => {
@@ -14396,9 +15177,10 @@ function renderBattleResult(code, room){
     S.xp = (S.xp || 0) + xpGain;
     _battleGameLocal.xpAwarded = true;
     // v32: 틀린 문제를 오답함에 자동 적립 — 다음 어휘 세션 SRS 가중치에 반영됨
+    // v58: vocab 모드만 — 다른 모드(quote/verse/riddle)는 어휘 학습 흐름이 아니므로 wrongRoom 에 넣지 않는다
     if(S.wrongRoom && Array.isArray(myAnswered)){
       for(const a of myAnswered){
-        if(!a.correct && a.q && !S.wrongRoom[a.q]){
+        if(!a.correct && a.q && (a.mode || 'vocab') === 'vocab' && !S.wrongRoom[a.q]){
           S.wrongRoom[a.q] = {lemma: a.q, ko: a.correctAnswer, ts: Date.now(), src: 'battle'};
         }
       }
@@ -14457,24 +15239,36 @@ function renderBattleResult(code, room){
     ${myWrong.length > 0 ? `
       <div class="card">
         <div style="font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">틀린 문제 ${myWrong.length}개 복습</div>
-        ${myWrong.map(a => `
-          <div style="padding:10px 12px;border:1px solid var(--clay);border-radius:6px;background:var(--ivory-d);margin-bottom:8px">
-            <div style="font-family:var(--font-grk);font-size:22px;color:var(--terracotta-d);font-weight:600;letter-spacing:.02em" lang="grc">${(a.q || '').replace(/</g,'&lt;')}</div>
+        ${myWrong.map(a => {
+          // v58: 모드별 표시 다름
+          const aMode = a.mode || 'vocab';
+          const promptIsGreek = (aMode !== 'riddle');
+          const optsAreGreek  = (aMode === 'verse' || aMode === 'riddle');
+          const promptCls = promptIsGreek ? 'font-family:var(--font-grk);' : '';
+          const promptLang = promptIsGreek ? ' lang="grc"' : '';
+          const ansCls = optsAreGreek ? 'font-family:var(--font-grk);' : '';
+          const ansLang = optsAreGreek ? ' lang="grc"' : '';
+          // 모드 라벨 (vocab 만 표기 안 함)
+          const modeLabel = (aMode !== 'vocab' && BATTLE_MODES[aMode])
+            ? `<span style="font-size:10px;background:var(--clay);color:var(--ivory-w);padding:1px 6px;border-radius:6px;margin-left:6px">${BATTLE_MODES[aMode].grk}</span>` : '';
+          return `<div style="padding:10px 12px;border:1px solid var(--clay);border-radius:6px;background:var(--ivory-d);margin-bottom:8px">
+            <div${promptLang} style="${promptCls}font-size:${promptIsGreek?22:18}px;color:var(--terracotta-d);font-weight:600;letter-spacing:.02em">${(a.q || '').replace(/</g,'&lt;')}${modeLabel}</div>
+            ${a.src ? `<div style="font-size:10px;color:var(--clay-d);font-style:italic;margin-top:3px">— ${(a.src||'').replace(/</g,'&lt;')}</div>` : ''}
             <div style="display:flex;align-items:baseline;gap:8px;margin-top:6px">
               <span style="font-size:11px;color:var(--clay-d);font-weight:600;min-width:30px;letter-spacing:.04em">정답</span>
-              <span style="font-size:13px;color:var(--terracotta-d);font-weight:600">${(a.correctAnswer || '').replace(/</g,'&lt;')}</span>
+              <span${ansLang} style="${ansCls}font-size:13px;color:var(--terracotta-d);font-weight:600">${(a.correctAnswer || '').replace(/</g,'&lt;')}</span>
             </div>
             ${a.chosen !== null ? `
               <div style="display:flex;align-items:baseline;gap:8px;margin-top:3px">
                 <span style="font-size:11px;color:var(--clay-d);font-weight:600;min-width:30px;letter-spacing:.04em">선택</span>
-                <span style="font-size:13px;color:var(--black-glaze-l);text-decoration:line-through;opacity:.7">${(a.chosen || '').replace(/</g,'&lt;')}</span>
+                <span${ansLang} style="${ansCls}font-size:13px;color:var(--black-glaze-l);text-decoration:line-through;opacity:.7">${(a.chosen || '').replace(/</g,'&lt;')}</span>
               </div>
             ` : `
               <div style="font-size:11px;color:var(--bad);margin-top:3px;font-style:italic">⏱ 시간 초과</div>
             `}
-          </div>
-        `).join('')}
-        <div style="font-size:11px;color:var(--clay-d);font-style:italic;text-align:center;margin-top:8px;line-height:1.5">이 단어들은 오답함에 자동 적립됐습니다.<br>다음 어휘 세션에서 우선 출제됩니다.</div>
+          </div>`;
+        }).join('')}
+        ${myWrong.some(a => (a.mode||'vocab')==='vocab') ? `<div style="font-size:11px;color:var(--clay-d);font-style:italic;text-align:center;margin-top:8px;line-height:1.5">어휘 모드의 틀린 단어는 오답함에 자동 적립됐습니다.<br>다음 어휘 세션에서 우선 출제됩니다.</div>` : ''}
       </div>
     ` : (myAnswered.length > 0 ? `
       <div class="card" style="text-align:center;padding:18px">
@@ -14488,10 +15282,11 @@ function renderBattleResult(code, room){
       <button class="btn btn-o" onclick="setTab('hall')" style="flex:1">명예 탭으로</button>
     </div>
   `;
-  // 정리 — 호스트만 방 정리 (5초 후)
+  // 정리 — 호스트만 방 정리 (5초 후). v58: lobby 매치는 role==='host' 아니므로 건드리지 않음.
   if(_battleState && _battleState.role === 'host'){
+    const path = _battleState.roomPath || `battles:${code}`;
     setTimeout(async () => {
-      try { await STORAGE.delShared(`battles:${code}`); } catch(_){}
+      try { await STORAGE.delShared(path); } catch(_){}
     }, 5000);
   }
   _battleGameLocal = null;
