@@ -4609,7 +4609,7 @@ function imageURL(imgId, width){
 
 // 앱 버전 — sw.js CACHE_VERSION과 동기화 유지. 홈 화면 푸터에 표시되어
 // 사용자가 자신이 어느 버전을 사용 중인지 확인 가능 (캐시 갱신 진단용).
-const APP_VERSION = 'v55';
+const APP_VERSION = 'v56';
 window.__paideiaVersion = APP_VERSION;
 
 // ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
@@ -5635,6 +5635,292 @@ function pushLeaderboard(){
   }, 1500);
 }
 
+// ─── v56: presence ping (현재 공부 중인 인원) ───────────────────────────────
+// 사용자가 앱을 열면 5분마다 presence:<userId> 에 ts push.
+// 카운트는 listShared('presence:') 후 ts > now - PRESENCE_TTL 인 항목만.
+// 익명 사용자 (joinLeaderboard 끄거나 displayName 없음) 도 카운트되도록 분리.
+const PRESENCE_TTL_MS = 5 * 60 * 1000;     // 5분 이내 ping 한 사용자 = 활성
+const PRESENCE_PING_MS = 4 * 60 * 1000;    // 4분 간격 ping (TTL 보다 짧게)
+let _presencePingTimer = null;
+let _presenceCountCache = { ts: 0, count: 0 };
+
+async function pingPresence(){
+  if(!STORAGE || !STORAGE.supportsShared) return;
+  if(!S.userId) return;
+  try {
+    await STORAGE.setShared('presence:' + S.userId, JSON.stringify({
+      ts: Date.now(),
+      // 학습 활동 hint — 익명성 유지 위해 이름은 안 보냄
+      character: (typeof _ensureCharacter === 'function' ? _ensureCharacter() : (S.character || null)),
+    }));
+  } catch(_){}
+}
+function startPresenceHeartbeat(){
+  if(_presencePingTimer) return;
+  pingPresence();   // 즉시 한 번
+  _presencePingTimer = setInterval(pingPresence, PRESENCE_PING_MS);
+}
+
+async function fetchPresenceCount(){
+  // 캐시 — 60초 이내 재호출은 캐시값
+  if(Date.now() - _presenceCountCache.ts < 60_000) return _presenceCountCache.count;
+  if(!STORAGE || !STORAGE.supportsShared) return null;
+  try {
+    const res = await STORAGE.listShared('presence:');
+    const keys = (res && res.keys) || [];
+    // 각 키의 값(ts) 을 일괄 fetch — 너무 많으면 헤드만 가져가도 됨.
+    // listShared 의 값 fetch 비용을 줄이려면 카운트만 카운트해도 충분 (ts 만 검사).
+    // 다만 stale presence 키가 누적될 수 있어 ts 검사 필요. 100 개 제한.
+    const limited = keys.slice(0, 200);
+    const now = Date.now();
+    let alive = 0;
+    for(const k of limited){
+      try {
+        const v = await STORAGE.getShared(k);
+        if(!v || !v.value) continue;
+        const obj = JSON.parse(v.value);
+        if(obj && obj.ts && (now - obj.ts) < PRESENCE_TTL_MS) alive++;
+      } catch(_){}
+    }
+    _presenceCountCache = { ts: now, count: alive };
+    return alive;
+  } catch(e){ return null; }
+}
+
+// ─── v56: 절차적 고대 그리스 음악 (Web Audio API) ──────────────────────────
+// 학술적 솔직성: 이는 *재현 (reconstruction)* 이 아니라 *양식적 모방
+// (stylized homage)*. 고대 그리스 음악의 단편 (Seikilos Epitaph, Mesomedes 등)
+// 은 일부 알려져 있으나 본 모듈은 그것들을 직접 재생하지 않고, 도리아 모드
+// 음계 + 키타라/리라 톤 + 단순 모티프로 *분위기*를 합성. PWA 의 self-contained
+// 디자인을 위해 외부 음원 호스팅 대신 Web Audio API 로 절차적 생성.
+// Self-contained · offline-first · zero licensing risk.
+const BGM = (() => {
+  let actx = null;
+  let masterGain = null;
+  let droneOscs = [];
+  let melodyTimer = null;
+  let running = false;
+  // 도리아 모드 (E F G A B C D E) — 5세기 BC 그리스의 가장 자주 거론되는 모드.
+  // 주파수는 12-TET 평균율로 (역사적 정확성보다 청각 친숙도 우선).
+  // E4=329.63, F4=349.23, G4=392.00, A4=440.00, B4=493.88, C5=523.25, D5=587.33
+  const SCALE_HZ = [329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33, 659.25];
+  // 짧은 모티프 패턴 (음계 인덱스 + 박자) — 4개의 변주를 무작위로 섞음
+  const MOTIFS = [
+    [[0,1.0],[2,0.5],[3,0.5],[2,1.0],[0,1.0]],            // E G A G E
+    [[3,0.75],[2,0.25],[0,0.5],[2,0.5],[3,1.0]],          // A G E G A
+    [[4,0.5],[3,0.5],[2,1.0],[0,1.0]],                    // B A G E
+    [[0,0.5],[2,0.5],[3,0.5],[4,0.5],[3,1.0],[2,1.0]],    // E G A B A G
+    [[5,0.5],[4,0.5],[3,1.0],[2,0.5],[0,1.0]],            // C B A G E
+  ];
+  const BEAT_MS = 480;   // 한 박자 길이 (느린 템포)
+
+  function ensureCtx(){
+    if(actx) return actx;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return null;
+      actx = new AC();
+      masterGain = actx.createGain();
+      masterGain.gain.value = 0.045;   // 매우 낮은 볼륨 (학습 방해 안 되도록)
+      masterGain.connect(actx.destination);
+      return actx;
+    } catch(_){ return null; }
+  }
+
+  function plucked(freq, dur, when){
+    // 키타라/리라 톤 모방: 사인 + 5배음 살짝 + 빠른 attack + 긴 decay
+    const ctx = actx;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, when);
+    g.gain.linearRampToValueAtTime(0.6, when + 0.018);
+    g.gain.exponentialRampToValueAtTime(0.001, when + dur * 0.95);
+    const o1 = ctx.createOscillator();
+    o1.type = 'sine';
+    o1.frequency.value = freq;
+    o1.connect(g);
+    const o2 = ctx.createOscillator();
+    o2.type = 'triangle';
+    o2.frequency.value = freq * 2;
+    const g2 = ctx.createGain();
+    g2.gain.value = 0.12;
+    o2.connect(g2);
+    g2.connect(g);
+    g.connect(masterGain);
+    o1.start(when); o1.stop(when + dur);
+    o2.start(when); o2.stop(when + dur);
+  }
+
+  function startDrone(){
+    if(droneOscs.length) return;
+    // E + B (5도) 드론 — 매우 부드러운 sine 두 개
+    [SCALE_HZ[0] / 2, SCALE_HZ[4] / 2].forEach((freq, i) => {
+      const o = actx.createOscillator();
+      o.type = 'sine';
+      o.frequency.value = freq;
+      const g = actx.createGain();
+      g.gain.value = i === 0 ? 0.10 : 0.06;
+      o.connect(g);
+      g.connect(masterGain);
+      o.start();
+      droneOscs.push(o);
+    });
+  }
+
+  function stopDrone(){
+    droneOscs.forEach(o => { try { o.stop(); } catch(_){} });
+    droneOscs = [];
+  }
+
+  function scheduleNextMotif(){
+    if(!running) return;
+    const motif = MOTIFS[Math.floor(Math.random() * MOTIFS.length)];
+    let t = actx.currentTime + 0.05;
+    let totalBeats = 0;
+    for(const [degree, beats] of motif){
+      plucked(SCALE_HZ[degree], beats * BEAT_MS / 1000 * 0.95, t);
+      t += beats * BEAT_MS / 1000;
+      totalBeats += beats;
+    }
+    // 모티프 사이 짧은 휴지 (1-2 박자, 자연스러운 호흡)
+    const restBeats = 1 + Math.floor(Math.random() * 2);
+    const motifMs = (totalBeats + restBeats) * BEAT_MS;
+    melodyTimer = setTimeout(scheduleNextMotif, motifMs);
+  }
+
+  return {
+    start(){
+      const ctx = ensureCtx();
+      if(!ctx) return false;
+      // iOS / 모바일 브라우저는 사용자 제스처 후에야 resume 가능
+      if(ctx.state === 'suspended'){
+        try { ctx.resume(); } catch(_){}
+      }
+      if(running) return true;
+      running = true;
+      startDrone();
+      scheduleNextMotif();
+      return true;
+    },
+    stop(){
+      running = false;
+      if(melodyTimer){ clearTimeout(melodyTimer); melodyTimer = null; }
+      stopDrone();
+    },
+    isRunning(){ return running; },
+    isAvailable(){
+      return typeof window !== 'undefined'
+        && (typeof window.AudioContext === 'function' || typeof window.webkitAudioContext === 'function');
+    },
+  };
+})();
+window.BGM = BGM;
+
+function _ensureBgmPref(){
+  if(typeof S.bgmEnabled !== 'boolean') S.bgmEnabled = false;
+  return S.bgmEnabled;
+}
+function toggleBgm(){
+  _ensureBgmPref();
+  if(S.bgmEnabled){
+    BGM.stop();
+    S.bgmEnabled = false;
+  } else {
+    const ok = BGM.start();
+    if(!ok){
+      toast('이 브라우저는 음악 합성을 지원하지 않습니다');
+      return false;
+    }
+    S.bgmEnabled = true;
+  }
+  saveState();
+  return S.bgmEnabled;
+}
+window.toggleBgm = toggleBgm;
+
+// ─── v56: 건의 사항 modal ─────────────────────────────────────────────────
+// 사용자 건의를 STORAGE.setShared 의 `feedback:<ts>:<userId>` 키로 저장.
+// CIM Lab 운영자가 console 에서 STORAGE.listShared('feedback:') 로 수집 가능.
+// supportsShared 가 false 면 localStorage 큐에 보관 (다음 온라인 시도시 flush 가능).
+async function openFeedbackModal(){
+  const modalRoot = document.getElementById('modal-root') || document.body;
+  // 기존 modal 제거
+  const old = document.getElementById('feedback-modal');
+  if(old) old.remove();
+  const m = document.createElement('div');
+  m.id = 'feedback-modal';
+  m.className = 'modal show';
+  m.innerHTML = `
+    <div class="modal-bg"></div>
+    <div class="modal-body" style="max-width:480px">
+      <button class="modal-x" aria-label="닫기">×</button>
+      <h3 style="margin-top:0;font-family:var(--font-display);color:var(--terracotta-d)">건의 사항</h3>
+      <div style="font-size:12.5px;color:var(--clay-d);line-height:1.55;margin-bottom:10px">
+        앱 개선 아이디어·버그·요청을 운영자에게 전달합니다.<br>
+        익명으로 전송되며, 캐릭터·진척도 정보는 포함되지 않습니다.
+      </div>
+      <textarea id="feedback-text" rows="6" placeholder="어떤 점이 좋았거나 불편하셨나요? (최대 2000자)" maxlength="2000"
+        style="width:100%;padding:10px;border:1px solid var(--clay);border-radius:6px;font:inherit;font-size:14px;line-height:1.5;background:var(--ivory-w);box-sizing:border-box"></textarea>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:11px;color:var(--clay-d)">
+        <span id="feedback-charcount">0 / 2000</span>
+        <span>${(STORAGE && STORAGE.supportsShared) ? '✓ 실시간 전송 가능' : '⚠ 오프라인 — 다음 접속 시 전송'}</span>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+        <button class="btn btn-sm btn-o" id="feedback-cancel">취소</button>
+        <button class="btn btn-sm" id="feedback-send">전송</button>
+      </div>
+    </div>
+  `;
+  modalRoot.appendChild(m);
+  const ta = document.getElementById('feedback-text');
+  const cc = document.getElementById('feedback-charcount');
+  const sendBtn = document.getElementById('feedback-send');
+  const cancelBtn = document.getElementById('feedback-cancel');
+  const closeX = m.querySelector('.modal-x');
+  ta && ta.focus();
+  if(ta) ta.addEventListener('input', () => { if(cc) cc.textContent = ta.value.length + ' / 2000'; });
+  function close(){ m.remove(); }
+  cancelBtn && cancelBtn.addEventListener('click', close);
+  closeX && closeX.addEventListener('click', close);
+  m.querySelector('.modal-bg') && m.querySelector('.modal-bg').addEventListener('click', close);
+  sendBtn && sendBtn.addEventListener('click', async () => {
+    const txt = (ta && ta.value || '').trim();
+    if(!txt){ toast('내용을 입력해주세요'); return; }
+    if(txt.length < 4){ toast('너무 짧습니다 — 4자 이상 입력해주세요'); return; }
+    sendBtn.disabled = true;
+    sendBtn.textContent = '전송 중...';
+    const payload = {
+      text: txt,
+      ts: Date.now(),
+      userId: S.userId || 'anon',
+      appVersion: APP_VERSION,
+      ua: (navigator.userAgent || '').slice(0, 200),
+    };
+    let sent = false;
+    if(STORAGE && STORAGE.supportsShared){
+      try {
+        // 키에 ts 와 anonymized hash 를 포함 — 운영자가 시간순 정렬 가능
+        const shortId = (S.userId || 'anon').slice(0, 8);
+        const key = 'feedback:' + payload.ts + ':' + shortId;
+        await STORAGE.setShared(key, JSON.stringify(payload));
+        sent = true;
+      } catch(_){}
+    }
+    // 로컬 큐 (안전망) — supportsShared 실패 또는 false 시
+    try {
+      const q = JSON.parse(localStorage.getItem('paideia.feedbackQueue') || '[]');
+      q.push(payload);
+      if(q.length > 50) q.splice(0, q.length - 50);  // 큐 한도
+      localStorage.setItem('paideia.feedbackQueue', JSON.stringify(q));
+    } catch(_){}
+    sendBtn.disabled = false;
+    sendBtn.textContent = '전송';
+    if(sent){ toast('건의가 전달되었습니다 — 감사합니다'); }
+    else { toast('오프라인 — 로컬에 저장됨, 다음 접속 시 시도'); }
+    close();
+  });
+}
+window.openFeedbackModal = openFeedbackModal;
+
 // ─── 토스트 / 모달 ───────────────────────────────────────────────────────────
 const toastEl = document.getElementById('toast');
 let toastTimer = null;
@@ -5806,15 +6092,28 @@ function renderHome(){
   const lvl = LEVELS[levelOf(S.xp)];
   const profileName = getCurrentProfileName();
   const profileCount = _profileMetaCache ? _profileMetaCache.profiles.length : 1;
+  _ensureBgmPref();
+  const bgmOn = !!S.bgmEnabled;
   view.innerHTML = `
     <h2 class="view-title fade-in"><span class="grk">Ἑστία</span>화롯가</h2>
     <div class="view-sub">오늘도 잘 오셨습니다 — 현재 <b>${lvl.grk}</b> (${lvl.ko})</div>
 
-    <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;margin:-4px 0 8px">
+    <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;margin:-4px 0 8px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-o" id="home-bgm-toggle" style="font-size:11px;padding:4px 10px;display:inline-flex;align-items:center;gap:6px;line-height:1" aria-label="배경 음악 켜기/끄기" title="고대 그리스 양식 BGM (도리아 모드, Web Audio 합성)">
+        <span style="font-size:13px">${bgmOn ? '🎵' : '🔇'}</span>
+        <span>${bgmOn ? 'BGM 끄기' : 'BGM 켜기'}</span>
+      </button>
       <button class="btn btn-sm btn-o" onclick="renderProfiles()" style="font-size:11px;padding:4px 10px 4px 4px;display:inline-flex;align-items:center;gap:8px;line-height:1">
         ${(typeof _charMedallion==='function')? _charMedallion(_ensureCharacter(), 32) : '<span style="font-size:14px">👤</span>'}
         <span>${(profileName||'').replace(/</g,'&lt;')}${profileCount>1?` · ${profileCount}명`:''} →</span>
       </button>
+    </div>
+
+    <div id="home-presence-card" class="card" style="background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);border-left:3px solid var(--terracotta);display:flex;align-items:center;gap:10px;padding:10px 14px;margin-bottom:10px">
+      <div style="font-size:20px;line-height:1">📚</div>
+      <div style="flex:1;font-size:13px;color:var(--clay-d);line-height:1.45">
+        <span id="home-presence-text">현재 학습자 수를 확인하는 중...</span>
+      </div>
     </div>
 
     <div class="quote-card fade-in">
@@ -5865,6 +6164,7 @@ function renderHome(){
     <div style="text-align:center;font-size:10px;color:var(--clay-d);margin-top:18px;opacity:.55;letter-spacing:.03em">
       <span class="grk" style="font-style:italic">Ἑλληνικὴ Παιδεία</span> · ${APP_VERSION}
       <a href="#" id="diag-link" style="margin-left:10px;color:var(--clay-d);text-decoration:underline;opacity:.85" aria-label="앱 진단 및 문제 해결">진단</a>
+      <a href="#" id="feedback-link" style="margin-left:10px;color:var(--clay-d);text-decoration:underline;opacity:.85" aria-label="건의 사항 보내기">건의</a>
     </div>
   `;
   view.querySelectorAll('[data-go]').forEach(el=>{
@@ -5882,6 +6182,46 @@ function renderHome(){
       if(typeof window._appDiagnose === 'function') window._appDiagnose();
     });
   }
+  // v56: 건의 사항 링크
+  const feedbackLink = view.querySelector('#feedback-link');
+  if(feedbackLink){
+    feedbackLink.addEventListener('click', e=>{
+      e.preventDefault();
+      if(typeof openFeedbackModal === 'function') openFeedbackModal();
+    });
+  }
+  // v56: BGM 토글 버튼
+  const bgmBtn = view.querySelector('#home-bgm-toggle');
+  if(bgmBtn){
+    bgmBtn.addEventListener('click', () => {
+      const nowOn = toggleBgm();
+      // 버튼 즉시 갱신 (전체 재렌더 없이)
+      bgmBtn.innerHTML = `<span style="font-size:13px">${nowOn ? '🎵' : '🔇'}</span><span>${nowOn ? 'BGM 끄기' : 'BGM 켜기'}</span>`;
+      if(nowOn) toast('🎵 도리아 모드 BGM — 학습 동반 음악');
+    });
+  }
+  // v56: presence 표시 — 비동기로 채움
+  (async () => {
+    const slot = view.querySelector('#home-presence-text');
+    if(!slot) return;
+    if(!STORAGE || !STORAGE.supportsShared){
+      slot.innerHTML = '<span style="opacity:.7">동시 학습자 표시는 온라인 연결이 필요합니다</span>';
+      return;
+    }
+    const count = await fetchPresenceCount();
+    if(count == null){
+      slot.innerHTML = '<span style="opacity:.7">학습자 수 확인 실패</span>';
+      return;
+    }
+    if(count === 0){
+      slot.innerHTML = '현재 다른 학습자가 없습니다 — 첫 번째로 공부를 시작해 보세요';
+    } else if(count === 1){
+      slot.innerHTML = '<b>당신</b>이 현재 공부 중입니다';
+    } else {
+      const others = Math.max(0, count - 1);
+      slot.innerHTML = `현재 <b style="color:var(--terracotta-d)">${count}명</b>이 공부 중입니다 ${others>0?`<span style="font-size:11px;color:var(--clay-d)">(당신 포함 — 동료 ${others}명)</span>`:''}`;
+    }
+  })();
   renderQuickReview();
 }
 function renderQuickReview(){
@@ -11353,6 +11693,10 @@ async function init(){
     stage('연속 출석 갱신 중…');
     updateStreak();
     saveState();
+    // v56: presence heartbeat 시작 (현재 N명 공부 중 카운트에 기여)
+    if(typeof startPresenceHeartbeat === 'function') startPresenceHeartbeat();
+    // v56: 사용자가 이전 세션에서 BGM 켜둔 경우, 첫 클릭 시 자동 재개되도록 플래그만 유지.
+    // 브라우저 정책상 자동 재생은 사용자 제스처 필요 — 홈 화면의 BGM 버튼 표시가 자동 동기화됨.
     stage('배너 그리는 중…');
     refreshBanner();
     stage('홈 화면 렌더 중…');
@@ -13354,9 +13698,18 @@ window._battleLeave = _battleLeave;
 const BATTLE_N_Q             = 10;     // 문제 수
 const BATTLE_Q_TIMER_SEC     = 12;     // 문제당 12초
 const BATTLE_GAME_TTL_MS     = 5*60*1000;  // 매치 5분 한도
+// v56 — 강탈(steal) 메커니즘: 정답 시 다른 플레이어 점수를 STEAL_AMOUNT 만큼
+// 빼앗아옴. 매 STEAL_INTERVAL 번째 문제 (1-indexed: Q3, Q6, Q9). 모든
+// 플레이어가 동일 시드로 동일 강탈 문제를 봄. race 회피: 강탈자가 자기
+// player 객체의 stolen[] 에만 기록 — 다른 player 의 score 는 직접 쓰지 않고,
+// 보드 렌더 시 effective_score = own.score − sum(other.stolen.filter(victim==self).points) 계산.
+const BATTLE_STEAL_INTERVAL  = 3;      // 매 N번째 문제가 강탈
+const BATTLE_STEAL_AMOUNT    = 8;      // 강탈로 가져오는 점수
+const BATTLE_INTRO_MS        = 5200;   // 인트로 컷 자동 진행 시간
 let _battleQTimer = null;
 let _battleGameLocal = null;
-// { code, idx, score, answeredThisQ, startedAt, questions }
+let _battleIntroShown = Object.create(null);   // {code: true} — 인트로 1회만 표시
+// { code, idx, score, answeredThisQ, startedAt, questions, stolen: [{victim,points,qIdx}] }
 
 // LCG seeded random — 호스트 시드로 모두 동일 문제 생성
 function _battleSeededRng(seed){
@@ -13387,7 +13740,11 @@ function _battleBuildQuestions(seed){
     const correctIdx = Math.floor(rng() * 4);
     const options = [...distractors];
     options.splice(correctIdx, 0, w.ko);
-    qs.push({ g: w.g, ko: w.ko, options, correctIdx });
+    // v56: 매 BATTLE_STEAL_INTERVAL 번째 문제(1-indexed)를 강탈 문제로 마킹.
+    // 모든 플레이어가 동일 시드로 같은 인덱스에서 강탈 문제를 봄.
+    const qNum = qs.length + 1;
+    const isSteal = (qNum % BATTLE_STEAL_INTERVAL === 0);
+    qs.push({ g: w.g, ko: w.ko, options, correctIdx, isSteal });
   }
   return qs;
 }
@@ -13396,8 +13753,210 @@ function _battleStopQTimer(){
   if(_battleQTimer){ clearInterval(_battleQTimer); _battleQTimer = null; }
 }
 
+// v56: 강탈을 반영한 effective score 계산.
+// 각 플레이어의 own.score 는 quiz 정답 점수만 (자기 자신만 write).
+// stolen: [{victim:uid, points:N, qIdx:n}] — 강탈자가 자기 객체에 기록.
+// effective(P) = P.score + sum(P.stolen.points) − sum(others.stolen.filter(v==P).points)
+// 음수 방지: Math.max(0, ...). 동점·강탈 충돌은 마지막 write-wins.
+function _battleEffectiveScores(playersArr){
+  // playersArr: [[uid, player], ...]
+  const eff = Object.create(null);
+  for(const [uid, p] of playersArr) eff[uid] = (p.score || 0);
+  // 본인이 훔쳐온 점수 합산 + 본인이 잃은 점수 차감
+  for(const [uid, p] of playersArr){
+    const stolen = Array.isArray(p.stolen) ? p.stolen : [];
+    for(const s of stolen){
+      if(!s || typeof s !== 'object') continue;
+      const pts = Math.max(0, s.points|0);
+      if(pts <= 0) continue;
+      eff[uid] = (eff[uid] || 0) + pts;
+      if(s.victim && (s.victim in eff)){
+        eff[s.victim] = (eff[s.victim] || 0) - pts;
+      }
+    }
+  }
+  // 음수 클램프
+  for(const k in eff) if(eff[k] < 0) eff[k] = 0;
+  return eff;
+}
+
+// v56: 인트로 컷 — 적/나 캐릭터 + 명언 말풍선 + VS
+// 2명: 상하단 1:1. 3+명: 상단 행에 상대들 + 하단 나.
+function _renderBattleIntro(code, room, onContinue){
+  const myId = S.userId;
+  const allPlayers = Object.entries(room.players || {});
+  const me = allPlayers.find(([uid]) => uid === myId);
+  const opponents = allPlayers.filter(([uid]) => uid !== myId);
+  if(!me){ onContinue(); return; }
+
+  const CHQ = (typeof window !== 'undefined' && window.CHARACTER_QUOTES) || {};
+  const CHI = (typeof CHARACTERS_BY_ID !== 'undefined') ? CHARACTERS_BY_ID : {};
+
+  function charPanel([uid, p], opts){
+    opts = opts || {};
+    const charId = (p.character && CHI[p.character]) ? p.character : 'athena';
+    const ch = CHI[charId];
+    const quote = CHQ[charId] || { grk: '...', ko: '', src: '' };
+    const photoSize = opts.size || 150;
+    const useMine = !!opts.mine;
+    // 사진 + 메달리온 하이브리드 (큰 사이즈)
+    const med = (typeof _charPhotoMedallion === 'function')
+      ? _charPhotoMedallion(charId, photoSize)
+      : ((typeof _charMedallion === 'function') ? _charMedallion(charId, photoSize) : '');
+    const nameEsc = (p.name || '익명').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const koEsc = (ch ? ch.ko : '').replace(/</g,'&lt;');
+    const bubbleSide = useMine ? 'bubble-bottom' : 'bubble-top';
+    const ribbon = useMine
+      ? `<div style="margin-top:6px;font-size:11px;color:var(--terracotta-d);font-weight:600;letter-spacing:.08em">▲ 나</div>`
+      : `<div style="margin-bottom:6px;font-size:11px;color:var(--black-glaze);font-weight:600;letter-spacing:.08em">상대 ▼</div>`;
+    const grkEsc = (quote.grk || '').replace(/</g,'&lt;');
+    const koQuoteEsc = (quote.ko || '').replace(/</g,'&lt;');
+    const srcEsc = (quote.src || '').replace(/</g,'&lt;');
+    return `
+      <div class="intro-side ${useMine?'intro-mine':'intro-foe'}">
+        ${useMine ? '' : ribbon}
+        <div class="intro-charwrap">
+          <div class="intro-medallion">${med}</div>
+          <div class="intro-bubble ${bubbleSide}">
+            <div class="grk intro-grk">${grkEsc}</div>
+            ${koQuoteEsc ? `<div class="intro-ko">${koQuoteEsc}</div>` : ''}
+            ${srcEsc ? `<div class="intro-src">— ${srcEsc}</div>` : ''}
+          </div>
+        </div>
+        <div class="intro-namerow">
+          <div class="intro-name">${nameEsc}</div>
+          <div class="intro-charname">${koEsc}${ch && ch.ep ? ` · ${ch.ep}` : ''}</div>
+        </div>
+        ${useMine ? ribbon : ''}
+      </div>
+    `;
+  }
+
+  // 다중 상대 처리 — 5인 이상은 첫 4명만 (시각 공간 한계)
+  const foesToShow = opponents.slice(0, 4);
+  const foesHtml = foesToShow.length === 1
+    ? charPanel(foesToShow[0], { size: 160, mine: false })
+    : `<div class="intro-foes-row" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">${
+        foesToShow.map(f => charPanel(f, { size: 110, mine: false })).join('')
+      }</div>`;
+  const meHtml = charPanel(me, { size: 160, mine: true });
+
+  view.innerHTML = `
+    <style>
+      .intro-stage{padding:8px 0;text-align:center;animation:introFade .45s ease-out}
+      .intro-side{display:flex;flex-direction:column;align-items:center;gap:4px;margin:6px 0}
+      .intro-charwrap{position:relative;display:inline-flex;flex-direction:column;align-items:center}
+      .intro-medallion{position:relative;z-index:1;filter:drop-shadow(0 4px 12px rgba(176,80,48,.35))}
+      .intro-bubble{
+        position:relative;max-width:340px;background:var(--ivory-w);border:1.5px solid var(--terracotta);
+        border-radius:14px;padding:10px 14px;margin:8px 8px 0 8px;text-align:center;
+        box-shadow:0 3px 10px rgba(60,40,30,.12);
+      }
+      .intro-bubble.bubble-top{margin-bottom:14px;margin-top:0}
+      .intro-bubble.bubble-bottom{margin-top:14px}
+      .intro-bubble::before{
+        content:'';position:absolute;left:50%;transform:translateX(-50%);
+        width:0;height:0;border-style:solid;
+      }
+      .intro-bubble.bubble-top::before{
+        bottom:-10px;border-width:10px 8px 0 8px;border-color:var(--terracotta) transparent transparent transparent;
+      }
+      .intro-bubble.bubble-top::after{
+        content:'';position:absolute;left:50%;transform:translateX(-50%);bottom:-7px;
+        width:0;height:0;border-style:solid;border-width:8px 6px 0 6px;
+        border-color:var(--ivory-w) transparent transparent transparent;
+      }
+      .intro-bubble.bubble-bottom::before{
+        top:-10px;border-width:0 8px 10px 8px;border-color:transparent transparent var(--terracotta) transparent;
+      }
+      .intro-bubble.bubble-bottom::after{
+        content:'';position:absolute;left:50%;transform:translateX(-50%);top:-7px;
+        width:0;height:0;border-style:solid;border-width:0 6px 8px 6px;
+        border-color:transparent transparent var(--ivory-w) transparent;
+      }
+      .intro-grk{font-size:17px;color:var(--terracotta-d);line-height:1.45;font-weight:600}
+      .intro-ko{font-size:12px;color:var(--clay-d);margin-top:4px;line-height:1.4}
+      .intro-src{font-size:10px;color:var(--clay-d);font-style:italic;margin-top:4px;letter-spacing:.04em}
+      .intro-namerow{margin-top:4px;text-align:center}
+      .intro-name{font-family:var(--font-display);font-size:16px;font-weight:600;color:var(--black-glaze)}
+      .intro-charname{font-size:11px;color:var(--clay-d);margin-top:2px;font-style:italic}
+      .intro-vs{
+        position:relative;margin:10px auto;width:100%;text-align:center;
+        animation:vsZoom .65s cubic-bezier(.34,1.6,.5,1);
+      }
+      .intro-vs-text{
+        display:inline-block;font-family:var(--font-display);font-size:54px;font-weight:700;
+        color:var(--terracotta-d);letter-spacing:.05em;
+        background:linear-gradient(180deg, var(--ivory-w) 0%, var(--ivory-d) 100%);
+        border:2.5px solid var(--terracotta);border-radius:50%;width:88px;height:88px;
+        line-height:80px;box-shadow:0 6px 18px rgba(176,80,48,.4);
+      }
+      .intro-vs-line{position:absolute;top:50%;left:0;right:0;height:2px;
+        background:linear-gradient(90deg, transparent 0%, var(--terracotta) 30%, var(--terracotta) 70%, transparent 100%);
+        z-index:-1}
+      .intro-vs-grk{font-size:11px;color:var(--clay-d);letter-spacing:.18em;text-transform:uppercase;margin-top:6px;font-style:italic}
+      .intro-room{text-align:center;font-size:10px;color:var(--clay-d);letter-spacing:.1em;text-transform:uppercase;margin-top:8px}
+      .intro-skip{text-align:center;margin-top:16px}
+      @keyframes introFade { from{opacity:0;transform:scale(.96)} to{opacity:1;transform:scale(1)} }
+      @keyframes vsZoom { 0%{opacity:0;transform:scale(.3) rotate(-20deg)} 60%{transform:scale(1.15) rotate(4deg)} 100%{opacity:1;transform:scale(1) rotate(0)} }
+    </style>
+    <div class="intro-stage">
+      <h2 class="view-title" style="margin-top:6px;text-align:center"><span class="grk">Ἀγών</span>대결</h2>
+      <div class="view-sub" style="text-align:center">방 ${code}</div>
+
+      ${foesHtml}
+
+      <div class="intro-vs">
+        <div class="intro-vs-line"></div>
+        <span class="intro-vs-text">VS</span>
+        <div class="intro-vs-grk">μῶμος ἄγαν · 결전의 시간</div>
+      </div>
+
+      ${meHtml}
+
+      <div class="intro-room">곧 시작합니다…</div>
+      <div class="intro-skip">
+        <button class="btn btn-sm btn-o" id="intro-skip-btn" type="button">바로 시작 →</button>
+        <button class="btn btn-sm btn-o" id="intro-speak-btn" type="button" style="margin-left:6px">🔊 명언 듣기</button>
+      </div>
+    </div>
+  `;
+
+  // 자동 진행 + Skip 버튼
+  let advanced = false;
+  function advance(){
+    if(advanced) return;
+    advanced = true;
+    clearTimeout(autoTm);
+    onContinue();
+  }
+  const skipBtn = document.getElementById('intro-skip-btn');
+  if(skipBtn) skipBtn.addEventListener('click', advance);
+  const speakBtn = document.getElementById('intro-speak-btn');
+  if(speakBtn){
+    speakBtn.addEventListener('click', () => {
+      // 내 캐릭터의 명언을 발음 — 학습 보조용
+      const myChar = (me[1].character && CHI[me[1].character]) ? me[1].character : 'athena';
+      const q = CHQ[myChar];
+      if(q && q.grk && typeof speakGreek === 'function'){
+        try { speakGreek(q.grk); } catch(_){}
+      }
+    });
+  }
+  const autoTm = setTimeout(advance, BATTLE_INTRO_MS);
+}
+
 // 게임 진행 — renderBattleLobby가 status==='playing'일 때 호출
 async function renderBattleGame(code, room){
+  // v56: 첫 진입이면 인트로 컷 표시 후 본 게임으로
+  if(!_battleIntroShown[code]){
+    _battleIntroShown[code] = true;
+    _renderBattleIntro(code, room, () => {
+      // 인트로 종료 후 본 게임 진입 (재호출, 이제 _battleIntroShown true)
+      renderBattleGame(code, room);
+    });
+    return;
+  }
   // 첫 진입 시 로컬 상태 초기화
   if(!_battleGameLocal || _battleGameLocal.code !== code){
     const seed = (room && room.meta && room.meta.seed) || 0;
@@ -13413,6 +13972,7 @@ async function renderBattleGame(code, room){
       code, idx: 0, score: 0, correctCount: 0, answeredThisQ: false,
       startedAt: Date.now(), qStartedAt: 0,
       questions, answered: [], finished: false,
+      stolen: [],   // v56: 내가 강탈한 기록 [{victim, points, qIdx}]
     };
   }
   const local = _battleGameLocal;
@@ -13435,6 +13995,8 @@ async function renderBattleGame(code, room){
 
   const q = local.questions[local.idx];
   const players = Object.entries(room.players || {});
+  // v56: 강탈 문제 여부
+  const isStealQ = !!(q && q.isSteal);
   view.innerHTML = `
     <h2 class="view-title fade-in" style="margin-top:6px"><span class="grk">Ἀγών</span>배틀 진행 중</h2>
 
@@ -13442,9 +14004,15 @@ async function renderBattleGame(code, room){
       ${_battleScoreboardHTML(players)}
     </div>
 
-    <div class="card">
+    <div class="card" style="${isStealQ ? 'border:2px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, #fff3e8 100%)' : ''}">
+      ${isStealQ ? `
+        <div style="text-align:center;margin:-4px -4px 6px;padding:6px 10px;background:var(--terracotta);color:var(--ivory-w);border-radius:6px;font-family:var(--font-display);font-size:12px;font-weight:600;letter-spacing:.08em;animation:stealPulse 1.4s ease-in-out infinite">
+          ⚡ 점수 강탈 문제 — 정답 시 모든 상대로부터 ${BATTLE_STEAL_AMOUNT}점씩 빼앗습니다 ⚡
+        </div>
+        <style>@keyframes stealPulse{0%,100%{box-shadow:0 0 0 0 rgba(176,80,48,.5)}50%{box-shadow:0 0 0 4px rgba(176,80,48,.1)}}</style>
+      ` : ''}
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
-        <div style="font-size:11px;color:var(--clay-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em">문제 ${local.idx+1}/${BATTLE_N_Q}</div>
+        <div style="font-size:11px;color:var(--clay-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em">문제 ${local.idx+1}/${BATTLE_N_Q}${isStealQ ? ' · ⚡ 강탈' : ''}</div>
         <div id="bat-qtimer" style="font-family:var(--font-display);font-size:18px;color:var(--terracotta-d);font-weight:600">${BATTLE_Q_TIMER_SEC}초</div>
       </div>
       <div class="grk" style="font-size:32px;color:var(--terracotta-d);font-weight:600;text-align:center;padding:14px 0;letter-spacing:.02em">${q.g}</div>
@@ -13466,8 +14034,10 @@ async function renderBattleGame(code, room){
 }
 
 function _battleScoreboardHTML(players){
-  // players: [[uid, {name, character, score, currentQ, ready, ...}], ...]
+  // players: [[uid, {name, character, score, currentQ, ready, stolen, ...}], ...]
   const myId = S.userId;
+  // v56: effective scores (강탈 반영)
+  const eff = _battleEffectiveScores(players);
   return `<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(76px, 1fr));gap:6px">
     ${players.map(([uid, p]) => {
       const mine = uid === myId;
@@ -13476,10 +14046,20 @@ function _battleScoreboardHTML(players){
       const charSvg = (charId && typeof _charMedallion === 'function')
         ? `<div style="margin:0 auto 3px">${_charMedallion(charId, 28)}</div>`
         : '';
+      // v56: 강탈 통계 — 본인이 빼앗은 횟수, 본인이 잃은 점수
+      const stolenByMe = Array.isArray(p.stolen) ? p.stolen.reduce((s,x) => s + (x && x.points|0), 0) : 0;
+      let lostToOthers = 0;
+      for(const [oUid, oP] of players){
+        if(oUid === uid) continue;
+        const arr = Array.isArray(oP.stolen) ? oP.stolen : [];
+        for(const s of arr){ if(s && s.victim === uid) lostToOthers += (s.points|0); }
+      }
+      const effScore = eff[uid] || 0;
       return `<div style="text-align:center;padding:6px;background:${mine?'var(--terracotta)':'var(--black-glaze)'};color:var(--ivory-w);border-radius:8px">
         ${charSvg}
         <div style="font-size:10px;opacity:.85;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(p.name||'').slice(0,12)}${mine?' (나)':''}</div>
-        <div style="font-family:var(--font-display);font-size:20px;font-weight:600;margin-top:2px">${p.score||0}</div>
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:600;margin-top:2px">${effScore}</div>
+        ${(stolenByMe>0 || lostToOthers>0) ? `<div style="font-size:9px;opacity:.85;margin-top:1px;line-height:1.2">${stolenByMe>0?`<span title="강탈한 점수">⚡+${stolenByMe}</span>`:''}${stolenByMe>0 && lostToOthers>0 ? ' ':''}${lostToOthers>0?`<span title="강탈당한 점수">−${lostToOthers}</span>`:''}</div>` : ''}
         <div style="font-size:10px;opacity:.85;margin-top:2px">${p.currentQ||0}/${BATTLE_N_Q}${p.finished?' ✓':''}</div>
       </div>`;
     }).join('')}
@@ -13521,6 +14101,25 @@ async function _battleAnswer(chosenIdx){
     points = 10 + Math.ceil(remainSec);
     local.score += points;
   }
+  // v56: 강탈 문제 정답 처리 — 다른 모든 플레이어로부터 BATTLE_STEAL_AMOUNT 씩 가져옴.
+  // 자기 stolen[] 에만 기록. 다른 player 의 객체는 직접 쓰지 않음 (race 회피).
+  // 보드 렌더 시 effective score 계산이 차감을 반영함.
+  let stealVictims = [];
+  let stealAmountTotal = 0;
+  if(correct && q.isSteal){
+    try {
+      const fresh = await _battleFetchRoom(local.code);
+      if(fresh && fresh.players){
+        const others = Object.keys(fresh.players).filter(uid => uid !== S.userId);
+        local.stolen = Array.isArray(local.stolen) ? local.stolen : [];
+        for(const vUid of others){
+          local.stolen.push({ victim: vUid, points: BATTLE_STEAL_AMOUNT, qIdx: local.idx });
+          stealVictims.push((fresh.players[vUid] && fresh.players[vUid].name) || '익명');
+          stealAmountTotal += BATTLE_STEAL_AMOUNT;
+        }
+      }
+    } catch(_){}
+  }
   // v32: 답변 기록 — 결과 화면 리뷰·오답함 자동 추가에 사용
   local.answered = local.answered || [];
   local.answered.push({
@@ -13529,6 +14128,8 @@ async function _battleAnswer(chosenIdx){
     chosen: chosenIdx >= 0 ? q.options[chosenIdx] : null,
     correct, points,
     elapsedMs: Math.round(elapsedMs),
+    isSteal: !!q.isSteal,
+    stealAmount: stealAmountTotal,
   });
   // 시각 피드백
   view.querySelectorAll('[data-i]').forEach(b => {
@@ -13542,13 +14143,19 @@ async function _battleAnswer(chosenIdx){
       b.style.opacity = '0.45';
     }
   });
-  // 점수 표시 (정답 시 +N 잠깐 강조)
+  // 점수 표시 (정답 시 +N 잠깐 강조) + 강탈 토스트
   if(correct){
     const timerEl = document.getElementById('bat-qtimer');
     if(timerEl){
       timerEl.textContent = '+' + points;
       timerEl.style.color = 'var(--terracotta-d)';
     }
+    if(q.isSteal && stealAmountTotal > 0 && typeof toast === 'function'){
+      const victimList = stealVictims.length <= 2 ? stealVictims.join(', ') : (stealVictims.slice(0,2).join(', ') + ` 외 ${stealVictims.length-2}명`);
+      toast(`⚡ +${stealAmountTotal} 강탈! · ${victimList}으로부터`);
+    }
+  } else if(q.isSteal && typeof toast === 'function'){
+    toast('⚡ 강탈 실패 — 점수 변동 없음');
   }
   local.idx++;
   // 자기 진척 push (다음 polling에 다른 사람도 봄)
@@ -13569,12 +14176,14 @@ async function _battleSubmitProgress(code, local, finished){
   // 자기 player 객체만 PUT (path-level) — race condition 회피
   const payload = {
     name: S.displayName || '익명',
+    character: (typeof _ensureCharacter==='function' ? _ensureCharacter() : (S.character || 'athena')),  // v52: 인트로 컷에서 사용
     joinedAt: Date.now(),
     score: local.score,
     correctCount: local.correctCount || 0,   // v32: 점수와 별도로 정답 수 동기화
     currentQ: local.idx,
     ready: true,
     finished: !!finished,
+    stolen: Array.isArray(local.stolen) ? local.stolen.slice(0, 50) : [],  // v56: 강탈 기록 (안전 한도 50)
   };
   try {
     await STORAGE.setShared(`battles:${code}:players:${S.userId}`, JSON.stringify(payload));
@@ -13622,14 +14231,32 @@ window._battleForfeit = _battleForfeit;
 
 function renderBattleResult(code, room){
   _battleStopQTimer();
-  const players = Object.entries(room.players || {}).map(([uid, p]) => ({
-    uid, name: p.name || '익명',
-    character: p.character || null,    // v52: 캐릭터
-    score: p.score || 0,
-    // v32: correctCount는 별도 필드. 하위 호환 — 구버전 데이터(score=정답수)는 score 폴백.
-    correctCount: typeof p.correctCount === 'number' ? p.correctCount : (p.score || 0),
-    finished: !!p.finished,
-  }));
+  const rawEntries = Object.entries(room.players || {});
+  // v56: effective score 계산
+  const eff = _battleEffectiveScores(rawEntries);
+  const players = rawEntries.map(([uid, p]) => {
+    const baseScore = p.score || 0;
+    const effScore = (eff[uid] != null) ? eff[uid] : baseScore;
+    // v56: 본인이 강탈한 / 잃은 점수 계산 (브레이크다운 표시용)
+    let stolenByMe = 0;
+    if(Array.isArray(p.stolen)) for(const s of p.stolen) stolenByMe += (s && s.points|0);
+    let lostToOthers = 0;
+    for(const [oUid, oP] of rawEntries){
+      if(oUid === uid) continue;
+      const arr = Array.isArray(oP.stolen) ? oP.stolen : [];
+      for(const s of arr){ if(s && s.victim === uid) lostToOthers += (s.points|0); }
+    }
+    return {
+      uid, name: p.name || '익명',
+      character: p.character || null,    // v52: 캐릭터
+      score: effScore,                   // v56: effective (강탈 반영) — 정렬과 표시에 사용
+      baseScore,                         // v56: quiz 정답 점수 (참조용)
+      stolenByMe, lostToOthers,          // v56: 강탈 브레이크다운
+      // v32: correctCount는 별도 필드. 하위 호환 — 구버전 데이터(score=정답수)는 score 폴백.
+      correctCount: typeof p.correctCount === 'number' ? p.correctCount : (p.score || 0),
+      finished: !!p.finished,
+    };
+  });
   players.sort((a, b) => b.score - a.score);
   const me = players.find(p => p.uid === S.userId);
   const myRank = me ? (players.findIndex(p => p.uid === S.userId) + 1) : 0;
@@ -13671,6 +14298,11 @@ function renderBattleResult(code, room){
       <div style="font-size:54px;line-height:1">${rankIco}</div>
       <div style="font-family:var(--font-display);font-size:26px;color:${rankColor};font-weight:600;margin-top:4px">${myRank}위</div>
       <div style="font-size:13px;color:var(--clay-d);margin-top:8px">정답 <b style="color:var(--black-glaze)">${me ? me.correctCount : 0}/${BATTLE_N_Q}</b> · 점수 <b style="color:var(--terracotta-d)">${me ? me.score : 0}</b></div>
+      ${me && (me.stolenByMe > 0 || me.lostToOthers > 0) ? `
+        <div style="font-size:11px;color:var(--clay-d);margin-top:4px">
+          기본 ${me.baseScore}${me.stolenByMe>0?` · ⚡ 강탈 +${me.stolenByMe}`:''}${me.lostToOthers>0?` · 빼앗김 −${me.lostToOthers}`:''}
+        </div>
+      ` : ''}
       <div style="font-size:12px;color:var(--clay-d);margin-top:8px">XP +${xpGain} 적립</div>
     </div>
 
@@ -13689,7 +14321,7 @@ function renderBattleResult(code, room){
             <div style="flex-shrink:0">${charSvg}</div>
             <div style="flex:1;min-width:0">
               <div style="font-family:var(--font-display);font-size:15px;color:var(--black-glaze);font-weight:600">${p.name.replace(/</g,'&lt;').slice(0,20)}${p.uid===S.userId?' (나)':''}</div>
-              <div style="font-size:11px;color:var(--clay-d);margin-top:1px">${charLabel}${charLabel?' · ':''}정답 ${p.correctCount}/${BATTLE_N_Q}${!p.finished ? ' · <span style="color:var(--bad)">미완료</span>' : ''}</div>
+              <div style="font-size:11px;color:var(--clay-d);margin-top:1px">${charLabel}${charLabel?' · ':''}정답 ${p.correctCount}/${BATTLE_N_Q}${!p.finished ? ' · <span style="color:var(--bad)">미완료</span>' : ''}${(p.stolenByMe>0||p.lostToOthers>0)?` · <span style="color:var(--terracotta-d)">${p.stolenByMe>0?`⚡+${p.stolenByMe}`:''}${p.stolenByMe>0 && p.lostToOthers>0?' ':''}${p.lostToOthers>0?`−${p.lostToOthers}`:''}</span>`:''}</div>
             </div>
           </div>
           <div style="font-family:var(--font-display);font-size:22px;color:var(--terracotta-d);font-weight:600;flex-shrink:0">${p.score}</div>

@@ -1,27 +1,29 @@
 # Ἑλληνικὴ Παιδεία — CIM Lab 인수인계
 
-본 문서는 CIM Lab에서 운영하는 고전 그리스어 학습 Progressive Web App (PWA) 의 기술적 인수인계를 위한 자료다. 신규 합류 구성원이 별도 컨텍스트 없이도 코드베이스를 이해하고 유지·확장할 수 있도록 작성했다. 최종 갱신 **v55 (2026년 5월)**.
+본 문서는 CIM Lab에서 운영하는 고전 그리스어 학습 Progressive Web App (PWA) 의 기술적 인수인계를 위한 자료다. 신규 합류 구성원이 별도 컨텍스트 없이도 코드베이스를 이해하고 유지·확장할 수 있도록 작성했다. 최종 갱신 **v56 (2026년 5월)**.
 
-> **다음 작업자에게**: §7 라운드별 changelog 의 *맨 마지막 항목 (v55)* 이 현재 상태다. 그 위 라운드들은 어떻게 여기까지 왔는지의 기록. 새 작업을 시작하기 전에 §7 의 가장 최근 항목과 §0 의 현재 스냅샷을 먼저 읽기.
+> **다음 작업자에게**: §7 라운드별 changelog 의 *맨 마지막 항목 (v56)* 이 현재 상태다. 그 위 라운드들은 어떻게 여기까지 왔는지의 기록. 새 작업을 시작하기 전에 §7 의 가장 최근 항목과 §0 의 현재 스냅샷을 먼저 읽기.
 
-## 0. 현재 상태 스냅샷 (v55, 2026-05)
+## 0. 현재 상태 스냅샷 (v56, 2026-05)
 
-**배포 산출물**: `index.html` (~895 KB, IIFE 약 410K chars, 14.6K lines) · `sw.js` · `data-works.js` (3 MB, 45 작품 545 섹션) · `data-morph.js` (4 MB, AGDT v2.1 37K 어형 11.8K lemma) · `data-dialogues.js` (45 KB, 10 콩트 시나리오) · `data-translations.js` (~55 KB, v53 확장 — 19 발췌 정역 ~330 문장 + 34 짧은 발췌 정역) · **`data-characters.js` (~16 KB, v55 완결 — 50 캐릭터 전원의 검증된 Wikimedia Commons 사진 메타데이터)** · `espeakng.worker.js` (760 KB) · `manifest.json` · `reset.html`.
+**배포 산출물**: `index.html` (~920 KB, IIFE 약 420K chars, 15.2K lines — v56 의 멀티 인트로·강탈·BGM·feedback·presence 모듈 ~600 lines 추가) · `sw.js` · `data-works.js` (3 MB, 45 작품 545 섹션) · `data-morph.js` (4 MB, AGDT v2.1 37K 어형 11.8K lemma) · `data-dialogues.js` (45 KB, 10 콩트 시나리오) · `data-translations.js` (~55 KB, v53 확장 — 19 발췌 정역 ~330 문장 + 34 짧은 발췌 정역) · **`data-characters.js` (~22 KB, v56 — 50 캐릭터 사진 + 50 명언 인용)** · `espeakng.worker.js` (760 KB) · `manifest.json` · `reset.html`.
 
 **기능 카탈로그**:
 - 어휘 학습: 교재 어휘 + DCC 523 + DAILY_W 51 + CIVIC_W 80 + 콩트 vocab 60 = 1142 어휘
 - 문법 토픽: 41개 (decl/verb/particle/prep 4 카테고리)
 - 콩트 시나리오: 10편 · 84 turns
 - 원문 읽기: 45 작품 545 섹션, AGDT 형태분석은 Iliad 1 · Odyssey 1 · Persae 만
-- 학자 낭독 매칭: 본문 7 작품 (plato-apology · xenophon-anabasis-1 · hesiod-theogony · herodotus-1 · homer-iliad-1 · homer-odyssey-1 · plato-euthyphro)
-- 학자 낭독 도서관 (Ἀκρόασις): 20 자료 · 9 카테고리 (본문 외 작가·작품)
-- 본문-학자 낭독 시간 동기: 3 자료 (Anabasis 11 단락, Theogony 21 행, Herodotus 14 단락 × 4 섹션) · 정확도 ±3-5초
-- 발음 모드: 4종 (eSpeak NG · 현대 헬라어 · Erasmian · 복원 Attic) + Stratakis/SORGLL/Projet Homere/Ariphron 학자 발음 비교
-- 학습 모드: 어휘 quiz (객관식·타이핑) · 받아쓰기 (Ἀκοή) · 악센트 학습 (Τόνος) · 옥시톤 분류 quiz · 검색·콘코던스 (Εὕρεσις) · 변화표 만들기 + 빈칸 채우기 시험 (Παράδειγμα) · 배틀 모드 · 오답함 SRS
-- 변화표: 76 표제어 큐레이션 (55 명사 · 12 형용사 · 9 대명사) — Smyth/Goodwin 표준형, AGDT v2.1 실제 어형과 자동 결합 표시, 빈칸 채우기 시험 모드 (NFD/ς-σ 관용 채점, 액센트 정확 ★ 마킹)
-- **캐릭터 (Παίγνια · v52 신규)**: **50 캐릭터** SVG 메달리온 (12 올림포스 신 · 12 영웅 · 8 여신/여성 영웅 · 10 철학자 · 8 시인·역사가·정치가). 카테고리별 그라데이션 팔레트 · 32 심볼 · 그리스 이니셜 + 한국어 호칭. 홈·프로필·명예의 전당·라이브 순위·멀티 배틀 5 위치에 표시. **v55: 50 캐릭터 전원이 Wikimedia Commons 사진 표시** (v54 의 41/50 + v55 신규 9: diomedes · orpheus · aeneas · penelope · atalanta · medea · empedocles · herodotus · solon). 모든 파일명은 Wikimedia 카테고리 페이지 listing 에서 검증된 실존 파일만 사용 — v53 의 추측 오류 (broken-image 23 개) 완전 해소.
-- **원문 해석 (Ἑρμηνεία · v52 신규, v53 확장)**: 본문 읽기에 📖 해석 토글. 큐레이션 정역 13 발췌 (Iliad 1.1-50/1.51-100 · Odyssey 1.1-50/1.51-100 · Plato Apology §17/§18/§19/§20/§21/§22 · Plato Crito §43 · Herodotus 1.1 · Hesiod Theogony 1-50) + 짧은 발췌 34편 (`data-translations.js` 별도 파일) + ALL_VOCAB/MORPH_LOOKUP 기반 단어 풀이 폴백. 문장 단위 표시 (.sent[data-sent-idx] 그룹화). 모든 발췌의 sentence 카운트가 renderer 의 `[.;·?!]` 정규식과 일치하도록 검증.
-- 접근성: aria-label 35 · title 18 · greek lang attr 자동화
+- 학자 낭독 매칭: 본문 7 작품 · 도서관 20 자료 · 본문-시간 동기 3 자료 (±3-5초)
+- 발음 모드: 4종 (eSpeak NG · 현대 헬라어 · Erasmian · 복원 Attic)
+- 학습 모드: 어휘 quiz · 받아쓰기 (Ἀκοή) · 악센트 학습 (Τόνος) · 검색·콘코던스 (Εὕρεσις) · 변화표 만들기 + 빈칸 시험 (Παράδειγμα) · 배틀 모드 · 오답함 SRS
+- 변화표: 76 표제어 큐레이션 (55 명사 · 12 형용사 · 9 대명사)
+- **캐릭터 (Παίγνια · v52~v55)**: 50 캐릭터 SVG 메달리온 + 50 검증된 Wikimedia 사진. 5 표시 위치 (홈·프로필·명예의 전당·라이브 순위·멀티 배틀).
+- **원문 해석 (Ἑρμηνεία · v52~v53)**: 19 발췌 큐레이션 정역 + 단어 풀이 폴백.
+- **멀티 배틀 (v56 대폭 확장)**: 호스트가 방 생성 → 게스트 참가 → **(v56) 인트로 컷** (적·나 캐릭터 상하단 + 중앙 VS + 캐릭터별 명언 말풍선) → 어휘 객관식 10문제 → **(v56) Q3/Q6/Q9 는 점수 강탈 문제** (정답 시 다른 모든 플레이어로부터 8점씩 빼앗음, race-free 설계). 시간 12초/문제. XP 보상 30/18/12/5.
+- **(v56 신규) BGM**: 절차적 고대 그리스 양식 음악 (Web Audio API, 도리아 모드 E F G A B C D, 키타라/리라 톤 합성). 홈 화면 BGM 토글 버튼. **양식적 모방** (재현 아님) 명시. Self-contained · 오프라인 · 라이선스 위험 없음.
+- **(v56 신규) 건의 사항**: 홈 푸터의 `건의` 링크 → modal (textarea 2000자) → `STORAGE.setShared('feedback:<ts>:<userId>', ...)`. 운영자는 console 에서 `STORAGE.listShared('feedback:')` 로 수집. 오프라인 시 localStorage 큐 (`paideia.feedbackQueue`).
+- **(v56 신규) 동시 학습자 카운트**: 4분 간격 `presence:<userId>` heartbeat. 홈 화면 카드에 `현재 N명 공부 중` 표시 (5분 이내 ping 한 사용자만). 60초 카운트 캐시.
+- 접근성: aria-label 35+ · title 18+ · greek lang attr 자동화
 - 다중 프로필 · 명예의 전당 · 책갈피·메모
 
 **핵심 데이터 인덱스**:
@@ -29,23 +31,28 @@
 - 작품·섹션: `WORKS` (data-works.js 에서 정의)
 - 형태분석: `MORPH_LOOKUP` (data-morph.js, 비동기 lazy-load)
 - 문법 토픽: `TOPICS` 배열 (41)
-- 변화표 라이브러리: `PARADIGM_LIB` 객체 (76 표제어, index.html line 3385~)
+- 변화표 라이브러리: `PARADIGM_LIB` 객체 (76 표제어)
 - 콩트: `DIALOGUES` (data-dialogues.js)
 - 학자 낭독: `SCHOLAR_AUDIO` (본문 매칭) + `SCHOLAR_LIBRARY` (도서관)
-- 악센트 분류: `_classifyAccent()` 함수 (NFD 기반 다이아크리틱 분석)
-- **캐릭터 라이브러리 (v52)**: `CHARACTERS` (50 항목) · `CHARACTERS_BY_ID` 인덱스 · `CHAR_SYMBOLS` (32 SVG path) · `CHAR_PALETTES` (5 카테고리) · `_charMedallion(idOrObj, size)` 렌더러
-- **정역 라이브러리 (v52)**: 별도 파일 `data-translations.js` 가 `window.WORK_TRANSLATIONS` (5 발췌, `workId:secN` → 문장 인덱스 배열) + `window.READING_TRANSLATIONS` (12 짧은 발췌) 노출. index.html 의 IIFE 가 `window.WORK_TRANSLATIONS` 를 캡처 (없으면 빈 객체 폴백). 헬퍼: `_getCuratedTranslation()` 조회 · `_buildLiteralGloss()` 단어 풀이 폴백 · `_applyTranslationDisplay()` DOM 삽입
+- **캐릭터 (v52~v56)**: `CHARACTERS` 50 · `CHARACTERS_BY_ID` · `CHAR_SYMBOLS` 32 · `CHAR_PALETTES` 5 · `CHARACTER_IMAGES` (v53~v55, 50 사진) · **`CHARACTER_QUOTES` (v56, 50 명언)** · `_charMedallion` / `_charPhotoMedallion`
+- **멀티 배틀 (v56 강화)**: `_battleGameLocal` (로컬 진행 + `stolen[]`) · `_battleIntroShown` (인트로 1회 가드) · `_battleEffectiveScores` (강탈 반영) · `_renderBattleIntro` · 상수 `BATTLE_STEAL_INTERVAL=3`, `BATTLE_STEAL_AMOUNT=8`, `BATTLE_INTRO_MS=5200`
+- **BGM (v56)**: `BGM` IIFE 모듈 (`window.BGM.start/stop/isRunning/isAvailable`) · `toggleBgm` · `S.bgmEnabled` · `_ensureBgmPref`
+- **Feedback (v56)**: `openFeedbackModal` · `STORAGE` 의 `feedback:<ts>:<userId>` 키 · localStorage `paideia.feedbackQueue`
+- **Presence (v56)**: `pingPresence` · `startPresenceHeartbeat` · `fetchPresenceCount` · 상수 `PRESENCE_TTL_MS=5min`, `PRESENCE_PING_MS=4min` · `_presenceCountCache` (60초 TTL)
 
-**현재 미해결·defer 상태** (§7 의 v55 끝 defer 블록 참조):
+**현재 미해결·defer 상태** (§7 의 v56 끝 defer 블록 참조):
 - 외부 의존 3 항목 (SoundCloud slugs · Plato Crito sample · ScorpioMartianus) — 새 정보 없음
-- 단어 단위 시간 동기 (현재 행/단락 — 더 정밀은 큰 측정 부담)
-- plato-apology Stratakis cue points 측정 (mp3 길이 미확정으로 보류)
-- PARADIGM_LIB 확장 — 비교급·최상급 형용사, 분사 (현재 명사·형용사·대명사만)
-- μι-동사 가정법/희구법 quiz 통합 (v50 의 5 표는 학습만, Παράδειγμα 시험과 별개)
-- **정역 확장 (v53)**: 현재 19 발췌 큐레이션 (data-translations.js). 나머지 ~525 섹션은 단어 풀이 폴백. 다음 우선순위 (v56 권장): Plato Apology §23-26 (변론 마무리), Iliad 1.151-200+ (외교 시도), Sophocles Oedipus 1-100, Plato Crito §44-47
-- **캐릭터 잠금 시스템 (v52)**: 현재 모든 50 캐릭터 즉시 선택 가능. XP/배지/완독 기반 점진 잠금 해제는 다음 라운드 후보 (학습 동기 부여)
-- **캐릭터 사진 prefetch (v53 의 defer)**: 사용자가 picker 열기 전에 50 사진 미리 캐시 (`<link rel=prefetch>` 또는 SW pre-cache). 첫 picker 열림 속도 개선용. v55 에서 50/50 사진이 모두 검증되어 prefetch 의 효과가 명확해짐.
-- **캐릭터 사진 라이선스 정밀화 (v53 의 defer)**: 일부 CC BY 사진 (회화) 의 attribution 화면 표시. 현재는 caption 필드의 작가/박물관 명시로 *사실상의 attribution*.
+- 단어 단위 시간 동기 (현재 행/단락)
+- plato-apology Stratakis cue points
+- PARADIGM_LIB 분사·비교급·최상급 확장
+- μι-동사 가정법/희구법 quiz 통합 (v50 의 5 표 학습만 있고 시험 없음)
+- **정역 확장 (원래 v56 의 권장 작업)**: 19 발췌 → 25 발췌 (Plato Apology §23-26, Iliad 1.151-200+, Sophocles Oedipus 1-100, Plato Crito §44-47). 사용자가 v56 에서 멀티 확장을 우선했기에 v57 로 이월.
+- 캐릭터 잠금 시스템 (XP/배지/완독 기반)
+- 사진 prefetch
+- AI 기반 정역 (Anthropic API)
+- **(v56 신규 defer) BGM 확장**: 추가 모드 (Phrygian, Lydian, Mixolydian), 모티프 다양화, 실제 학자 복원 곡 (Seikilos Epitaph 의 *진짜* 멜로디) 외부 mp3 옵션
+- **(v56 신규 defer) Feedback 운영 UI**: 현재는 console 수집만. 별도 `/admin` 페이지 또는 명예의 전당 옆에 운영자 전용 진입 (운영자 인증은 STORAGE 의 `admin:` 키 토큰)
+- **(v56 신규 defer) Presence 통계**: 현재 카운트만. 시간대별 분포·요일별 분포 등 통계 분석 (운영자 전용)
 
 **영구 제외** (사용자 정책):
 - 다국어 UI (i18n)
@@ -1050,6 +1057,114 @@ defer (다음 라운드 후보, v56+):
   · PARADIGM_LIB 분사 확장 (v51 의 defer)
   · μι-동사 quiz 통합 (v51 의 defer)
   · AI 기반 정역 (Anthropic API 통합) — *큐레이션 한계 보완*. 비용 모델 결정 필요
+
+영구 제외 (사용자 정책):
+  · 다국어 UI (i18n)
+
+---
+
+**v56**: 멀티 배틀 대폭 확장 + 학습 동반 모듈 3 추가 — 사용자 요청 5 갈래:
+*"멀티 시작시 적과 나의 캐릭터가 상하단에 크게 보이고 중앙엔 vs 표시, 서로의 캐릭터가 말풍선으로 자신의 명언이나 작품의 주요 구절을 말하면서 시작하는 컷 추가, 멀티로 서로의 포인트를 빼앗는 기능 추가"* + *"로비에 고대 그리스 음악 재현한 음악이 흘러나오도록 하고 끌 수 있는 버튼 추가, 건의 사항 올리는 버튼 추가, 현재 몇명이 공부중입니다 라는 란 추가"*
+
+**v56 의 NEXT_TASKS 우선순위였던 정역 확장 (v53 defer)** 은 사용자가 멀티·UI 확장을 명시 요청하여 v57 로 이월.
+
+**(1) 멀티 배틀 인트로 컷 (Παίγνια 통합)** — `_renderBattleIntro` 신규.
+호스트가 *시작* 누른 직후 모든 플레이어에게 ~5초 인트로 화면. 적·나 캐릭터 사진 + 말풍선 + 중앙 VS 메달리온.
+- *2명 모드*: 상단 상대(150-160px) ↔ 중앙 VS(88px 원형) ↔ 하단 나(160px), 위/아래 말풍선 (terracotta 테두리, 베지에 꼬리)
+- *3명 이상*: 상단 행에 상대들 (최대 4명, 110px) + 하단 나 (160px) — 1v1 대결의 시각적 비유 유지하되 다수에도 그래픽 일관성
+- 자동 진행 5.2초 + `바로 시작 →` skip + `🔊 명언 듣기` 버튼 (TTS 시스템 통합 — eSpeak NG · OS Modern · Erasmian · 복원 Attic 중 사용자 설정 따라)
+- `_battleIntroShown[code]` 가드로 매치당 1회만 표시 (room 재조회·다시 그리기에 의한 반복 차단)
+
+**(2) 캐릭터 명언 데이터 — `CHARACTER_QUOTES` 50 entries** (`data-characters.js` 확장, ~22 KB).
+모든 50 캐릭터 각각 `{grk, ko, src}` 형식. 모든 인용은 PD 원전에서 검증:
+- 신·영웅 24명: 호메로스 *Iliad*/*Odyssey* 의 정형 epithet 또는 1-2행 인용 (e.g. Zeus → "πατὴρ ἀνδρῶν τε θεῶν τε" Il.1.544; Hector → "εἷς οἰωνὸς ἄριστος..." Il.12.243)
+- 여성 영웅 8명: 비극·서사시 결정적 구절 (e.g. Antigone → "οὔτοι συνέχθειν..." Soph.Ant.523; Medea → "θυμὸς δὲ κρείσσων..." Eur.Med.1078-9)
+- 철학자 10명: DK 단편 + Stephanus 페이지 (e.g. Socrates → "ὁ ἀνεξέταστος βίος..." Apol.38a; Heraclitus → "ποταμοῖσι τοῖσιν αὐτοῖσιν..." DK 22 B12)
+- 시인·역사가·정치가 8명: 작품 첫 줄 또는 famous lines (e.g. Homer → "μῆνιν ἄειδε..." Il.1.1; Pindar → "ἄριστον μὲν ὕδωρ" Ol.1.1; Solon → "μηδένα πρὸ τοῦ τέλους μακάριζε" Hdt.1.32)
+
+**(3) 점수 강탈 메커니즘 — `BATTLE_STEAL_*` 상수 + `stolen[]`**:
+- *결정성*: 매 `BATTLE_STEAL_INTERVAL=3`번째 문제 (Q3·Q6·Q9) 가 강탈 문제. 시드 기반 `_battleBuildQuestions` 의 `qNum % 3 === 0` 마킹으로 모든 플레이어가 *동일한 문제 인덱스*에서 강탈 인지 → 동기화 완벽.
+- *UI 마커*: 강탈 문제는 카드 좌측에 2px terracotta 경계 + 옅은 orange tint 배경 + 펄스 애니메이션 배너 (`⚡ 점수 강탈 문제 — 정답 시 모든 상대로부터 8점씩 빼앗습니다 ⚡`)
+- *Race-free 설계*: 강탈자가 자기 player 객체의 `stolen[]` 에만 push (`{victim, points, qIdx}`), 다른 player 의 `score` 는 직접 쓰지 않음 (기존 path-level PUT 의 race 회피 패턴 유지). 보드 렌더 시 `_battleEffectiveScores(playersArr)` 헬퍼가 차감 계산: `eff(P) = P.score + sum(P.stolen.points) − sum(others.stolen[where victim=P].points)`. 음수는 0 클램프.
+- *시뮬레이션 검증*: 5 케이스 통과 (강탈 없음 · 단방향 · 양방향 상쇄 · 음수 클램프 · 3인전). 같은 시드에서 두 플레이어가 동일한 강탈 패턴 (`..⚡..⚡..⚡.`) 받음 (Q.identity SAME).
+- *피드백 토스트*: 정답 시 `⚡ +24 강탈! · 이름1, 이름2 외 N명으로부터`, 오답 시 `⚡ 강탈 실패 — 점수 변동 없음`
+- *결과 화면 (renderBattleResult)*: effective score 기준 정렬. me 카드 + per-player 행에 브레이크다운 (`기본 N · ⚡ 강탈 +N · 빼앗김 −N`) 표시. baseScore 별도 보존.
+
+**(4) BGM — 절차적 고대 그리스 양식 음악 (Web Audio API)**:
+*학술적 솔직성 명시* — 본 모듈은 *재현 (reconstruction)* 이 아니라 *양식적 모방 (stylized homage)*. Seikilos Epitaph 같은 알려진 단편을 그대로 재생하지 않고 도리아 모드 음계 + 키타라/리라 톤 + 단순 모티프로 *분위기*만 합성. self-contained · 오프라인 · 라이선스 위험 0.
+- *음계*: 도리아 모드 E F G A B C D E (5세기 BC 그리스의 가장 자주 거론되는 mode), 12-TET 평균율 (역사적 정확성보다 청각 친숙도 우선) — 솔직한 한계: 진정한 그리스 미세음정 (enharmonic genus, 1/4-tone) 은 안 구현
+- *톤*: sine + triangle 2배음 hybrid (gain 0.12), attack 18ms / decay exponential — 키타라/리라의 발현된 현 모방
+- *드론*: E + B (5도) 두 sine 오실레이터, 매우 낮은 음역대 (164.8 Hz · 246.9 Hz), gain 0.10/0.06 — 고대 음악의 *바둑판형 화성 (drone harmony)* 양식
+- *모티프*: 5종 짧은 패턴 (E G A G E / A G E G A 등) 무작위 셔플 + 자연스러운 호흡 (1-2박자 휴지). BEAT_MS 480ms (느린 템포)
+- *마스터 볼륨*: gain 0.045 — 학습 방해 안 되도록 매우 낮음. 사용자 명시 동의 후에만 켜짐 (S.bgmEnabled localStorage)
+- *UI*: 홈 화면 우상단 토글 버튼 `🔇 BGM 켜기` ↔ `🎵 BGM 끄기`. 첫 클릭 시 토스트 `🎵 도리아 모드 BGM — 학습 동반 음악`
+- *브라우저 정책 대응*: AudioContext 의 user-gesture 요구사항 만족 위해 클릭 핸들러 내에서 ensureCtx + resume. iOS Safari 14+ 검증 (모킹된 단위 테스트 통과). 자동 재시작 시도하지 않음 — 사용자가 이전 세션에서 켰어도 매번 명시 클릭 필요 (브라우저 정책 우회 안 함)
+
+**(5) 건의 사항 (Feedback) modal**:
+홈 푸터의 `건의` 링크 → `openFeedbackModal()` → textarea (2000자 한도) + 전송 버튼.
+- *저장*: `STORAGE.setShared('feedback:<ts>:<short_uid>', JSON)` — CIM Lab 운영자는 console 에서 `STORAGE.listShared('feedback:')` 후 각 키 fetch 로 수집
+- *익명성*: 캐릭터·진척도·이름 *전송 안 함*. 보내는 정보: 본문, 타임스탬프, userId (앱 내 익명 ID), APP_VERSION, UA 첫 200자
+- *오프라인 안전망*: `localStorage.paideia.feedbackQueue` 에 항상 동시 저장 (큐 한도 50). supportsShared 가 false 면 토스트 `오프라인 — 로컬에 저장됨, 다음 접속 시 시도`
+- *입력 검증*: 4자 미만 차단, 2000자 한도 (maxlength + JS 입력 카운터)
+- *추가 운영 작업 (v56 defer)*: 별도 admin 페이지에서 listShared 결과를 UI 로 표시 + 처리 완료 마킹 등은 다음 라운드 후보
+
+**(6) 동시 학습자 카운트 (Presence)**:
+홈 화면 상단 카드 `📚 현재 N명이 공부 중입니다 (당신 포함 — 동료 N-1명)`.
+- *Heartbeat*: 앱 init 시 `pingPresence()` 1회 + `setInterval(pingPresence, PRESENCE_PING_MS=4분)`. 키 `presence:<userId>`, 값 `{ts, character}`. ping 간격을 TTL보다 짧게 (4 < 5) 두어 *active 사용자 누락 방지*.
+- *카운트*: `fetchPresenceCount()` 가 `STORAGE.listShared('presence:')` → 상위 200 키 → 각 값 fetch → `now - ts < PRESENCE_TTL_MS (5분)` 만 카운트. 60초 카운트 캐시 (`_presenceCountCache`) — 재호출 비용 차단.
+- *Stale 처리*: 5분 이상 지난 presence 키는 자동으로 카운트에서 제외 (실제 storage 삭제는 안 함 — 사용자 재접속 시 같은 키에 덮어쓰기 됨). 정기 garbage collect 는 운영 부담이라 안 함.
+- *카운트 분기 메시지*:
+  - 0명: `현재 다른 학습자가 없습니다 — 첫 번째로 공부를 시작해 보세요`
+  - 1명: `당신이 현재 공부 중입니다`
+  - N≥2: `현재 N명이 공부 중입니다 (당신 포함 — 동료 N-1명)`
+- *오프라인*: `STORAGE.supportsShared === false` 시 `동시 학습자 표시는 온라인 연결이 필요합니다`
+
+**구현 사항**:
+- `data-characters.js`: CHARACTER_QUOTES 50 entries 추가 (~5 KB), 헤더 v56 으로 갱신 (~22 KB total)
+- `index.html`: ~600 lines 추가
+  - 인트로 컷 + effective score + 강탈 로직 (~200 lines, line 13400~)
+  - BGM 모듈 (~140 lines, pushLeaderboard 직후)
+  - Feedback modal (~80 lines)
+  - Presence heartbeat + count (~50 lines)
+  - renderHome 통합 (BGM 토글 버튼 / presence 카드 / 건의 링크) (~30 lines)
+  - 앱 init 의 startPresenceHeartbeat 호출 (~3 lines)
+- `sw.js`: CACHE_VERSION v55 → v56 (1 line)
+- `index.html`: APP_VERSION v55 → v56 (1 line)
+- `test-v56.js`: 신규 (~220 lines, 66 assertions)
+
+**검증** (test-v56.js 66/66 PASS):
+- 버전 상수 일치
+- CHARACTER_QUOTES 50 entries, {grk,ko,src} 구조, 그리스 문자 포함, CHARACTERS ID 와 일치
+- `_renderBattleIntro` / `_battleEffectiveScores` 함수 정의
+- 강탈 문제 마킹 결정성 (시드 → 동일 Q3/Q6/Q9 패턴) — 별도 시뮬레이션도 통과
+- effective score 5 케이스 (강탈 없음, 단방향, 양방향, 음수 클램프, 3인전)
+- payload 의 stolen / character 필드 포함, 인트로 1회 가드
+- 강탈 응답 처리 (fresh fetch + push), 결과 화면 effective score
+- BGM IIFE / window.BGM / SCALE_HZ / MOTIFS / toggleBgm
+- Feedback modal / STORAGE 키 / localStorage 큐 / 홈 푸터 링크
+- Presence 상수 (TTL 5min, ping 4min) / pingPresence / fetchPresenceCount / heartbeat / 홈 카드
+- v55 invariants 보존 (50 사진 ID 전원)
+- 추가 헤드리스 BGM 시뮬레이션 (모킹된 Web Audio 환경에서 start/stop/오실레이터 생성 카운트 정상)
+
+**라이브 작동 검증 시나리오 (사용자 측 수동 점검 권장)**:
+1. 두 브라우저 (또는 시크릿 창) 에서 로그인 → 서로 다른 캐릭터 선택 → 멀티 방 생성·참가 → 시작 클릭 → *양측 모두 인트로 컷 표시 (5.2초)* → 첫 문제
+2. Q3 문제 화면에 *⚡ 강탈 배너* 노출 확인. 한 측이 정답 시 토스트 + 점수보드의 다른 측 점수가 −8 차감 (effective). 양측이 정답이면 양방향 상쇄
+3. 홈 화면에서 BGM 켜기 → 도리아 모드 멜로디 + 드론 재생 시작. 끄기 → 즉시 정지
+4. 건의 링크 → modal 입력 → 전송 → 토스트 `건의가 전달되었습니다`
+5. 두 브라우저 모두 홈 화면 → 카운트가 `2명` 으로 표시 (4-5분 이내)
+
+defer (다음 라운드 후보, v57+):
+- **v57 권장 = 정역 확장** (v53 defer, v56 원래 NEXT_TASKS 의 우선순위 1) — Apology §23-26, Iliad 1.151-200+, Sophocles Oedipus 1-100, Plato Crito §44-47
+- 외부 의존 3 항목 (SoundCloud slugs · Plato Crito · ScorpioMartianus) — 새 정보 없음
+- BGM 확장 — Phrygian/Lydian/Mixolydian 모드, 모티프 다양화, *실제* 학자 복원 Seikilos Epitaph 외부 mp3 옵션 (라이선스 검증 시)
+- Feedback 운영 UI — admin 페이지 + STORAGE 토큰 인증
+- Presence 통계 — 시간대별·요일별 분포 (운영자)
+- 캐릭터 명언 TTS 자동 발화 (현재는 클릭으로만)
+- 사진 prefetch (v53 defer)
+- 캐릭터 잠금 시스템 (v52 defer)
+- PARADIGM_LIB 분사·비교급 확장 (v51 defer)
+- μι-동사 quiz 통합 (v51 defer)
+- AI 기반 정역 (Anthropic API 통합)
 
 영구 제외 (사용자 정책):
   · 다국어 UI (i18n)
