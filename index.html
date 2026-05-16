@@ -280,6 +280,25 @@ textarea.input{font-family:var(--font-ko);font-size:14px;line-height:1.5;min-hei
 .passage .w.pos-ptcp  { color: #4d3a70; }   /* 분사: 어두운 보라 */
 .passage .w.pos-inf   { color: #3a5a3d; }   /* 부정사: 어두운 녹색 */
 .passage .w:hover{background:var(--terracotta-l);color:var(--ivory-w)}
+
+/* v49: 학자 낭독 시간 동기 — 현재 발화 중인 행/단락 highlight */
+.passage div.now-speaking{
+  background:linear-gradient(90deg, rgba(176, 80, 48, 0.18) 0%, rgba(176, 80, 48, 0.08) 70%, transparent 100%);
+  border-left:3px solid var(--terracotta);
+  padding-left:8px;
+  margin-left:-11px;
+  transition:background 0.4s ease, border-left-color 0.4s ease;
+}
+.passage div.now-speaking .w{font-weight:500}
+/* v49b: 문장 단위 highlight — 단락 1개 자료 (Plato Apology 등) 용 세밀한 동기 */
+.passage .sent.now-speaking-sent{
+  background:linear-gradient(90deg, rgba(176, 80, 48, 0.22) 0%, rgba(176, 80, 48, 0.12) 80%, transparent 100%);
+  border-radius:4px;
+  padding:1px 3px;
+  margin:0 -3px;
+  transition:background 0.3s ease;
+}
+.passage .sent.now-speaking-sent .w{font-weight:500}
 /* 색상 끄기 토글 (v29): OCT/Loeb 같은 학술 표준 무채색 본문 */
 .no-color-words .passage .w,
 .no-color-words .passage .w.pos-noun,
@@ -2572,29 +2591,6 @@ const TOPICS = [
   ]
 },
 {
-  id:"gen-abs", lesson:30, cat:"verb",
-  title:"속격 절대구 (genitive absolute)",
-  desc:"문장 본체와 격이 분리된 분사 구문",
-  expl:"분사의 의미상 주어가 본문장의 주어·목적어가 아닐 때, <b>주어와 분사를 모두 속격으로</b> 두어 부수 절을 형성한다. 시간·원인·양보·조건을 모두 표현할 수 있다.",
-  paradigm:{
-    caption:"속격 절대구 — 용법 예시",
-    cols:["문장","해석"],
-    sections:[{label:"", rows:[
-      ["<span class='grk'>τοῦ ἡλίου ἀνατείλαντος ἐπορεύοντο.</span>","해가 떠오르자 그들은 행군했다. (시간)"],
-      ["<span class='grk'>τῶν θεῶν θελόντων ἥξομεν.</span>","신들이 원한다면 우리는 도착할 것이다. (조건)"],
-      ["<span class='grk'>καίπερ τῶν πολεμίων παρόντων ἔμενεν.</span>","적이 있음에도 불구하고 그는 머물렀다. (양보 — καίπερ)"],
-      ["<span class='grk'>νυκτὸς γενομένης ἀνεχώρησαν.</span>","밤이 되어 그들은 물러갔다. (시간·원인)"],
-    ]}]
-  },
-  note:"속격 절대구의 주어는 본문장 어디에도 같은 격으로 등장하지 않아야 한다(절대성). 본문 주어와 같으면 보통 분사가 본문 주어와 일치하여 직접 수식한다.",
-  items:[
-    {form:"τοῦ Κύρου παρόντος", info:"'키로스가 함께 있는 동안' — 속격 절대구 (시간/조건)"},
-    {form:"τῶν Ἑλλήνων νικησάντων", info:"'그리스인들이 이긴 후/이기자' — 속격 절대구 (시간)"},
-    {form:"νυκτὸς γενομένης", info:"'밤이 되어' — 속격 절대구 (시간)"},
-    {form:"τοῦ ἡλίου δύντος", info:"'해가 진 후' — 속격 절대구 (시간)"},
-  ]
-},
-{
   id:"conditionals", lesson:31, cat:"verb",
   title:"조건문 — 6가지 기본형",
   desc:"εἰ + 동사 형태가 의미를 결정",
@@ -2917,7 +2913,7 @@ const TOPICS = [
 },
 
 {
-  id:"gen-abs", lesson:99, cat:"verb",
+  id:"gen-abs", lesson:30, cat:"verb",
   title:"속격 절대 (Genitive Absolute)",
   desc:"주절과 *문법적으로 분리* 된 부분에서 시간·인과·조건·양보의 배경 정보를 압축적으로 제공하는 분사 구문.",
   expl:`속격 절대는 *주절의 어떤 성분과도 일치하지 않는 명사 + 분사* 가 함께 **속격**으로 등장하는 구문. '그 일이 일어나는 동안', '그 일이 일어났으므로', '그 일이 일어났음에도' 같은 *배경 사건* 을 압축한다. 한국어로는 부사절 ('~가 ~할 때 / 한 까닭에 / 했음에도') 로 옮겨야 한다.
@@ -2974,6 +2970,388 @@ const TOPICS = [
       {form:"실수 회피",  info:"같은 주어인데 속격 절대를 쓰면 어색. 영어 dangling participle 과 유사한 오류"},
     ],
   },
+  items:[
+    {form:"τοῦ Κύρου παρόντος",    info:"'Cyrus 가 함께 있는 동안' — 속격 절대 (시간/조건)"},
+    {form:"τῶν Ἑλλήνων νικησάντων",info:"'그리스인들이 이긴 후' — 속격 절대 (시간 · 부정과거분사)"},
+    {form:"νυκτὸς γενομένης",      info:"'밤이 되어' — 속격 절대 (시간 · 부정과거분사)"},
+    {form:"τοῦ ἡλίου δύντος",      info:"'해가 진 후' — 속격 절대 (시간)"},
+    {form:"καίπερ τῶν πολεμίων παρόντων", info:"'적이 있음에도' — 속격 절대 (양보 · καίπερ)"},
+    {form:"τῶν θεῶν θελόντων",     info:"'신들이 원하신다면' — 속격 절대 (조건)"},
+    {form:"ἅτε τοῦ στρατηγοῦ ἀποθανόντος", info:"'장군이 죽었으므로' — 속격 절대 (인과 · ἅτε)"},
+    {form:"ἐξὸν αὐτῷ φεύγειν",     info:"'그가 도망갈 수 있었음에도' — 비인칭 분사 (특수: 대격 절대로 자주)"},
+  ],
+},
+
+// ─── v47: MI 동사 · accusative absolute · σύν vs μετά ───────────────────────
+{
+  id:"mi-verbs", lesson:99, cat:"verb",
+  title:"MI 동사 (athematic) — τίθημι · δίδωμι · ἵστημι · δείκνυμι",
+  desc:"인칭어미가 *연결모음 없이* 어근에 직접 붙는 athematic 동사 4 종. 사용 빈도가 극히 높으나 어형이 불규칙 — 그리스어 동사 학습의 두 번째 큰 산.",
+  expl:`그리스어 동사는 크게 두 부류: thematic ('ω 동사': λύω·γράφω 등 - 어근과 어미 사이에 연결모음 ο/ε 가 들어감) 와 athematic ('μι 동사': 어미가 어근에 *직접* 붙음). MI 동사는 가장 오래된 인도유럽 동사 형태를 가장 충실히 보존하는 부류로, 빈도가 매우 높고 의미 또한 핵심적인 (놓다·주다·세우다·보이다) 동사들이 모두 여기에 속한다.
+
+네 핵심 동사 — 각각 *어근 모음의 reduplication* 으로 현재형을 만든다:
+
+(1) **τίθημι** "놓다, 두다, 만들다" — 어근 θε-/θη-. 현재 reduplication τι- (어근 자음의 dental 자질). 어근 모음의 *질* 이 단·복수마다 바뀜 (η/ε 교체).
+  단수 τίθη-μι · τίθη-ς · τίθη-σι(ν)
+  복수 τίθε-μεν · τίθε-τε · τιθέ-ασι(ν)
+  부정과거 ἔθηκα (κ 부정과거) — 어근의 단모음 ε 가 첫 음절에서, 장모음 η 가 끝 음절에서.
+
+(2) **δίδωμι** "주다, 부여하다" — 어근 δο-/δω-. 현재 reduplication δι-.
+  단수 δίδω-μι · δίδω-ς · δίδω-σι(ν)
+  복수 δίδο-μεν · δίδο-τε · διδό-ασι(ν)
+  부정과거 ἔδωκα (κ 부정과거). 분사 δούς, δοῦσα, δόν (불규칙).
+
+(3) **ἵστημι** "세우다 (타); 서다 (자)" — 어근 στᾰ-/στη-. 현재 reduplication σι- 가 거친 기식 ἱ- 로 변형 (히스토리: σι-στη > 시그마 탈락 + 기식).
+  단수 ἵστη-μι · ἵστη-ς · ἵστη-σι(ν)
+  복수 ἵστα-μεν · ἵστα-τε · ἱστᾶσι(ν)
+  부정과거 두 종류: ἔστησα ("그가 그것을 세웠다", 타동) vs ἔστην ("그가 섰다", 자동, athematic 부정과거).
+  완료 ἕστηκα "서 있다" — *현재 의미의 완료* (대표적).
+
+(4) **δείκνυμι** "보이다, 가리키다" — 어근 δεικ-/δεικνυ-. 현재 어간 -νυ-/-νυη- (다른 -νυμι 동사들과 공유).
+  단수 δείκνυ-μι · δείκνυ-ς · δείκνυ-σι(ν)
+  복수 δείκνυ-μεν · δείκνυ-τε · δεικνύ-ασι(ν)
+  부정과거 ἔδειξα (σ 부정과거 — 정상적).
+
+**공통 패턴**:
+  · 단수 어간 모음은 *장*, 복수는 *단* (τίθη-μι/τίθε-μεν, δίδω-μι/δίδο-μεν 등). 이 교체는 athematic 의 가장 두드러진 특징.
+  · 부정과거의 어간 형성:
+     τίθημι · δίδωμι 는 *κ-부정과거* (ἔθηκα · ἔδωκα) — 어근에 -κα 첨가. 단·복수에서 *단수만* κ 부정과거 활용을 따르고, 복수는 *어근 부정과거* (ἔθεμεν · ἔδομεν) 로 빠짐 — 혼합 활용.
+     ἵστημι 는 *어근 부정과거* (ἔστην, 자동, "I stood") + σ-부정과거 (ἔστησα, 타동, "I set up") 의 *이중 활용*.
+     δείκνυμι 는 정상 σ-부정과거.
+  · 가정법·희구법은 -ει-/-η- 모음 그대로 (θῶ, διδῶ, ἱστῆται).
+  · 분사: τιθείς·τιθεῖσα·τιθέν (현재) / θείς·θεῖσα·θέν (부정과거).
+
+**의미 확장**:
+  τίθημι 는 "놓다" 에서 *광범한 추상* 으로 — "법을 제정하다" (νόμον τιθέναι), "이름을 붙이다" (ὄνομα τιθέναι), "전제하다" (logic), "안치하다", 중간태 τίθεσθαι "마음에 두다 / 자기 것으로 삼다" 등 매우 다의적.
+  δίδωμι 는 "주다" 에서 "양도하다·허락하다·신탁하다" 등. δίδωμι λόγον "해명하다, 변명할 기회를 주다".
+  ἵστημι 는 "세우다 / 서다" 에서 "그치다·정지하다" (ἵσταμαι "내가 멈춰 선다").
+  δείκνυμι 는 "보이다" 에서 "증명하다·논증하다" (수학·철학 용어).
+
+**학습 우선순위**: τίθημι 와 δίδωμι 가 가장 빈출 — 두 동사의 *단수 현재* + *부정과거 ἔθηκα/ἔδωκα* + *현재 분사* 부터 익히면 텍스트의 80% 가 풀린다.
+
+**가정법·희구법 (v50 추가)**: μι 동사의 가정법은 *contract 동사처럼* 어근 모음과 mood marker 가 결합 — τίθημι 의 가정법은 θῶ·θῇς·θῇ 처럼 *현재 어간 reduplication 없이* 짧아진다. 희구법은 marker -ιη-/-ι- 가 들어가 τιθείην·τιθείη·τιθεῖμεν. 가장 흔한 사용은 *조건문 protasis* (ἐὰν θῶ "내가 놓는다면") 와 *목적절* (ὅπως θῶ "놓도록"). μὴ γένοιτο "결코 그런 일이 없기를!" 은 부정과거 희구법의 가장 유명한 관용표현.`,
+  paradigm:{
+    caption:"네 MI 동사 — 현재 능동 직설법 (1단)",
+    rows:[
+      {form:"τί-θη-μι",  info:"놓다 · 어근 θε/θη"},
+      {form:"δί-δω-μι",  info:"주다 · 어근 δο/δω"},
+      {form:"ἵ-στη-μι",  info:"세우다·서다 · 어근 στᾰ/στη"},
+      {form:"δείκ-νυ-μι",info:"보이다 · 어근 δεικ + νυ"},
+    ],
+  },
+  paradigmAlt:{
+    caption:"τίθημι 현재 능동 직설법 — 단·복수 모음 교체",
+    rows:[
+      {form:"τίθημι",     info:"1단 — 어간 모음 *장* η"},
+      {form:"τίθης",      info:"2단"},
+      {form:"τίθησι(ν)",  info:"3단 — '그가 놓는다'"},
+      {form:"τίθεμεν",    info:"1복 — 어간 모음 *단* ε"},
+      {form:"τίθετε",     info:"2복"},
+      {form:"τιθέασι(ν)", info:"3복 — '그들이 놓는다'"},
+    ],
+  },
+  extraParadigms: [
+    {
+      caption:"τίθημι 현재 중간·수동 직설법 — 중간 어미",
+      rows:[
+        {form:"τίθεμαι",  info:"1단 — '나는 (스스로) 놓는다 / 놓이다'"},
+        {form:"τίθεσαι",  info:"2단 (intervocalic σ 보존 — athematic 특징)"},
+        {form:"τίθεται",  info:"3단"},
+        {form:"τιθέμεθα", info:"1복"},
+        {form:"τίθεσθε",  info:"2복"},
+        {form:"τίθενται", info:"3복"},
+      ],
+    },
+    {
+      caption:"τίθημι 부정과거 — κ-부정과거 단수 + 어근 부정과거 복수 (혼합)",
+      rows:[
+        {form:"ἔθηκα",   info:"1단 — κ-부정과거 (어근 + κα)"},
+        {form:"ἔθηκας",  info:"2단"},
+        {form:"ἔθηκε(ν)",info:"3단"},
+        {form:"ἔθεμεν",  info:"1복 — *어근 부정과거* (η/ε 교체 + κ 탈락)"},
+        {form:"ἔθετε",   info:"2복"},
+        {form:"ἔθεσαν",  info:"3복"},
+      ],
+    },
+    {
+      caption:"δίδωμι 부정과거 — τίθημι 와 같은 혼합 패턴",
+      rows:[
+        {form:"ἔδωκα",   info:"1단 — κ-부정과거"},
+        {form:"ἔδωκας",  info:"2단"},
+        {form:"ἔδωκε(ν)",info:"3단"},
+        {form:"ἔδομεν",  info:"1복 — 어근 부정과거 (ω/ο 교체)"},
+        {form:"ἔδοτε",   info:"2복"},
+        {form:"ἔδοσαν",  info:"3복"},
+      ],
+    },
+    {
+      caption:"ἵστημι — 두 부정과거의 *자/타 동* 의미 분기",
+      rows:[
+        {form:"ἔστησα",        info:"σ-부정과거 1단 — *타동* '내가 그것을 세웠다 (I set up)'"},
+        {form:"ἔστησας · ἔστησε(ν)", info:"타동 2/3단"},
+        {form:"ἔστησαν",       info:"타동 3복 '그들이 그것들을 세웠다'"},
+        {form:"ἔστην",         info:"어근 부정과거 1단 — *자동* '나는 섰다 (I stood)' — athematic"},
+        {form:"ἔστης · ἔστη",  info:"자동 2/3단"},
+        {form:"ἔστημεν · ἔστητε · ἔστησαν", info:"자동 1/2/3복 — 어근 부정과거 활용"},
+      ],
+    },
+    {
+      caption:"ἵστημι 현재 능동 + 중간/수동 (자동 의미는 보통 중간태로)",
+      rows:[
+        {form:"ἵστημι (능동)", info:"'세우다' 타동 — ἵστησι λίθον '돌을 세운다'"},
+        {form:"ἵσταμαι (중간/수동)", info:"'서다' 자동 — ἵσταται '그는 (스스로) 서 있다'"},
+        {form:"ἕστηκα (완료)", info:"*현재 의미의 완료* — '서 있다' (already standing). 가장 흔한 사용"},
+        {form:"εἱστήκη (과거완료)", info:"'서 있었다' — 미완료 의미"},
+      ],
+    },
+    {
+      caption:"네 동사 부정과거 분사 — 가장 빈출 (부사절·진행 행위 묘사)",
+      rows:[
+        {form:"θείς · θεῖσα · θέν",     info:"τίθημι aor.ptc. — '놓은 후에 / 놓으며'"},
+        {form:"δούς · δοῦσα · δόν",     info:"δίδωμι aor.ptc. — '주고 나서'"},
+        {form:"στάς · στᾶσα · στάν",    info:"ἵστημι 자동 aor.ptc. — '서고 나서'"},
+        {form:"στήσας · στήσασα · στῆσαν",info:"ἵστημι 타동 aor.ptc. — '세우고 나서'"},
+        {form:"δείξας · δείξασα · δεῖξαν",info:"δείκνυμι aor.ptc. — '보이고 나서'"},
+      ],
+    },
+    // v50: 가정법·희구법 패러다임 (직설법 너머의 진짜 마스터)
+    {
+      caption:"현재 가정법 (Subjunctive) — 어근 모음 + ω/η 결합형. 세 동사 평행",
+      rows:[
+        {form:"τιθῶ · τιθῇς · τιθῇ", info:"τίθημι 1·2·3단 — 어근 θε + ω/η contract"},
+        {form:"τιθῶμεν · τιθῆτε · τιθῶσι(ν)", info:"1·2·3복"},
+        {form:"διδῶ · διδῷς · διδῷ", info:"δίδωμι 1·2·3단 — ω 어근, ῷ subscript"},
+        {form:"διδῶμεν · διδῶτε · διδῶσι(ν)", info:"1·2·3복"},
+        {form:"ἱστῶ · ἱστῇς · ἱστῇ", info:"ἵστημι 1·2·3단 — α/η 어근"},
+        {form:"ἱστῶμεν · ἱστῆτε · ἱστῶσι(ν)", info:"1·2·3복"},
+      ],
+    },
+    {
+      caption:"부정과거 가정법 — 어근만 (reduplication 없음). 가정법의 80% 가 이 형태",
+      rows:[
+        {form:"θῶ · θῇς · θῇ · θῶμεν · θῆτε · θῶσι(ν)", info:"τίθημι aor.subj. — '내가 놓는다면'"},
+        {form:"δῶ · δῷς · δῷ · δῶμεν · δῶτε · δῶσι(ν)", info:"δίδωμι aor.subj. — '내가 준다면'"},
+        {form:"στῶ · στῇς · στῇ · στῶμεν · στῆτε · στῶσι(ν)", info:"ἵστημι 자동 aor.subj. — '내가 선다면'"},
+      ],
+    },
+    {
+      caption:"현재 희구법 (Optative) — marker -ιη-/-ι- + 어미. 세 동사 평행",
+      rows:[
+        {form:"τιθείην · τιθείης · τιθείη", info:"τίθημι 1·2·3단 — 단수는 -ιη- (확장형)"},
+        {form:"τιθεῖμεν · τιθεῖτε · τιθεῖεν", info:"1·2·3복 — 복수는 -ι- (단축형)"},
+        {form:"διδοίην · διδοίης · διδοίη", info:"δίδωμι 1·2·3단 — ο + ιη"},
+        {form:"διδοῖμεν · διδοῖτε · διδοῖεν", info:"1·2·3복"},
+        {form:"ἱσταίην · ἱσταίης · ἱσταίη", info:"ἵστημι 1·2·3단 — α + ιη"},
+        {form:"ἱσταῖμεν · ἱσταῖτε · ἱσταῖεν", info:"1·2·3복"},
+      ],
+    },
+    {
+      caption:"부정과거 희구법 — 어근 + -ιη- (단수)/-ι- (복수). 'μὴ γένοιτο' 같은 관용어의 형",
+      rows:[
+        {form:"θείην · θείης · θείη", info:"τίθημι aor.opt. 1·2·3단 — '내가 놓는다면 좋겠다'"},
+        {form:"θεῖμεν · θεῖτε · θεῖεν", info:"1·2·3복"},
+        {form:"δοίην · δοίης · δοίη", info:"δίδωμι aor.opt. 1·2·3단 — '내가 준다면 좋겠다'"},
+        {form:"δοῖμεν · δοῖτε · δοῖεν", info:"1·2·3복"},
+        {form:"σταίην · σταίης · σταίη", info:"ἵστημι 자동 aor.opt. 1·2·3단 — '내가 선다면 좋겠다'"},
+        {form:"σταῖμεν · σταῖτε · σταῖεν", info:"1·2·3복"},
+      ],
+    },
+    {
+      caption:"가정법 vs 희구법 — 의미·문장구조의 짝",
+      rows:[
+        {form:"ἐὰν θῶ", info:"가정법 — '내가 놓으면' (가능성, 미래)"},
+        {form:"εἰ θείην", info:"희구법 — '내가 놓는다면 (있을 법한)' (희미한 가능성)"},
+        {form:"ὅπως θῶ", info:"가정법 — '내가 놓도록' (목적)"},
+        {form:"ὅπως θείην", info:"희구법 — '내가 놓을 수 있도록' (부차적 시퀀스)"},
+        {form:"εἴθε θείην", info:"희구법 단독 — '내가 놓을 수만 있다면!' (소원)"},
+        {form:"μὴ γένοιτο", info:"부정과거 희구법의 관용표현 — '결코 그런 일이 없기를!' (μὴ + opt.)"},
+      ],
+    },
+  ],
+  items:[
+    {form:"τίθημι",     info:"τίθημι '놓다' 현재 능동 1단 — athematic 표시 형"},
+    {form:"τίθης",      info:"τίθημι 현재 능동 2단"},
+    {form:"τίθησι(ν)",  info:"τίθημι 현재 능동 3단 (-σι 어미)"},
+    {form:"τίθεμεν",    info:"τίθημι 현재 능동 1복 — *복수에서 모음 단축* (τίθη → τίθε)"},
+    {form:"ἔθηκα",      info:"τίθημι 부정과거 능동 1단 — κ-부정과거"},
+    {form:"ἔθεμεν",     info:"τίθημι 부정과거 능동 1복 — *어근 부정과거* (κ 없음)"},
+    {form:"δίδωμι",     info:"δίδωμι '주다' 현재 능동 1단"},
+    {form:"δίδωσι(ν)",  info:"δίδωμι 현재 능동 3단"},
+    {form:"δίδομεν",    info:"δίδωμι 현재 능동 1복 — 복수에서 ω → ο"},
+    {form:"ἔδωκα",      info:"δίδωμι 부정과거 능동 1단 — κ-부정과거"},
+    {form:"ἵστημι",     info:"ἵστημι '세우다' 현재 능동 1단 (타동)"},
+    {form:"ἵσταμαι",    info:"ἵστημι 현재 중·수동 1단 — '서다' (자동)"},
+    {form:"ἔστην",      info:"ἵστημι *어근* 부정과거 1단 — 자동 'I stood'"},
+    {form:"ἔστησα",     info:"ἵστημι σ-부정과거 1단 — 타동 'I set up'"},
+    {form:"ἕστηκα",     info:"ἵστημι 완료 1단 — *현재 의미* 'I am standing'"},
+    {form:"δείκνυμι",   info:"δείκνυμι '보이다' 현재 능동 1단 — -νυμι 형 athematic"},
+    {form:"ἔδειξα",     info:"δείκνυμι σ-부정과거 1단"},
+    {form:"τιθείς",     info:"τίθημι 현재 능동 분사 남성 단수 주격 — '놓고 있는'"},
+    {form:"θείς",       info:"τίθημι 부정과거 능동 분사 남성 단수 주격 — '놓은 뒤'"},
+    {form:"δούς",       info:"δίδωμι 부정과거 능동 분사 남성 단수 주격 — '주고 나서'"},
+    {form:"στάς",       info:"ἵστημι 부정과거 능동 분사 — '서고 나서' (자동)"},
+  ],
+},
+
+{
+  id:"acc-abs", lesson:99, cat:"verb",
+  title:"대격 절대 (Accusative Absolute) — 비인칭 분사의 특수 구문",
+  desc:"비인칭 동사 (ἐξόν · παρόν · δοκοῦν · δέον · προσῆκον) 가 단독으로 *대격* 으로 쓰여 양보·인과의 배경을 표시. 속격 절대의 *친척 구문*.",
+  expl:`그리스어의 *절대 구문* (주절과 문법적으로 분리된 배경 표지) 은 보통 **속격 절대** 다 — 분사 + 명사 모두 속격. 그러나 한 가지 예외가 있다: **비인칭 동사의 분사** 가 단독 등장할 때는 *대격* 으로 쓴다. 이것이 accusative absolute.
+
+핵심 조건:
+  · 분사의 동사가 *비인칭* (impersonal) — 즉 인칭 주어가 없거나 "그것이 ~이다 / 가능하다 / 필요하다" 식의 일반적 진술.
+  · 분사는 **중성 단수 대격** — 즉 명사 주어가 없음을 표시.
+  · 한국어로는 양보 ("~함에도 불구하고") 또는 인과 ("~이므로") 로 옮긴다.
+
+주요 비인칭 분사:
+  · **ἐξόν** (ἔξεστι "허용되어 있다, 가능하다" 의 분사 ἐξὸν ὄν → ἐξόν) — "가능함에도 / 가능하므로"
+  · **παρόν** (πάρεστι "여기 있다, 제공된다" 의 분사) — "기회가 있음에도 / 있으므로"
+  · **δοκοῦν / δόξαν** (δοκεῖ "그렇게 보인다, 결정되다") — "결정된 바에 따라"
+  · **δέον** (δεῖ "필요하다") — "필요함에도 / 필요하므로"
+  · **προσῆκον** (προσήκει "어울리다, 적절하다") — "적절함에도 / 적절하므로"
+  · **μέλον** (μέλει "관심사다") — "관심사임에도 / 관심사이므로"
+
+용례:
+
+(1) **양보 (concessive)** — 가장 흔함:
+  ἐξὸν ἀπιέναι, ἔμενεν.
+  "도망갈 수 있었음에도, 그는 머물렀다."
+  (Socrates 가 감옥에서 도망가지 않은 것에 대한 Plato 의 묘사 양식)
+
+(2) **인과 (causal)**:
+  δόξαν τοῖς Ἕλλησιν, ἀπεχώρησαν.
+  "그리스인들에게 (그렇게) 결정되었으므로, 그들은 후퇴했다."
+
+(3) **상황 (circumstantial)**:
+  δέον αὐτὸν φεύγειν, οὐκ ἔφυγεν.
+  "그가 도망쳐야 했음에도, 도망치지 않았다."
+
+(4) **분사 + 부정사 결합** (가장 정밀한 형):
+  ἐξὸν ἡμῖν εἰρήνην ἄγειν, πολεμοῦμεν.
+  "우리가 평화로울 수 있음에도, 전쟁을 한다."
+  → ἐξόν + 여격 (이해 당사자) + 부정사 (가능한 행위).
+
+속격 절대와의 비교:
+  | 구문 | 분사의 격 | 주어 명사 | 분사 동사 종류 |
+  | :--- | :--- | :--- | :--- |
+  | 속격 절대 | 속격 | *명시* (속격) | 인칭·비인칭 모두 |
+  | 대격 절대 | 대격 (중성 단수) | *없음* | 비인칭만 |
+
+ἅτε · ὡς + 분사 같은 *원인 표지* 가 자주 결합 — "~이므로" 의미가 더 분명해진다.
+
+**함정**:
+  · 분사가 *형용사적 위치* (관사 + 분사) 인지 *부사적 위치* (절대 구문) 인지 식별 필수. 형용사적이면 단순 한정 ("가능한 것"), 절대 구문이면 배경 ("가능함에도/가능하므로").
+  · 일부 학자는 accusative absolute 를 *속격 절대의 변형* 으로 보지 않고, *내용 대격* (대격으로 행위 내용을 표시) 의 한 갈래로 분석. 의미 차이는 크지 않다.
+
+본 앱의 속격 절대 토픽 (gen-abs) 과 *연속해서* 학습 권장 — 두 절대 구문이 함께 그리스어 부사절 압축의 두 축을 이룬다.`,
+  paradigm:{
+    caption:"주요 비인칭 분사 (대격 절대로 쓰이는 형)",
+    rows:[
+      {form:"ἐξόν",     info:"ἔξεστι '가능하다' 의 분사 — '가능함에도 / 가능하므로'"},
+      {form:"παρόν",    info:"πάρεστι '여기 있다' — '기회가 있음에도'"},
+      {form:"δοκοῦν",   info:"δοκεῖ '결정된다' (현재 분사)"},
+      {form:"δόξαν",    info:"δοκεῖ '결정되었다' (부정과거 분사) — '결정된 바에 따라'"},
+      {form:"δέον",     info:"δεῖ '필요하다' — '필요함에도 / 필요하므로'"},
+      {form:"προσῆκον", info:"προσήκει '어울리다' — '적절함에도'"},
+    ],
+  },
+  paradigmAlt:{
+    caption:"속격 절대 vs 대격 절대 — 진단표",
+    rows:[
+      {form:"속격 절대 — 명시 주어 있음", info:"τοῦ στρατηγοῦ ἀποθανόντος, ἀνεχώρησαν '장군이 죽었으므로'"},
+      {form:"대격 절대 — 비인칭 분사",    info:"δέον φεύγειν, οὐκ ἔφυγεν '도망쳐야 했음에도'"},
+      {form:"형용사적 분사 (관사 + 분사)",  info:"τὸ προσῆκον '적절한 것' — 절대 구문이 아닌 단순 명사구"},
+    ],
+  },
+  items:[
+    {form:"ἐξὸν ἀπιέναι",                 info:"'도망갈 수 있었음에도' — 양보 (가장 흔한 용법)"},
+    {form:"ἐξὸν αὐτῷ φεύγειν",            info:"'그가 도망갈 수 있음에도' — 비인칭 + 여격 (이해 당사자)"},
+    {form:"δέον φεύγειν",                 info:"'도망쳐야 했음에도 / 했으므로' — δεῖ 의 분사"},
+    {form:"δόξαν τοῖς Ἕλλησιν",           info:"'그리스인들에게 결정된 바에 따라' — δοκεῖ 의 부정과거 분사"},
+    {form:"παρὸν αὐτῷ ἄρχειν",            info:"'그가 통치할 기회가 있음에도' — πάρεστι 의 분사"},
+    {form:"προσῆκον τῇ πόλει",            info:"'국가에 적절했음에도' — προσήκει 의 분사"},
+    {form:"δοκοῦν αὐτοῖς ταῦτα",          info:"'그것이 그들에게 그렇게 보이므로' — δοκεῖ 의 현재 분사"},
+    {form:"ἐξὸν ἡμῖν εἰρήνην ἄγειν",     info:"'우리가 평화로울 수 있음에도' — 분사 + 여격 + 부정사 결합"},
+  ],
+},
+
+{
+  id:"syn-meta", lesson:99, cat:"prep",
+  title:"σύν vs μετά — '함께' 의 미세 차이",
+  desc:"둘 다 '~와 함께' 를 의미하나 *동반의 성격* 이 다름. 잘못 쓰면 자연스럽지 않은 그리스어가 됨.",
+  expl:`그리스어는 '~와 함께' 를 표현하는 전치사가 셋 — σύν (+ 여격), μετά (+ 속격), ἅμα (+ 여격, 시간 동시성). 이 중 σύν 과 μετά 는 의미가 비슷해 보이지만 *동반의 성격* 이 다르다.
+
+**σύν + 여격** — *친밀한 동반 / 협력 / 동맹*:
+  σὺν τοῖς συμμάχοις "동맹들과 함께 (협력하여)"
+  σὺν θεῷ "신의 도움으로" (관용표현)
+  σὺν τοῖς ὅπλοις "무기를 *갖고서*" (수단·동반 모두 가능)
+  → *함께 행동하는* 뉘앙스. 같은 편이라는 함의 강함. *수단·동반·도구* 의 의미로도 자주.
+
+**μετά + 속격** — *중립적 동반 / 함께 있음*:
+  μετὰ τῶν ἑταίρων "동료들과 함께"
+  μετὰ φιλίας "우정으로 (우정과 함께)"
+  μετὰ Σωκράτους ἦν "Socrates 와 함께 있었다"
+  → 단순히 *같이 있다* 의 의미. 협력의 함의 약함. *상태·관계* 표현에 적합.
+
+**ἅμα + 여격** — *시간 동시성*:
+  ἅμα τῇ ἡμέρᾳ "낮과 함께 = 새벽에" (동시 시간)
+  ἅμα τοῖς ἄλλοις "다른 이들과 동시에" (시간 일치)
+  → 시간이 핵심. '함께 있음' 보다 '같은 시점' 강조.
+
+**역사적 변화**:
+  σύν 은 시대가 흐를수록 *문학적·고풍스러운 표현* 으로 굳어지고, 일상 산문에서는 μετά + 속격이 대체. 신약 그리스어 시대에는 σύν 사용이 현저히 줄어든다.
+
+  Attic prose 에서 σύν 은 (1) 정해진 관용구 (σὺν θεῷ, σὺν δίκῃ "정의롭게"), (2) 군대·정치적 동맹 묘사, (3) 시·비극의 고급 문체 정도로 한정. 일반적 동반은 거의 μετά.
+
+**μετά + 대격** — 같은 전치사의 다른 격은 *전혀 다른 의미*:
+  μετὰ ταῦτα "이 일들 *뒤에*" (시간·순서)
+  μετὰ τὸν πόλεμον "전쟁 *후에*"
+  → 격 하나로 의미가 '함께' → '~뒤에' 로 변함. 그리스어 전치사의 격 의존성을 보여주는 대표 예.
+
+**번역 시 단서**:
+  · 한국어 '~와 함께' 를 그대로 옮기면 보통 μετά + 속격 이 안전.
+  · *협력·동맹* 의 색채가 있으면 σύν + 여격 (시·문어).
+  · *시간 동시성* 이면 ἅμα + 여격.
+  · *수단·도구* 이면 σύν + 여격 ("with one's hands" 같은 영어 instrumental).
+
+**관용 표현 (반드시 σύν)**:
+  · σὺν θεῷ — "신과 함께 = 신의 도움으로"
+  · σὺν τύχῃ ἀγαθῇ — "행운과 함께"
+  · σὺν δίκῃ — "정의롭게, 정당하게"
+  → 이런 관용표현은 *교체 불가*. μετά 로 바꾸면 어색.
+
+**관련 토픽**: 본 앱의 'ἅμα + 여격' (시나리오 8 슬레이브-마스터 의 grammar note) 와 함께 학습. 세 전치사가 동반·동시성의 *스펙트럼* 을 이룬다.`,
+  paradigm:{
+    caption:"세 전치사의 미세 분포",
+    rows:[
+      {form:"σύν + 여격",      info:"친밀한 동반·협력·수단 (문어, 관용구). σὺν θεῷ"},
+      {form:"μετά + 속격",     info:"중립적 동반 ('함께 있음'). 일상 산문 표준. μετὰ τῶν ἑταίρων"},
+      {form:"ἅμα + 여격",      info:"시간 동시성 ('동시에'). ἅμα τῇ ἡμέρᾳ"},
+      {form:"μετά + 대격",     info:"시간 순서 ('~뒤에'). 같은 전치사·다른 의미. μετὰ ταῦτα"},
+    ],
+  },
+  paradigmAlt:{
+    caption:"의미 스펙트럼 — 한국어 '함께' 의 분기",
+    rows:[
+      {form:"'협력해서'",     info:"σύν + 여격 (문어). σὺν τοῖς συμμάχοις"},
+      {form:"'~와 같이 있어'", info:"μετά + 속격. μετὰ Σωκράτους"},
+      {form:"'~할 때 동시에'", info:"ἅμα + 여격. ἅμα τῇ νυκτί"},
+      {form:"'그 뒤에'",       info:"μετά + 대격. μετὰ ταῦτα"},
+    ],
+  },
+  items:[
+    {form:"σὺν θεῷ",              info:"'신의 도움으로' — σύν + 여격 관용구"},
+    {form:"σὺν τοῖς συμμάχοις",   info:"'동맹들과 협력하여' — σύν 의 *협력* 뉘앙스"},
+    {form:"σὺν δίκῃ",             info:"'정당하게, 정의롭게' — σύν + 여격 부사적 관용"},
+    {form:"σὺν τοῖς ὅπλοις",      info:"'무기를 갖고서' — σύν 의 *수단* 의미"},
+    {form:"μετὰ τῶν ἑταίρων",     info:"'동료들과 함께' — μετά + 속격 (중립적 동반)"},
+    {form:"μετὰ Σωκράτους",       info:"'소크라테스와 함께' — 일상 산문의 표준 형"},
+    {form:"μετὰ ταῦτα",           info:"'그 뒤에' — μετά + 대격 (시간 순서)"},
+    {form:"μετὰ τὴν μάχην",       info:"'전투 뒤에' — 같은 전치사, 격에 따라 의미 분기"},
+    {form:"ἅμα τῇ ἡμέρᾳ",         info:"'새벽에' — ἅμα + 여격 (시간 동시성)"},
+    {form:"ἅμα τοῖς ἄλλοις",      info:"'다른 이들과 동시에' — ἅμα + 여격 (동행 + 동시)"},
+  ],
 },
 
 ];
@@ -3474,7 +3852,7 @@ function imageURL(imgId, width){
 
 // 앱 버전 — sw.js CACHE_VERSION과 동기화 유지. 홈 화면 푸터에 표시되어
 // 사용자가 자신이 어느 버전을 사용 중인지 확인 가능 (캐시 갱신 진단용).
-const APP_VERSION = 'v46';
+const APP_VERSION = 'v50';
 window.__paideiaVersion = APP_VERSION;
 
 // ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
@@ -3870,7 +4248,7 @@ async function renderProfiles(){
       </div>
       <div style="display:flex;gap:6px">
         <input id="new-profile-name" class="input" type="text"
-               placeholder="예: 김도경, 이채린, ..." maxlength="30"
+               aria-label="예: 김도경, 이채린, ..." placeholder="예: 김도경, 이채린, ..." maxlength="30"
                style="flex:1;padding:8px 11px;font-size:13.5px">
         <button class="btn" id="new-profile-add" style="font-size:13px">추가</button>
       </div>
@@ -4219,10 +4597,10 @@ function renderHome(){
     </div>
 
     <div class="tiles">
-      <button class="tile" data-go="vocab"><span class="grk">Λέξεις</span><span class="title">어휘 학습</span><span class="desc">교재 ${TEXTBOOK_W.length}개 + DCC ${DCC_W.length}개</span></button>
-      <button class="tile" data-go="grammar"><span class="grk">Γραμμ.</span><span class="title">문법 다지기</span><span class="desc">${TOPICS.length}개 주제</span></button>
-      <button class="tile" data-go="read"><span class="grk">Ἀνάγνωσις</span><span class="title">원문 읽기</span><span class="desc">${WORKS.length}편 전집 + ${READINGS.length}편 발췌</span></button>
-      <button class="tile" data-go="hall"><span class="grk">Τιμαί</span><span class="title">명예의 전당</span><span class="desc">획득 ${S.badges.length}/${BADGES.length}</span></button>
+      <button class="tile" data-go="vocab" aria-label="어휘 학습"><span class="grk">Λέξεις</span><span class="title">어휘 학습</span><span class="desc">교재 ${TEXTBOOK_W.length}개 + DCC ${DCC_W.length}개</span></button>
+      <button class="tile" data-go="grammar" aria-label="문법 다지기"><span class="grk">Γραμμ.</span><span class="title">문법 다지기</span><span class="desc">${TOPICS.length}개 주제</span></button>
+      <button class="tile" data-go="read" aria-label="원문 읽기"><span class="grk">Ἀνάγνωσις</span><span class="title">원문 읽기</span><span class="desc">${WORKS.length}편 전집 + ${READINGS.length}편 발췌</span></button>
+      <button class="tile" data-go="hall" aria-label="명예의 전당"><span class="grk">Τιμαί</span><span class="title">명예의 전당</span><span class="desc">획득 ${S.badges.length}/${BADGES.length}</span></button>
     </div>
 
     ${(()=>{
@@ -4287,7 +4665,19 @@ function renderQuickReview(){
   `;
   const showBtn = slot.querySelector('#qr-show');
   showBtn.addEventListener('click', ()=>{
-    slot.querySelector('#qr-rev').innerHTML = `<b style="color:var(--terracotta-d)">${w.ko}</b> · <span style="color:var(--clay-d);font-size:11px">${POS_LABELS[w.pos]||w.pos}</span>`;
+    // v48: 뜻 + 악센트 분류 정보 함께 노출 (Τόνος 학습 모드와 통합)
+    let accentInfo = '';
+    if(typeof _classifyAccent === 'function'){
+      const cls = _classifyAccent(w.g);
+      if(cls && cls.accentPos && cls.accentType && typeof ACCENT_POS_NAMES !== 'undefined'){
+        const posLbl = ACCENT_POS_NAMES[cls.accentPos] && ACCENT_POS_NAMES[cls.accentPos].ko;
+        const typLbl = ACCENT_TYPE_NAMES[cls.accentType] && ACCENT_TYPE_NAMES[cls.accentType].ko;
+        if(posLbl && typLbl){
+          accentInfo = ` · <span style="font-size:11px;color:var(--clay-d)" title="강세 위치 + 종류">${cls.nSyllables}음절 · ${posLbl.split(' ')[0]} · ${typLbl.split(' ')[0]}</span>`;
+        }
+      }
+    }
+    slot.querySelector('#qr-rev').innerHTML = `<b style="color:var(--terracotta-d)">${w.ko}</b> · <span style="color:var(--clay-d);font-size:11px">${POS_LABELS[w.pos]||w.pos}</span>${accentInfo}`;
     showBtn.disabled = true;
   });
   slot.querySelector('#qr-next').addEventListener('click', renderQuickReview);
@@ -4360,6 +4750,17 @@ function renderVocab(){
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Ἀκοή</div>
           <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">받아쓰기 — 듣고 입력 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:6px;margin-left:4px;vertical-align:middle">new</span></div>
           <div style="font-size:11px;color:var(--clay-d);margin-top:3px">TTS 발음 → 그리스어로 입력 · polytonic/대소문자 관용 · 신규 어휘 우선</div>
+        </div>
+        <div style="font-size:22px;color:var(--terracotta)">→</div>
+      </div>
+    </button>
+
+    <button class="card" type="button" data-render="renderAccentLocator" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Τόνος</div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">악센트 위치 — 운율의 핵심 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:6px;margin-left:4px;vertical-align:middle">new</span></div>
+          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">위치 (ultima/penult/antepenult) · 종류 (acute/circumflex/grave) 식별 학습</div>
         </div>
         <div style="font-size:22px;color:var(--terracotta)">→</div>
       </div>
@@ -4610,7 +5011,7 @@ function nextQuestion(){
 
   const promptGr = s.dir==='g2k';
   // v43: 그리스어 prompt 에 🔊 버튼 — TTS 로 발음 듣기
-  const speakBtn = promptGr ? `<button class="btn btn-sm btn-o" id="q-speak" title="발음 듣기" style="vertical-align:middle;padding:2px 8px;font-size:13px;margin-left:8px">🔊</button>` : '';
+  const speakBtn = promptGr ? `<button class="btn btn-sm btn-o" id="q-speak" title="발음 듣기" aria-label="발음 듣기" style="vertical-align:middle;padding:2px 8px;font-size:13px;margin-left:8px">🔊</button>` : '';
   const prompt = promptGr
     ? `<div class="quiz-prompt grk">${q.g}${q.r?` <span style="font-size:14px;color:var(--clay-d);font-family:var(--font-grk)">${q.r}</span>`:''}${speakBtn}</div>`
     : `<div class="quiz-prompt ko">${q.ko}</div>`;
@@ -4642,7 +5043,7 @@ function nextQuestion(){
       <div class="quiz-card fade-in">
         ${prompt}
         <div class="quiz-sub">${sub}</div>
-        <input class="input" id="answer-input" autocomplete="off" placeholder="한국어 뜻을 입력하세요…">
+        <input class="input" id="answer-input" autocomplete="off" aria-label="한국어 뜻을 입력하세요…" placeholder="한국어 뜻을 입력하세요…">
         <div class="btn-row" style="margin-top:12px;justify-content:center">
           <button class="btn" id="submit-typed">제출</button>
           <button class="btn btn-o btn-sm" id="show-typed">모르겠다</button>
@@ -4799,7 +5200,7 @@ function renderGrammar(){
     </button>
 
     <div class="chips" id="cat-chips">
-      ${[['all','전체'],['decl','격변화 (명사·형용사·대명사)'],['verb','동사 시제·법·분사'],['particle','입자·담화 표지']].map(([v,l])=>
+      ${[['all','전체'],['decl','격변화 (명사·형용사·대명사)'],['verb','동사 시제·법·분사'],['particle','입자·담화 표지'],['prep','전치사']].map(([v,l])=>
         `<button class="chip ${grammarFilter.cat===v?'active':''}" data-v="${v}">${l}</button>`).join('')}
     </div>
 
@@ -6002,7 +6403,7 @@ function renderScenario(scenarioId){
               ${it.src  ? `<div style="font-size:10.5px;color:var(--clay-d);margin-top:4px;font-style:italic">📜 ${it.src}</div>` : ''}
             </div>
             <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;align-self:center">
-              <button class="btn btn-sm btn-o" data-speak-conv="${encodeURIComponent(it.grk)}" title="발음 듣기" style="min-width:54px;padding:4px 8px;font-size:13px">🔊</button>
+              <button class="btn btn-sm btn-o" data-speak-conv="${encodeURIComponent(it.grk)}" title="발음 듣기" aria-label="발음 듣기" style="min-width:54px;padding:4px 8px;font-size:13px">🔊</button>
               <button class="btn btn-sm ${isRead?'btn-g':'btn-o'}" data-i="${i}" style="min-width:54px">${isRead?'✓':'학습'}</button>
             </div>
           </div>
@@ -6114,7 +6515,7 @@ function renderDialogueScene(id){
                 <div style="font-size:13px;color:var(--black-glaze);margin-top:5px;line-height:1.55">${t.ko}</div>
                 ${t.note ? `<div style="font-size:11px;color:var(--clay-d);margin-top:6px;line-height:1.55;font-style:italic">📐 ${t.note}</div>` : ''}
               </div>
-              <button class="btn btn-sm btn-o" data-speak="${safeId}" data-text="${encodeURIComponent(t.grk)}" title="발음 듣기" style="flex-shrink:0;align-self:flex-start;padding:4px 8px;font-size:13px">🔊</button>
+              <button class="btn btn-sm btn-o" data-speak="${safeId}" data-text="${encodeURIComponent(t.grk)}" title="발음 듣기" aria-label="발음 듣기" style="flex-shrink:0;align-self:flex-start;padding:4px 8px;font-size:13px">🔊</button>
             </div>
           </div>`;
       }).join('')}
@@ -6129,7 +6530,7 @@ function renderDialogueScene(id){
             <div style="font-size:13px;color:var(--black-glaze)">${v.ko}</div>
             ${v.note ? `<div style="font-size:11px;color:var(--clay-d);margin-top:2px">${v.note}</div>` : ''}
           </div>
-          <button class="btn btn-sm btn-o" data-speak-w="${encodeURIComponent(v.g)}" title="발음" style="flex-shrink:0;padding:3px 7px;font-size:12px">🔊</button>
+          <button class="btn btn-sm btn-o" data-speak-w="${encodeURIComponent(v.g)}" title="발음" aria-label="발음" style="flex-shrink:0;padding:3px 7px;font-size:12px">🔊</button>
         </div>`).join('')}
     </div>
 
@@ -6231,7 +6632,7 @@ function _renderDictationQuestion(){
 
     <div class="card">
       <input class="input grk" id="dict-input" autocomplete="off" autocapitalize="none" spellcheck="false"
-             placeholder="듣고 입력 (polytonic 없이도 OK)" style="font-size:18px;text-align:center">
+             aria-label="듣고 입력 (polytonic 없이도 OK)" placeholder="듣고 입력 (polytonic 없이도 OK)" style="font-size:18px;text-align:center">
       <div class="btn-row" style="margin-top:10px;justify-content:center">
         <button class="btn" id="dict-submit">제출</button>
         <button class="btn btn-o btn-sm" id="dict-skip">모르겠다</button>
@@ -6322,7 +6723,7 @@ function _finishDictation(){
             <div class="grk" style="font-size:15px;color:var(--terracotta-d)">${h.q.g}</div>
             <div style="font-size:11px;color:var(--clay-d)">${h.q.ko}${!h.ok && h.user ? ` · 당신: <span class="grk">${h.user}</span>` : ''}</div>
           </div>
-          <button class="btn btn-sm btn-o" data-grk="${encodeURIComponent(h.q.g)}" title="다시 듣기" style="flex-shrink:0;padding:3px 7px;font-size:12px">🔊</button>
+          <button class="btn btn-sm btn-o" data-grk="${encodeURIComponent(h.q.g)}" title="다시 듣기" aria-label="다시 듣기" style="flex-shrink:0;padding:3px 7px;font-size:12px">🔊</button>
         </div>`).join('')}
     </div>
     <div class="btn-row" style="margin-top:12px">
@@ -6346,6 +6747,278 @@ function _endDictation(){
 
 window.renderDictation = renderDictation;
 window._endDictation   = _endDictation;
+
+// ===== 악센트 위치 학습 (Τόνος · Accent Locator, v47) =====
+// 폴리토닉 그리스어 어형의 *악센트 위치 + 종류* 를 식별하는 학습 모드.
+// 학습 가치: 그리스어 운율의 핵심은 악센트 — 음절 길이·강세·악센트 종류가 발음과 의미를 결정.
+//
+// 주의: 본 함수 이름은 v48 에서 renderAccentLocator 로 변경됨 —
+// 이전 v32 시절의 옥시톤·파록시톤 분류 quiz (renderAccentQuiz, 5365줄) 와 *공존*.
+// 두 quiz 는 학습 목표가 다름:
+//   · 옛 (renderAccentQuiz): 옥시톤·파록시톤·프로파록시톤·페리스포메논·프로페리스포메논 5분류
+//   · 새 (renderAccentLocator): 위치 (ultima/penult/antepenult) + 종류 (acute/circumflex/grave) 분리 학습
+//
+// 분류 체계:
+//   · 위치: ultima (1, 마지막 음절) · penult (2, 끝에서 2번째) · antepenult (3, 끝에서 3번째)
+//   · 종류: acute (´) · circumflex (῀) · grave (`)
+//   · 음절 수: 1·2·3·4+
+//
+// 음절 식별 알고리즘:
+//   (a) 단어를 NFD 정규화 → base char + diacritics 분리
+//   (b) 모음을 차례로 스캔, 인접한 모음 쌍이 *true diphthong* 이면 한 음절
+//   (c) 두 번째 모음에 diaeresis (U+0308) 있으면 hiatus → 별개 음절
+//   (d) diphthong 의 어느 글자에 든 acute/circumflex/grave 가 그 음절의 강세
+//
+// 테스트 19개 단어로 100% 정확도 검증 (개발 시).
+
+const DIPHTHONGS = new Set(['αι','ει','οι','υι','αυ','ευ','ηυ','ου','ωυ']);
+
+function _classifyAccent(word){
+  if(!word) return null;
+  const nfd = word.normalize('NFD');
+  const units = [];
+  for(const c of nfd){
+    if(/[\u0300-\u036f]/.test(c)){
+      if(units.length) units[units.length-1].marks.push(c);
+    } else {
+      units.push({base:c, marks:[]});
+    }
+  }
+  const VOWEL_RE = /[αεηιουωΑΕΗΙΟΥΩ]/;
+  const syllables = [];
+  let i = 0;
+  while(i < units.length){
+    const u = units[i];
+    if(VOWEL_RE.test(u.base)){
+      const base1 = u.base.toLowerCase();
+      let isDip = false;
+      if(i+1 < units.length && VOWEL_RE.test(units[i+1].base)){
+        const pair = base1 + units[i+1].base.toLowerCase();
+        if(DIPHTHONGS.has(pair)){
+          if(!units[i+1].marks.includes('\u0308')) isDip = true;
+        }
+      }
+      if(u.marks.includes('\u0308')) isDip = false;
+      if(isDip){
+        const allMarks = [...u.marks, ...units[i+1].marks];
+        let acc = null;
+        if(allMarks.includes('\u0301')) acc = 'acute';
+        else if(allMarks.includes('\u0342')) acc = 'circumflex';
+        else if(allMarks.includes('\u0300')) acc = 'grave';
+        syllables.push({accent:acc});
+        i += 2;
+      } else {
+        let acc = null;
+        if(u.marks.includes('\u0301')) acc = 'acute';
+        else if(u.marks.includes('\u0342')) acc = 'circumflex';
+        else if(u.marks.includes('\u0300')) acc = 'grave';
+        syllables.push({accent:acc});
+        i += 1;
+      }
+    } else {
+      i += 1;
+    }
+  }
+  const nSyllables = syllables.length;
+  let accentPos = null, accentType = null;
+  for(let j = 0; j < nSyllables; j++){
+    if(syllables[j].accent){
+      accentPos = nSyllables - j;
+      accentType = syllables[j].accent;
+      break;
+    }
+  }
+  return {nSyllables, accentPos, accentType};
+}
+
+const ACCENT_POS_NAMES = {
+  1: {ko:'마지막 음절 (ultima)',      en:'oxytone/perispomenon zone'},
+  2: {ko:'끝에서 2번째 음절 (penult)', en:'paroxytone/properispomenon zone'},
+  3: {ko:'끝에서 3번째 음절 (antepenult)', en:'proparoxytone zone'},
+};
+const ACCENT_TYPE_NAMES = {
+  acute:      {ko:'예음 (´)',  symbol:'΄', en:'acute'},
+  circumflex: {ko:'곡절 (῀)',  symbol:'῀', en:'circumflex'},
+  grave:      {ko:'억음 (`)',  symbol:'`', en:'grave'},
+};
+
+let _accentSession = null;
+
+function renderAccentLocator(){
+  // 풀 구성: ALL_VOCAB 중 2-3 음절 단어가 학습 가치 높음 (1 음절은 위치 식별 의미 없음)
+  // antepenult 강세 (proparoxytone) 는 흔치 않으므로 별도 카운트
+  const pool = (typeof ALL_VOCAB !== 'undefined' ? ALL_VOCAB : [])
+    .filter(w => w && w.g)
+    .map(w => {
+      const cls = _classifyAccent(w.g);
+      return {...w, _accent: cls};
+    })
+    .filter(w => w._accent && w._accent.nSyllables >= 2 && w._accent.nSyllables <= 4 && w._accent.accentPos && w._accent.accentType);
+
+  if(pool.length < 8){
+    view.innerHTML = `
+      <button class="btn btn-sm btn-o" onclick="setTab('vocab')">← 어휘</button>
+      <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Τόνος</span>악센트 위치</h2>
+      <div class="card warm">학습 가능한 어휘 풀이 부족합니다.</div>`;
+    return;
+  }
+  if(!_accentSession){
+    _accentSession = { qIdx:0, total:10, right:0, wrong:0, history:[], pool };
+  }
+  _renderAccentQuestion();
+}
+
+function _renderAccentQuestion(){
+  const s = _accentSession;
+  if(!s) return renderAccentLocator();
+  if(s.qIdx >= s.total){ _finishAccentQuiz(); return; }
+
+  // 다양한 위치·종류가 나오도록 가중치 — antepenult 와 circumflex 를 약간 우대
+  const weighted = s.pool.flatMap(w => {
+    const weight = (w._accent.accentPos === 3 ? 3 : 1) + (w._accent.accentType === 'circumflex' ? 2 : 0);
+    return Array(weight).fill(w);
+  });
+  const q = weighted[Math.floor(Math.random() * weighted.length)];
+  s.q = q;
+
+  // 모드 선택: 두 질문 유형을 번갈아 — (a) 위치 식별 (b) 종류 식별
+  const mode = (s.qIdx % 2 === 0) ? 'position' : 'type';
+  s.mode = mode;
+
+  // 단어를 *악센트 없이* 표시하기 위해 모든 강세 표지 제거
+  const stripped = q.g.normalize('NFD').replace(/[\u0301\u0342\u0300]/g, '').normalize('NFC');
+
+  let questionHTML, optionsHTML;
+  if(mode === 'position'){
+    questionHTML = `<div style="font-size:13px;color:var(--clay-d);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:14px">이 단어의 강세 위치는?</div>`;
+    const possiblePositions = q._accent.nSyllables >= 3 ? [1, 2, 3] : [1, 2];
+    optionsHTML = possiblePositions.map(p => `
+      <button class="opt accent-opt" data-pos="${p}" style="width:100%;text-align:left">
+        <b>${p === 1 ? 'ultima' : p === 2 ? 'penult' : 'antepenult'}</b>
+        <span style="font-size:11px;color:var(--clay-d);margin-left:6px">— ${ACCENT_POS_NAMES[p].ko}</span>
+      </button>
+    `).join('');
+  } else {
+    questionHTML = `<div style="font-size:13px;color:var(--clay-d);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:14px">이 단어의 강세 종류는?</div>`;
+    optionsHTML = ['acute','circumflex','grave'].map(t => `
+      <button class="opt accent-opt" data-type="${t}" style="width:100%;text-align:left">
+        <span style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);min-width:30px;display:inline-block;text-align:center">${ACCENT_TYPE_NAMES[t].symbol}</span>
+        <b style="margin-left:6px">${ACCENT_TYPE_NAMES[t].ko}</b>
+      </button>
+    `).join('');
+  }
+
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="_endAccentQuiz()">← 어휘</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Τόνος</span>악센트 위치</h2>
+    <div class="view-sub">${s.qIdx+1} / ${s.total} · 정답률 ${s.qIdx>0?Math.round(s.right*100/s.qIdx)+'%':'—'}</div>
+
+    <div class="card" style="text-align:center;padding:24px 16px">
+      ${questionHTML}
+      <div class="grk" style="font-size:36px;color:var(--terracotta-d);font-weight:600;margin:6px 0 4px">${stripped}</div>
+      <div style="font-size:12px;color:var(--clay-d);font-style:italic">${q.ko || ''} · ${q._accent.nSyllables}음절</div>
+      <button class="btn btn-sm btn-o" id="acc-speak" style="margin-top:10px;padding:4px 12px;font-size:13px">🔊 듣기</button>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${optionsHTML}
+      </div>
+      <div id="acc-fb" style="margin-top:12px"></div>
+    </div>
+  `;
+
+  // 발음 듣기
+  const sp = document.getElementById('acc-speak');
+  if(sp) sp.addEventListener('click', () => {
+    try { if(typeof stopSpeech === 'function') stopSpeech(); } catch(_){}
+    if(typeof speakGreek === 'function') speakGreek(q.g);
+  });
+
+  // 옵션 클릭
+  view.querySelectorAll('.accent-opt').forEach(b => b.addEventListener('click', () => {
+    const ans = mode === 'position' ? parseInt(b.dataset.pos, 10) : b.dataset.type;
+    _gradeAccent(ans, b);
+  }));
+}
+
+function _gradeAccent(answer, btn){
+  const s = _accentSession;
+  if(!s || !s.q) return;
+  const q = s.q;
+  const correct = (s.mode === 'position')
+    ? (answer === q._accent.accentPos)
+    : (answer === q._accent.accentType);
+
+  const fb = document.getElementById('acc-fb');
+  view.querySelectorAll('.accent-opt').forEach(o => {
+    o.disabled = true;
+    const isCorrect = (s.mode === 'position')
+      ? (parseInt(o.dataset.pos, 10) === q._accent.accentPos)
+      : (o.dataset.type === q._accent.accentType);
+    if(isCorrect) o.classList.add('right');
+    else if(o === btn && !correct) o.classList.add('wrong');
+    else o.classList.add('dim');
+  });
+
+  if(correct){
+    s.right += 1;
+    if(typeof addXP === 'function') addXP(6, '악센트 정답');
+    fb.innerHTML = `<div class="feedback ok">✓ 정답 — <span class="grk">${q.g}</span> · ${ACCENT_POS_NAMES[q._accent.accentPos].ko} · ${ACCENT_TYPE_NAMES[q._accent.accentType].ko}</div>`;
+  } else {
+    s.wrong += 1;
+    const corrLabel = s.mode === 'position'
+      ? ACCENT_POS_NAMES[q._accent.accentPos].ko
+      : ACCENT_TYPE_NAMES[q._accent.accentType].ko;
+    fb.innerHTML = `<div class="feedback bad">✗ 오답 — 정답: <b>${corrLabel}</b> · 단어 <span class="grk">${q.g}</span></div>`;
+    if(typeof bumpWrongRoom === 'function') bumpWrongRoom(q.g, -1, q);
+  }
+  s.history.push({q, mode:s.mode, answer, correct});
+  setTimeout(() => {
+    s.qIdx += 1;
+    _renderAccentQuestion();
+  }, correct ? 1100 : 1900);
+}
+
+function _finishAccentQuiz(){
+  const s = _accentSession;
+  const total = s.right + s.wrong;
+  const pct = total > 0 ? Math.round(s.right * 100 / total) : 0;
+  view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="setTab('vocab')">← 어휘</button>
+    <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Τόνος</span>악센트 학습 결과</h2>
+    <div class="card warm">
+      <div style="font-size:16px;margin-bottom:4px">정답률 <b>${pct}%</b> · ${s.right} / ${s.total}</div>
+      <div style="font-size:13px;color:var(--clay-d)">획득 XP: <b>${s.right * 6}</b></div>
+    </div>
+    <div class="card">
+      <div style="font-size:12px;color:var(--clay-d);letter-spacing:.04em;text-transform:uppercase;font-weight:600;margin-bottom:8px">문항별 복습</div>
+      ${s.history.map(h => `
+        <div style="padding:6px 0;border-bottom:1px dashed var(--clay);display:flex;align-items:center;gap:10px">
+          <span style="flex-shrink:0;font-size:14px">${h.correct?'✓':'✗'}</span>
+          <div style="flex:1;min-width:0">
+            <div class="grk" style="font-size:18px;color:var(--terracotta-d)">${h.q.g}</div>
+            <div style="font-size:11px;color:var(--clay-d)">${h.mode === 'position' ? ACCENT_POS_NAMES[h.q._accent.accentPos].ko : ACCENT_TYPE_NAMES[h.q._accent.accentType].ko} · ${h.q.ko || ''}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="btn-row" style="margin-top:12px">
+      <button class="btn btn-sm" onclick="_accentSession=null;renderAccentLocator()">한 번 더</button>
+      <button class="btn btn-sm btn-o" onclick="_endAccentQuiz()">완료</button>
+    </div>
+  `;
+  _accentSession = null;
+}
+
+function _endAccentQuiz(){
+  try { if(typeof stopSpeech === 'function') stopSpeech(); } catch(_){}
+  _accentSession = null;
+  setTab('vocab');
+}
+
+window.renderAccentLocator = renderAccentLocator;
+window._endAccentQuiz   = _endAccentQuiz;
 
 // ===== 검색·콘코던스 (Εὕρεσις · Search, v45) =====
 // 본 PWA 의 본문 (WORKS · 545 섹션 · ~266K 토큰) 에 대한 전체 텍스트 검색.
@@ -6487,7 +7160,7 @@ function renderSearch(){
 
     <div class="card">
       <input class="input grk" id="search-input" autocomplete="off" autocapitalize="none" spellcheck="false"
-             placeholder="예: λέγω, ἄνθρωπος, καί, μῆνις" style="font-size:18px"
+             aria-label="예: λέγω, ἄνθρωπος, καί, μῆνις" placeholder="예: λέγω, ἄνθρωπος, καί, μῆνις" style="font-size:18px"
              value="${_searchInput.replace(/"/g,'&quot;')}">
       <div class="btn-row" style="margin-top:10px;justify-content:center">
         <button class="btn" id="search-go">🔍 검색</button>
@@ -6533,6 +7206,10 @@ function renderSearch(){
     status.innerHTML = '인덱스: ' + _searchIdx.occ.size.toLocaleString() + ' 고유 형태 · ' + _searchIdx.lemmaForms.size.toLocaleString() + ' 표제어';
     // 마지막 검색어가 있으면 자동 복원
     if(_searchInput){ _renderSearchResults(_searchInput); }
+  } else if(_searchInput){
+    // v47: 인덱스 없고 prefill 된 검색어 있으면 자동으로 빌드 + 검색
+    // (본문 단어 클릭 → '본문 검색' 으로 진입한 경우)
+    go.click();
   }
 }
 
@@ -6626,7 +7303,7 @@ function _renderSearchResults(query){
         return `<div style="padding:10px 0;border-bottom:1px dashed var(--clay)">
           <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
             <span class="grk" style="font-size:22px;color:var(--terracotta-d);font-weight:700">${lSurf}</span>
-            <button class="btn btn-sm btn-o" data-speak-lem="${encodeURIComponent(lSurf)}" title="발음" style="padding:2px 7px;font-size:12px">🔊</button>
+            <button class="btn btn-sm btn-o" data-speak-lem="${encodeURIComponent(lSurf)}" title="발음" aria-label="발음" style="padding:2px 7px;font-size:12px">🔊</button>
             <a class="minlink" href="#" data-lookup="${encodeURIComponent(lSurf)}" style="font-size:11px">외부 사전 ↗</a>
           </div>
           ${anaHTML ? `<div style="margin-top:4px">${anaHTML}</div>` : ''}
@@ -6969,7 +7646,7 @@ function renderSearch(initialQuery){
     <div class="view-sub">${WORKS.length}편 전집 본문에서 검색 (악센트 무시)</div>
 
     <div class="card">
-      <input id="search-input" type="text" placeholder="그리스어 단어 또는 구절..."
+      <input id="search-input" type="text" aria-label="그리스어 단어 또는 구절..." placeholder="그리스어 단어 또는 구절..."
         style="width:100%;padding:10px 12px;font-family:var(--font-grk);font-size:18px;border:1px solid var(--clay);border-radius:8px;background:var(--ivory)"
         value="${initialQuery||''}">
       <div style="font-size:11px;color:var(--clay-d);margin-top:6px">예: λόγος · θεός · ἐν ἀρχῇ · 단어 일부도 가능</div>
@@ -7027,32 +7704,82 @@ function renderSearch(initialQuery){
 function renderTopic(id){
   const t = TOPICS.find(x=>x.id===id);
   if(!t) return;
-  const p = t.paradigm;
-  let tableHtml = '<table class="paradigm"><caption>'+p.caption+'</caption><thead><tr><th></th>'+p.cols.map(c=>'<th>'+c+'</th>').join('')+'</tr></thead><tbody>';
-  for(const sec of p.sections){
-    if(sec.label && p.sections.length>1) tableHtml += '<tr class="section-row"><td colspan="'+(p.cols.length+1)+'">'+sec.label+'</td></tr>';
-    for(const row of sec.rows){
-      tableHtml += '<tr><td class="lbl">'+row[0]+'</td>'+row.slice(1).map(c=>'<td class="grk">'+(c||'—')+'</td>').join('')+'</tr>';
+
+  // v47: paradigm 두 형식 호환 — (a) 구식 (cols + sections[].rows=2D), (b) 신식 (rows=[{form,info}]).
+  // paradigmAlt 도 같은 양 형식 지원. 신식은 v44 이후 추가된 심화 토픽들에 사용.
+  function _renderParadigm(p){
+    if(!p) return '';
+    if(p.rows && Array.isArray(p.rows) && p.rows.length && typeof p.rows[0] === 'object' && 'form' in p.rows[0]){
+      // 신식 — form/info 2열 단순 표
+      let html = '<table class="paradigm"><caption>' + (p.caption || '') + '</caption><tbody>';
+      for(const row of p.rows){
+        html += '<tr><td class="grk" style="font-weight:600;color:var(--terracotta-d);white-space:nowrap;padding-right:10px">' +
+                (row.form || '') + '</td><td style="line-height:1.55">' + (row.info || '') + '</td></tr>';
+      }
+      html += '</tbody></table>';
+      return html;
     }
+    if(p.cols && p.sections){
+      // 구식 — 다열 cols + sections[].rows = 2D
+      let html = '<table class="paradigm"><caption>' + (p.caption || '') + '</caption>';
+      html += '<thead><tr><th></th>' + p.cols.map(c=>'<th>'+c+'</th>').join('') + '</tr></thead><tbody>';
+      for(const sec of p.sections){
+        if(sec.label && p.sections.length>1) html += '<tr class="section-row"><td colspan="'+(p.cols.length+1)+'">'+sec.label+'</td></tr>';
+        for(const row of sec.rows){
+          html += '<tr><td class="lbl">'+row[0]+'</td>' + row.slice(1).map(c=>'<td class="grk">'+(c||'—')+'</td>').join('') + '</tr>';
+        }
+      }
+      html += '</tbody></table>';
+      return html;
+    }
+    return '';   // 알 수 없는 형식
   }
-  tableHtml += '</tbody></table>';
+
+  // v47: expl 본문에 줄바꿈/마크다운 일부 처리 — 신식 토픽은 backtick template 으로 작성되어
+  // 본격적인 multi-paragraph 해설. \n\n → 단락, ** → <b>, * → <i>.
+  function _formatExpl(s){
+    if(!s) return '';
+    if(s.includes('<')) return s;   // 이미 HTML 포함 (구식 토픽) — 그대로
+    // 마크다운 like
+    let out = s
+      .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+      .replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<i>$1</i>');
+    // 단락 분할
+    const paras = out.split(/\n\n+/);
+    return paras.map(p => '<p style="margin:0 0 10px 0">' + p.replace(/\n/g, '<br>') + '</p>').join('');
+  }
+
+  const tableHtml    = _renderParadigm(t.paradigm);
+  const tableAltHtml = _renderParadigm(t.paradigmAlt);
+  // v47: 추가 패러다임 표 배열 — μι-동사 같은 큰 토픽에서 mid/pass, 부정과거 등을 분리 표시
+  const extraTablesHtml = (Array.isArray(t.extraParadigms) ? t.extraParadigms : [])
+    .map(p => {
+      const html = _renderParadigm(p);
+      return html ? `<div class="card">${html}</div>` : '';
+    }).join('');
+
   view.innerHTML = `
     <button class="btn btn-sm btn-o" onclick="setTab('grammar')">← 목록</button>
     <h2 class="view-title fade-in" style="margin-top:10px">${t.title}</h2>
     <div class="view-sub">${t.lesson<500?`교재 ${t.lesson}과`:'심화'} · ${t.desc}</div>
 
     <div class="card">
-      <div style="line-height:1.7;font-size:14.5px">${t.expl}</div>
+      <div style="line-height:1.75;font-size:14.5px">${_formatExpl(t.expl)}</div>
     </div>
 
-    <div class="card">
+    ${tableHtml ? `<div class="card">
       ${tableHtml}
       ${t.note?`<div class="hint">📜 ${t.note}</div>`:''}
-    </div>
+    </div>` : ''}
+
+    ${tableAltHtml ? `<div class="card">
+      ${tableAltHtml}
+    </div>` : ''}
+
+    ${extraTablesHtml}
 
     <div class="btn-row" style="margin:12px 0">
-      <button class="btn" onclick="startGrammarDrill('${t.id}')">형태 식별 드릴 →</button>
-      ${t.items && t.items.length>=2 ? '' : ''}
+      ${t.items && t.items.length>=2 ? `<button class="btn" onclick="startGrammarDrill('${t.id}')">형태 식별 드릴 →</button>` : ''}
       <button class="btn btn-o" onclick="markTopicStudied('${t.id}')">${S.topicsStudied.includes(t.id)?'✓ 학습 완료':'학습 완료로 표시'}</button>
     </div>
   `;
@@ -7404,16 +8131,75 @@ function renderWorkSection(workId, secIdx){
   if(!sec) return;
   const done = (S.sectionsDone[w.id]||[]).includes(sec.n);
   const colorize = S.readColorize !== false;   // 기본 true (v29 토글)
-  const lines = sec.text.split('\n').map(line=>{
-    if(!line.trim()) return '<div style="height:6px"></div>';
-    const words = line.split(/(\s+)/).map(tok=>{
-      if(/^\s+$/.test(tok)) return tok;
+  // v49: 행 인덱스 + 단락 인덱스를 데이터 속성으로 부여 — 학자 낭독 시간 동기용
+  // (a) 시 본문: 행 prefix "N " 가 있으면 그 번호를 data-line 으로
+  // (b) 산문: 연속 빈 행 (\n \n \n 패턴) 으로 단락 분리, data-para 인덱스 증가
+  // (c) 산문: 문장 종결 부호 (· ; . ? !) 로 문장 분리, span 으로 감쌈 — 단락이 큰 경우의 세밀한 동기 지원
+  let paraIdx = 0;
+  let sentIdx = 0;   // v49b: 섹션 전체에 걸친 누적 문장 인덱스
+  let inSentence = false;
+  let lastWasEmpty = false;
+  const rawLines = sec.text.split('\n');
+  const lines = rawLines.map((line, lineIdx)=>{
+    const trimmed = line.trim();
+    if(!trimmed){
+      lastWasEmpty = true;
+      // 단락 사이의 공백 줄에서는 문장 강제 종결 (다음 단락의 첫 문장이 새 sentIdx)
+      if(inSentence){ inSentence = false; sentIdx += 1; }
+      return '<div style="height:6px" data-line-blank="1"></div>';
+    }
+    // 새 단락 시작 — 직전이 빈 행이고 현재가 첫 비-빈 행
+    let attrs = ` data-line-idx="${lineIdx}"`;
+    if(lastWasEmpty || lineIdx === 0){
+      attrs += ` data-para-idx="${paraIdx}"`;
+      paraIdx += 1;
+    }
+    lastWasEmpty = false;
+    // 행 번호 추출 (시 본문)
+    const lineNumMatch = /^(\d+)\s+/.exec(trimmed);
+    if(lineNumMatch){
+      attrs += ` data-line-num="${lineNumMatch[1]}"`;
+    }
+    // 문장 단위 마크업
+    // 라인을 토큰화 후, 토큰 단위로 문장 종결 검사. 종결되면 sentIdx 증가.
+    const tokens = line.split(/(\s+)/);
+    const parts = [];
+    if(!inSentence){
+      parts.push(`<span class="sent" data-sent-idx="${sentIdx}">`);
+      inSentence = true;
+    }
+    for(const tok of tokens){
+      if(/^\s+$/.test(tok)){
+        parts.push(tok);
+        continue;
+      }
       const clean = stripWord(tok);
-      if(!clean) return tok;
+      if(!clean){
+        parts.push(tok);
+        continue;
+      }
+      // 새 word 인데 sentence span 이 닫힌 상태면 새로 열기
+      if(!inSentence){
+        parts.push(`<span class="sent" data-sent-idx="${sentIdx}">`);
+        inSentence = true;
+      }
       const pc = colorize ? posClassOf(clean) : '';
-      return `<span class="w${pc}" data-w="${encodeURIComponent(clean)}">${tok}</span>`;
-    }).join('');
-    return `<div>${words}</div>`;
+      parts.push(`<span class="w${pc}" data-w="${encodeURIComponent(clean)}">${tok}</span>`);
+      // 문장 종결 — 토큰 끝의 punctuation 검사
+      if(/[.;·?!]$/.test(tok)){
+        parts.push('</span>');
+        sentIdx += 1;
+        inSentence = false;
+      }
+    }
+    // 라인 끝 — 문장이 진행 중이면 임시 닫음
+    // 한 문장이 두 라인에 걸치는 경우는 *두 span* 으로 분할되되 같은 data-sent-idx 유지.
+    // 그러나 sentIdx 가 증가하기 전에 line 이 끝나야 함 — 여기서 sentIdx 증가하지 *않음*.
+    if(inSentence){
+      parts.push('</span>');
+      inSentence = false;   // reset, 다음 라인 시작 시 같은 sentIdx 로 reopen
+    }
+    return `<div${attrs}>${parts.join('')}</div>`;
   }).join('');
   const noteKey = `${workId}:${sec.n}`;
   const note = (S.workNotes[workId] && S.workNotes[workId][sec.n]) || '';
@@ -7438,10 +8224,10 @@ function renderWorkSection(workId, secIdx){
         ${secIdx<w.sections.length-1?`<button class="btn btn-sm btn-o" onclick="window._renderWorkSection('${workId}',${secIdx+1})">다음 →</button>`:''}
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-sm btn-o" id="toggle-color" title="${colorize?'색깔 끄기':'색깔 켜기'}">${colorize?'🎨':'⚫'}</button>
-        ${('speechSynthesis' in window)?`<button class="btn btn-sm btn-o" id="speak-sec" title="발음 듣기 (TTS)">🔊</button>`:''}
-        ${_getScholarAudio(workId, sec.n)?`<button class="btn btn-sm" id="scholar-sec" title="학자 낭독 (인간 음성, 외부 스트림)" style="background:var(--terracotta);color:var(--ivory);border-color:var(--terracotta-d)">📻</button>`:''}
-        <button class="btn btn-sm ${isBookmarked(workId,sec.n)?'':'btn-o'}" id="bookmark-sec" title="즐겨찾기">${isBookmarked(workId,sec.n)?'★':'☆'}</button>
+        <button class="btn btn-sm btn-o" id="toggle-color" title="${colorize?'색깔 끄기':'색깔 켜기'}" aria-label="${colorize?'색깔 끄기':'색깔 켜기'}">${colorize?'🎨':'⚫'}</button>
+        ${('speechSynthesis' in window)?`<button class="btn btn-sm btn-o" id="speak-sec" title="발음 듣기 (TTS)" aria-label="발음 듣기 (TTS)">🔊</button>`:''}
+        ${_getScholarAudio(workId, sec.n)?`<button class="btn btn-sm" id="scholar-sec" title="학자 낭독 (인간 음성, 외부 스트림)" aria-label="학자 낭독 (인간 음성, 외부 스트림)" style="background:var(--terracotta);color:var(--ivory);border-color:var(--terracotta-d)">📻</button>`:''}
+        <button class="btn btn-sm ${isBookmarked(workId,sec.n)?'':'btn-o'}" id="bookmark-sec" title="즐겨찾기" aria-label="즐겨찾기">${isBookmarked(workId,sec.n)?'★':'☆'}</button>
         <button class="btn btn-sm" id="save-sec-memo">저장</button>
         <button class="btn btn-sm ${done?'btn-o':''}" id="mark-sec-done">${done?'✓ 완독':'완독 (+20 XP)'}</button>
       </div>
@@ -7494,7 +8280,8 @@ function renderWorkSection(workId, secIdx){
     try { if(typeof stopSpeech === 'function') stopSpeech(); } catch(_){}
     const sb = document.getElementById('speak-sec'); if(sb) sb.textContent = '🔊';
     const recs = _getScholarAudio(workId, sec.n);
-    if(recs && recs.length) _openScholarAudio(recs);
+    // v49: syncContext 전달 — 본문 view 가 떠 있으니 cue 기반 highlight 활성화
+    if(recs && recs.length) _openScholarAudio(recs, {workId, secN: sec.n});
   });
 }
 window._renderWork = renderWork;
@@ -7815,8 +8602,22 @@ function openLookup(encWord){
   }
   // 형태분석 룩업 시도
   const analyses = (typeof MORPH_LOOKUP !== 'undefined') ? MORPH_LOOKUP[w] : null;
-  // v32: 원문 단어 룩업 모달에서 악센트 분류 블록 제거 (단어 자체에 표기되어 있음).
-  // accentInfoBlock 함수와 classifyAccent는 그대로 유지 — 악센트 학습 화면에서 사용.
+  // v48: 악센트 분류를 한 줄 형식으로 다시 노출 — v32 에서 제거됐던 것이지만,
+  // v47 의 Τόνος 학습 모드와 통합 목적으로 *위치/종류 라벨* 만 압축 표시.
+  // 단어 자체의 다이아크리틱은 그대로 보이므로 중복이 아님 — 사용자가 *분류명* 을 학습.
+  let accentBlock = '';
+  if(typeof _classifyAccent === 'function' && typeof ACCENT_POS_NAMES !== 'undefined'){
+    const cls = _classifyAccent(w);
+    if(cls && cls.accentPos && cls.accentType){
+      const posLbl = ACCENT_POS_NAMES[cls.accentPos] && ACCENT_POS_NAMES[cls.accentPos].ko;
+      const typLbl = ACCENT_TYPE_NAMES[cls.accentType] && ACCENT_TYPE_NAMES[cls.accentType].ko;
+      if(posLbl && typLbl){
+        accentBlock = `<div style="font-size:11px;color:var(--clay-d);margin-bottom:8px;letter-spacing:.02em" title="음절 수 · 강세 위치 · 강세 종류">
+          ⛓ ${cls.nSyllables}음절 · ${posLbl} · ${typLbl}
+        </div>`;
+      }
+    }
+  }
   const syntaxBlock = syntaxHintBlock(analyses);
   const perseusURL = `https://www.perseus.tufts.edu/hopper/morph?l=${encWord}&la=greek`;
   const logeionURL = `https://logeion.uchicago.edu/${encWord}`;
@@ -7831,6 +8632,7 @@ function openLookup(encWord){
       : (hasAuto ? '혼합 분석 (수동 + 자동)' : 'AGDT 수동 분석 · ' + analyses.length + '가지 가능성');
     body = `
       <div style="font-family:var(--font-grk);font-size:28px;color:var(--terracotta-d);font-weight:600;line-height:1.2;margin-bottom:8px">${w}</div>
+      ${accentBlock}
       ${syntaxBlock}
       <div style="font-size:11px;color:var(--clay-d);margin-bottom:10px">${sourceLabel}</div>
       ${analyses.map((a,i)=>`
@@ -7842,6 +8644,7 @@ function openLookup(encWord){
         </div>
       `).join('')}
       <div class="btn-row" style="margin-top:14px;flex-wrap:wrap">
+        <button class="btn btn-sm" onclick="_lookupToSearch('${encWord}', '${(analyses[0] && analyses[0].l) ? encodeURIComponent(analyses[0].l) : ''}')" title="본 앱 본문에서 이 표제어의 모든 등장 검색" aria-label="본 앱 본문에서 이 표제어의 모든 등장 검색">🔍 본문 검색</button>
         <a class="btn btn-sm btn-o" href="${perseusURL}" target="_blank" rel="noopener">Perseus Morpheus ↗</a>
         <a class="btn btn-sm btn-o" href="${logeionURL}" target="_blank" rel="noopener">Logeion 사전 ↗</a>
         <button class="btn btn-sm btn-g" onclick="window._closeModal()">닫기</button>
@@ -7850,9 +8653,11 @@ function openLookup(encWord){
   } else {
     body = `
       <div style="font-family:var(--font-grk);font-size:28px;color:var(--terracotta-d);font-weight:600;line-height:1.2;margin-bottom:8px">${w}</div>
+      ${accentBlock}
       <div style="font-size:12px;color:var(--clay-d);margin-bottom:14px;line-height:1.5">이 작품은 AGDT 검증 분석이 등록되지 않았습니다.<br>외부 사전에서 형태·의미를 확인하세요.</div>
       <div class="btn-row" style="flex-wrap:wrap">
-        <a class="btn btn-sm" href="${perseusURL}" target="_blank" rel="noopener">Perseus Morpheus ↗</a>
+        <button class="btn btn-sm" onclick="_lookupToSearch('${encWord}', '')" title="본 앱 본문에서 이 어형의 등장 검색" aria-label="본 앱 본문에서 이 어형의 등장 검색">🔍 본문 검색</button>
+        <a class="btn btn-sm btn-o" href="${perseusURL}" target="_blank" rel="noopener">Perseus Morpheus ↗</a>
         <a class="btn btn-sm btn-g" href="${logeionURL}" target="_blank" rel="noopener">Logeion 사전 ↗</a>
         <button class="btn btn-sm btn-o" onclick="window._closeModal()">닫기</button>
       </div>
@@ -7874,6 +8679,26 @@ document.body.addEventListener('click', function(e){
 });
 
 window._closeModal = function(){ document.getElementById('modal-bg').classList.remove('show'); };
+
+// v47: 형태 분석 modal 의 '본문 검색' 버튼 핸들러
+// 우선 표제어 (lemma) 로 검색, 없으면 surface form 으로
+window._lookupToSearch = function(encWord, encLemma){
+  const query = decodeURIComponent(encLemma || encWord || '');
+  if(!query) return;
+  _closeModal();
+  if(typeof _searchInput !== 'undefined'){
+    // _searchInput 은 검색 모듈의 last query 캐시 (renderSearch 가 자동 복원)
+    _searchInput = query;
+  }
+  if(typeof renderSearch === 'function'){
+    // setTab 으로 어휘 탭 등록 후 renderSearch 호출 — view 영역 일관성
+    if(typeof setTab === 'function') setTab('vocab');
+    setTimeout(() => {
+      renderSearch();
+      // renderSearch 내부에서 _searchInput 이 있으면 자동으로 결과 표시
+    }, 30);
+  }
+};
 
 // ── v41: 진단 modal ─────────────────────────────────────────────────────────
 // 사용자가 stale SW · 캐시 불일치로 갇혔을 때의 회복 경로.
@@ -8177,7 +9002,7 @@ async function loadLeaderboard(){
       <div class="hint" style="margin-top:8px;color:var(--black-glaze-l);line-height:1.6">
         같은 링크를 사용하는 다른 분들과 진행 상황을 공유합니다. 표시 이름을 정해주세요 — XP·레벨·완독 통계가 공개되며 본문 메모는 공개되지 않습니다.
       </div>
-      <input class="input" id="dn-input" placeholder="예: 김연구원 / Anonymous Scholar" maxlength="24" style="margin-top:12px" value="${escapeHtml(S.displayName)}">
+      <input class="input" id="dn-input" aria-label="예: 김연구원 / Anonymous Scholar" placeholder="예: 김연구원 / Anonymous Scholar" maxlength="24" style="margin-top:12px" value="${escapeHtml(S.displayName)}">
       <div class="btn-row" style="margin-top:8px">
         <button class="btn btn-sm" id="dn-save">참여하기</button>
         <button class="btn btn-sm btn-o" id="dn-skip">건너뛰기</button>
@@ -8424,6 +9249,25 @@ const SCHOLAR_AUDIO = {
     system: '복원 고전 발음 (Vox Graeca 계열)',
     span: 'Prologue ≈ §17 (오디오북 ch.01 무료 샘플)',
     license: '© Stratakis · 무료 샘플 · 전체 오디오북은 별매',
+    // v49: §17 prologue 의 13 문장 단위 cue. mp3 길이가 ancientgreek.eu 에 명시 없으니 ~5분 추정 (300초).
+    // 단어 수 비례로 t 분배 — 자연어 낭독은 단어 수에 거의 비례.
+    // 정확도 ±5-8초. 사용자가 본문에서 자신의 위치를 추정하는 데 충분.
+    duration: 300,
+    cuesBySection: { '17': [
+      {t:  0.0, unit:'sent', value: 0},
+      {t: 16.6, unit:'sent', value: 1},
+      {t: 33.2, unit:'sent', value: 2},
+      {t: 43.4, unit:'sent', value: 3},
+      {t: 75.3, unit:'sent', value: 4},
+      {t:116.2, unit:'sent', value: 5},
+      {t:132.8, unit:'sent', value: 6},
+      {t:200.4, unit:'sent', value: 7},
+      {t:222.1, unit:'sent', value: 8},
+      {t:237.4, unit:'sent', value: 9},
+      {t:275.7, unit:'sent', value:10},
+      {t:279.6, unit:'sent', value:11},
+      {t:291.1, unit:'sent', value:12},
+    ]},
   }, {
     // v46 추가: LibriVox Apology 전체 (현대 그리스 발음, 자연 음질)
     sections: ['17','18','19','20','21','22','23','24','25','26','27','28','29','30','31','32','33','34','35','36','37','38','39','40','41','42'],
@@ -8445,6 +9289,23 @@ const SCHOLAR_AUDIO = {
     system: '복원 고전 발음',
     span: 'Anabasis 1.1 전체 (약 6분)',
     license: '© Stratakis · 무료 공개분',
+    // v49: 본문-오디오 시간 동기 cue points
+    // 단락 인덱스 단위 (\n \n \n 으로 분리된 paragraph), 문자 길이 비례 추정
+    // 정확도 ±5초 — 실제 발화 속도 변동, 학자가 일부 단락에서 호흡 멈춤 등
+    duration: 369,
+    cues: [
+      {t:0.0,   unit:'para', value:0},
+      {t:18.2,  unit:'para', value:1},
+      {t:48.8,  unit:'para', value:2},
+      {t:73.4,  unit:'para', value:3},
+      {t:95.7,  unit:'para', value:4},
+      {t:117.3, unit:'para', value:5},
+      {t:161.4, unit:'para', value:6},
+      {t:194.6, unit:'para', value:7},
+      {t:235.4, unit:'para', value:8},
+      {t:287.3, unit:'para', value:9},
+      {t:330.9, unit:'para', value:10},
+    ],
   }],
   'hesiod-theogony': [{
     sections: ['1-50'],
@@ -8455,6 +9316,16 @@ const SCHOLAR_AUDIO = {
     system: '복원 고전 발음',
     span: 'v.1–21 (섹션 전반부에 해당, 약 1분 49초)',
     license: '© Stratakis · 무료 공개분',
+    // v49: 시 본문은 라인 번호 prefix 가 있어 행 단위 cue. hexameter 균등 가정.
+    // Stratakis 녹음은 v.1-21 만 — 그 외 라인 (22-50) 은 highlight 안 됨.
+    duration: 109,
+    cues: (() => {
+      const out = [];
+      for(let i = 0; i < 21; i++){
+        out.push({t: +(i * 109 / 21).toFixed(1), unit:'line', value: i+1});
+      }
+      return out;
+    })(),
   }],
   'herodotus-1': [{
     sections: ['1.1','1.2','1.3','1.4'],
@@ -8465,6 +9336,33 @@ const SCHOLAR_AUDIO = {
     system: '복원 고전 발음 · Ionic 방언 음운 적용',
     span: 'Histories 1.1–1.4 (약 6분 15초)',
     license: '© Stratakis · 무료 공개분',
+    // v49: 4 섹션 합산, 섹션별·단락별 cue. 문자 길이 비례.
+    duration: 375,
+    // cues 가 section 별로 다른 reference 점 — 객체 구조로 변경
+    cuesBySection: {
+      '1.1': [
+        {t:0.0,   unit:'para', value:0},
+        {t:27.0,  unit:'para', value:1},
+        {t:64.1,  unit:'para', value:2},
+        {t:81.3,  unit:'para', value:3},
+        {t:106.8, unit:'para', value:4},
+      ],
+      '1.2': [
+        {t:140.9, unit:'para', value:0},
+        {t:182.5, unit:'para', value:1},
+        {t:201.7, unit:'para', value:2},
+      ],
+      '1.3': [
+        {t:228.4, unit:'para', value:0},
+        {t:250.1, unit:'para', value:1},
+      ],
+      '1.4': [
+        {t:282.4, unit:'para', value:0},
+        {t:301.9, unit:'para', value:1},
+        {t:327.2, unit:'para', value:2},
+        {t:352.2, unit:'para', value:3},
+      ],
+    },
   }, {
     // v46 추가: Ariphron 의 psilotic Ionic 변형 발음
     sections: ['1.1','1.2','1.3','1.4'],
@@ -8532,17 +9430,19 @@ function _getScholarAudio(workId, sectionN){
 // 학자 낭독 modal 을 연다. recs 는 _getScholarAudio 의 결과 배열.
 // MP3 는 인라인 <audio> 로 재생, SoundCloud 는 공식 widget iframe 으로 임베드.
 // 양쪽 모두 onerror / iframe load 실패 시 출처 페이지를 새 탭으로 폴백.
-function _openScholarAudio(recs){
+function _openScholarAudio(recs, syncContext){
   if(!recs || !recs.length) return;
   const modal = document.getElementById('modal');
   const modalBg = document.getElementById('modal-bg');
+  // syncContext = {workId, secN} 가 있으면 cue 기반 본문 highlight 활성화
+  // 본문 페이지가 동시에 떠 있어야 의미 — 학자 낭독 도서관 진입 시는 syncContext 없음.
   // 다중 녹음 대응(현재는 모두 1개)
   const blocks = recs.map((r, i) => {
     let playerHTML = '';
     if(r.type === 'mp3'){
       const safeUrl = r.url.replace(/"/g,'&quot;');
       playerHTML = `
-        <audio controls preload="none" style="width:100%;margin-top:8px" id="scholar-audio-${i}">
+        <audio aria-label="학자 낭독 오디오 플레이어" controls preload="none" style="width:100%;margin-top:8px" id="scholar-audio-${i}">
           <source src="${safeUrl}" type="audio/mpeg">
           오디오 요소 미지원 브라우저
         </audio>
@@ -8553,8 +9453,7 @@ function _openScholarAudio(recs){
       const embedUrl = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(r.url) +
                       '&color=%239C3F2D&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=false';
       playerHTML = `
-        <iframe width="100%" height="120" frameborder="no" scrolling="no" allow="autoplay"
-                src="${embedUrl}" style="margin-top:8px;border-radius:6px"></iframe>
+        <iframe width="100%" height="120" frameborder="no" scrolling="no" allow="autoplay" title="SoundCloud 학자 낭독 스트림" src="${embedUrl}" style="margin-top:8px;border-radius:6px"></iframe>
         <div style="font-size:11px;color:var(--clay-d);margin-top:4px">
           ↑ SoundCloud · 재생되지 않으면 <a href="${r.url}" target="_blank" rel="noopener">SoundCloud 페이지 ↗</a>
         </div>`;
@@ -8563,7 +9462,7 @@ function _openScholarAudio(recs){
       // url 은 https://www.youtube.com/embed/ID 형식. autoplay 비활성.
       const safeUrl = r.url.replace(/"/g,'&quot;');
       playerHTML = `
-        <iframe width="100%" height="200" frameborder="0" allow="encrypted-media; picture-in-picture"
+        <iframe width="100%" height="200" frameborder="0" allow="encrypted-media; picture-in-picture" title="YouTube 학자 낭독 영상"
                 src="${safeUrl}" allowfullscreen style="margin-top:8px;border-radius:6px;background:#000"></iframe>
         <div style="font-size:11px;color:var(--clay-d);margin-top:4px">
           ↑ YouTube · 재생되지 않으면 <a href="${r.sourceUrl}" target="_blank" rel="noopener">출처 페이지 ↗</a>
@@ -8577,12 +9476,12 @@ function _openScholarAudio(recs){
         const extra2 = (r.extra && r.extra.url2) ? `
           <div style="margin-top:6px;font-size:12px">
             <b>${r.extra.label2 || 'Part 2'}</b>:
-            <audio controls preload="none" style="width:100%;margin-top:4px">
+            <audio aria-label="학자 낭독 오디오 플레이어" controls preload="none" style="width:100%;margin-top:4px">
               <source src="${r.extra.url2}" type="audio/mpeg">
             </audio>
           </div>` : '';
         playerHTML = `
-          <audio controls preload="none" style="width:100%;margin-top:8px" id="scholar-audio-${i}">
+          <audio aria-label="학자 낭독 오디오 플레이어" controls preload="none" style="width:100%;margin-top:8px" id="scholar-audio-${i}">
             <source src="${safeUrl}" type="audio/mpeg">
             오디오 요소 미지원 브라우저
           </audio>
@@ -8609,12 +9508,33 @@ function _openScholarAudio(recs){
         </div>
       </div>`;
   }).join('');
+  // v49: 동기 표지 — syncContext + cue 둘 다 있으면 알림
+  let syncBadge = '';
+  if(syncContext && syncContext.workId && syncContext.secN){
+    const anyCues = recs.some(r => {
+      if(r.type !== 'mp3' && r.type !== 'archive') return false;
+      if(r.cuesBySection && r.cuesBySection[syncContext.secN]) return true;
+      if(r.cues && r.sections && r.sections.includes(syncContext.secN)) return true;
+      return false;
+    });
+    const onlyIframe = recs.every(r => r.type === 'soundcloud' || r.type === 'youtube');
+    if(anyCues){
+      syncBadge = `<div style="font-size:11px;color:var(--terracotta-d);background:rgba(176,80,48,0.08);border:1px solid rgba(176,80,48,0.2);border-radius:5px;padding:5px 8px;margin-bottom:8px;line-height:1.5">
+        🎯 <b>본문 동기 활성</b> — 재생 중 본문의 현재 발화 문장·행·단락이 강조됩니다. 비례 추정이라 정확도 <b>±3-8초</b>.
+      </div>`;
+    } else if(onlyIframe){
+      syncBadge = `<div style="font-size:11px;color:var(--clay-d);background:var(--ivory-d);border:1px dashed var(--clay);border-radius:5px;padding:5px 8px;margin-bottom:8px;line-height:1.5">
+        ⓘ 본문 동기 미지원 — SoundCloud / YouTube 임베드는 부모 페이지에서 시간 정보를 받을 수 없습니다.
+      </div>`;
+    }
+  }
   modal.innerHTML = `
     <div style="font-size:18px;font-weight:600;color:var(--terracotta-d);margin-bottom:4px">📻 학자 낭독</div>
-    <div style="font-size:11px;color:var(--clay-d);margin-bottom:12px;line-height:1.55">
+    <div style="font-size:11px;color:var(--clay-d);margin-bottom:8px;line-height:1.55">
       복원 발음의 인간 낭독 — TTS 의 자연도 한계와 학술 정확도 한계를 동시에 보완합니다.
       외부 호스트에서 스트리밍 · 온라인 필요.
     </div>
+    ${syncBadge}
     ${blocks}
     <div class="btn-row" style="margin-top:6px"><button class="btn btn-sm btn-g" onclick="window._closeModal()">닫기</button></div>
   `;
@@ -8626,9 +9546,96 @@ function _openScholarAudio(recs){
     const err = document.getElementById('scholar-audio-err-' + i);
     if(el && err) el.addEventListener('error', () => { err.style.display = 'block'; });
   });
+
+  // v49: 시간 동기 highlight 엔진
+  // 본문 view 가 동시에 떠 있고 (syncContext 제공), 녹음에 cues 데이터가 있을 때만 작동.
+  // SoundCloud iframe / YouTube iframe 은 timeupdate 가 부모로 안 와서 동기 불가 — mp3·archive only.
+  if(syncContext && syncContext.workId && syncContext.secN){
+    recs.forEach((r, i) => {
+      if(r.type !== 'mp3' && r.type !== 'archive') return;
+      // cue 데이터 선택: cuesBySection 우선, 없으면 cues
+      let cues = null;
+      if(r.cuesBySection && r.cuesBySection[syncContext.secN]){
+        cues = r.cuesBySection[syncContext.secN];
+      } else if(r.cues && r.sections && r.sections.includes(syncContext.secN)){
+        cues = r.cues;
+      }
+      if(!cues || !cues.length) return;
+      const audioEl = document.getElementById('scholar-audio-' + i);
+      if(!audioEl) return;
+      _attachSyncHighlight(audioEl, cues);
+    });
+  }
 }
 window._openScholarAudio = _openScholarAudio;
 window._getScholarAudio  = _getScholarAudio;
+
+// v49: audio element 의 timeupdate 를 listen 하여 본문 view 의 행/단락 highlight 토글
+// cues = [{t: seconds, unit: 'line'|'para', value: number}, ...] — t 오름차순 가정
+let _syncCurrentIdx = -1;
+function _attachSyncHighlight(audioEl, cues){
+  if(!audioEl || !cues) return;
+  // 정렬 보장
+  cues = cues.slice().sort((a, b) => a.t - b.t);
+
+  function _clear(){
+    document.querySelectorAll('.passage div.now-speaking').forEach(el => el.classList.remove('now-speaking'));
+    document.querySelectorAll('.passage .sent.now-speaking-sent').forEach(el => el.classList.remove('now-speaking-sent'));
+  }
+
+  function _applyAt(t){
+    // 현재 t 가 속한 cue 찾기 — 가장 큰 cue.t <= t
+    let idx = -1;
+    for(let i = 0; i < cues.length; i++){
+      if(cues[i].t <= t) idx = i;
+      else break;
+    }
+    if(idx === _syncCurrentIdx) return;   // 변화 없음
+    _syncCurrentIdx = idx;
+    _clear();
+    if(idx < 0) return;
+    const cue = cues[idx];
+    // selector: data-line-num·data-para-idx·data-sent-idx
+    let sel;
+    if(cue.unit === 'line')        sel = `.passage div[data-line-num="${cue.value}"]`;
+    else if(cue.unit === 'sent')   sel = `.passage .sent[data-sent-idx="${cue.value}"]`;
+    else                           sel = `.passage div[data-para-idx="${cue.value}"]`;
+    // sent unit 은 *복수 elements* 가능 (한 문장이 여러 라인에 걸칠 때) — querySelectorAll
+    const targets = cue.unit === 'sent' ? document.querySelectorAll(sel) : [document.querySelector(sel)];
+    let first = null;
+    for(const target of targets){
+      if(!target) continue;
+      if(cue.unit === 'sent') target.classList.add('now-speaking-sent');
+      else target.classList.add('now-speaking');
+      if(!first) first = target;
+    }
+    if(first){
+      // 자동 스크롤 — viewport 밖이면 부드럽게
+      const rect = first.getBoundingClientRect();
+      if(rect.top < 80 || rect.bottom > window.innerHeight - 120){
+        first.scrollIntoView({behavior:'smooth', block:'center'});
+      }
+    }
+  }
+
+  audioEl.addEventListener('timeupdate', () => _applyAt(audioEl.currentTime));
+  audioEl.addEventListener('pause', _clear);
+  audioEl.addEventListener('ended', () => { _clear(); _syncCurrentIdx = -1; });
+  audioEl.addEventListener('seeking', () => { _syncCurrentIdx = -1; });
+  // modal 닫힐 때도 cleanup — modal-bg 의 mutation observer
+  const modalBg = document.getElementById('modal-bg');
+  if(modalBg){
+    const obs = new MutationObserver(() => {
+      if(!modalBg.classList.contains('show')){
+        _clear();
+        _syncCurrentIdx = -1;
+        obs.disconnect();
+      }
+    });
+    obs.observe(modalBg, {attributes:true, attributeFilter:['class']});
+  }
+}
+window._attachSyncHighlight = _attachSyncHighlight;
 
 // ===== SCHOLAR_LIBRARY (Ἀκρόασις · 학자 낭독 도서관, v46) =====
 // 본 앱 본문 12 작품 외의 학자 낭독 자료 카탈로그.
@@ -9818,7 +10825,7 @@ function renderBattle(){
         <div style="font-size:12.5px;color:var(--clay-d);margin-top:6px;line-height:1.6">
           배틀에서 다른 참가자에게 보일 이름입니다. 명예 탭에서 설정할 수 있습니다.
         </div>
-        <input class="input" id="battle-name" placeholder="예: 김연구원" maxlength="24" style="margin-top:10px">
+        <input class="input" id="battle-name" aria-label="예: 김연구원" placeholder="예: 김연구원" maxlength="24" style="margin-top:10px">
         <button class="btn btn-sm" id="battle-save-name" style="margin-top:8px">저장</button>
       </div>
     ` : `
@@ -9914,7 +10921,7 @@ function renderBattleJoin(){
 
     <div class="card">
       <input id="battle-code-input" class="input" type="text"
-             placeholder="예: ABC234"
+             aria-label="예: ABC234" placeholder="예: ABC234"
              maxlength="${BATTLE_CODE_LEN}"
              autocomplete="off"
              autocapitalize="characters"
@@ -10693,7 +11700,7 @@ function renderBookmarks(){
       <div class="card">
         <div style="position:relative">
           <input id="bm-search" class="input" type="search"
-                 placeholder="🔍 본문·작품·저자·태그·메모에서 검색 (악센트 무시)"
+                 aria-label="🔍 본문·작품·저자·태그·메모에서 검색 (악센트 무시)" placeholder="🔍 본문·작품·저자·태그·메모에서 검색 (악센트 무시)"
                  value="${_bookmarkFilter.q.replace(/"/g,'&quot;')}"
                  style="width:100%;padding:9px 12px;font-size:13.5px">
         </div>
@@ -10821,7 +11828,7 @@ function editBookmark(key){
         ${allTags.map(t => `<button class="chip ${checked.has(t)?'active':''}" data-t="${t.replace(/"/g,'&quot;')}">${t}</button>`).join('')}
       </div>
       <div style="display:flex;gap:6px;margin-bottom:14px">
-        <input id="edit-new-tag" class="input" type="text" placeholder="새 태그 추가" style="flex:1;padding:7px 10px;font-size:12.5px">
+        <input id="edit-new-tag" class="input" type="text" aria-label="새 태그 추가" placeholder="새 태그 추가" style="flex:1;padding:7px 10px;font-size:12.5px">
         <button class="btn btn-sm btn-o" id="edit-add-tag" style="font-size:12px">추가</button>
       </div>
 

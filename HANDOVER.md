@@ -1,6 +1,43 @@
 # Ἑλληνικὴ Παιδεία — CIM Lab 인수인계
 
-본 문서는 CIM Lab에서 운영하는 고전 그리스어 학습 Progressive Web App (PWA) 의 기술적 인수인계를 위한 자료다. 신규 합류 구성원이 별도 컨텍스트 없이도 코드베이스를 이해하고 유지·확장할 수 있도록 작성했다. 최종 갱신 v40 (2026년 5월).
+본 문서는 CIM Lab에서 운영하는 고전 그리스어 학습 Progressive Web App (PWA) 의 기술적 인수인계를 위한 자료다. 신규 합류 구성원이 별도 컨텍스트 없이도 코드베이스를 이해하고 유지·확장할 수 있도록 작성했다. 최종 갱신 **v50 (2026년 5월)**.
+
+> **다음 작업자에게**: §7 라운드별 changelog 의 *맨 마지막 항목 (v50)* 이 현재 상태다. 그 위 라운드들은 어떻게 여기까지 왔는지의 기록. 새 작업을 시작하기 전에 §7 의 가장 최근 항목과 §0 의 현재 스냅샷을 먼저 읽기.
+
+## 0. 현재 상태 스냅샷 (v50, 2026-05)
+
+**배포 산출물**: `index.html` (~712 KB, IIFE 389K chars) · `sw.js` · `data-works.js` (3 MB, 45 작품 545 섹션) · `data-morph.js` (4 MB, AGDT v2.1 37K 어형 11.8K lemma) · `data-dialogues.js` (45 KB, 10 콩트 시나리오) · `espeakng.worker.js` (760 KB) · `manifest.json` · `reset.html`.
+
+**기능 카탈로그**:
+- 어휘 학습: 교재 어휘 + DCC 523 + DAILY_W 51 + CIVIC_W 80 + 콩트 vocab 60 = 1142 어휘
+- 문법 토픽: **42개** (decl/verb/particle/prep 4 카테고리)
+- 콩트 시나리오: 10편 · 84 turns
+- 원문 읽기: 45 작품 545 섹션, AGDT 형태분석은 Iliad 1 · Odyssey 1 · Persae 만
+- 학자 낭독 매칭: 본문 **7 작품** (plato-apology · xenophon-anabasis-1 · hesiod-theogony · herodotus-1 · homer-iliad-1 · homer-odyssey-1 · plato-euthyphro)
+- 학자 낭독 도서관 (Ἀκρόασις): **20 자료 · 9 카테고리** (본문 외 작가·작품)
+- **본문-학자 낭독 시간 동기**: 3 자료 (Anabasis 11 단락, Theogony 21 행, Herodotus 14 단락 × 4 섹션) · 정확도 ±3-5초
+- 발음 모드: 4종 (eSpeak NG · 현대 헬라어 · Erasmian · 복원 Attic) + Stratakis/SORGLL/Projet Homere/Ariphron 학자 발음 비교
+- 학습 모드: 어휘 quiz (객관식·타이핑) · 받아쓰기 (Ἀκοή) · 악센트 학습 (Τόνος) · 옥시톤 분류 quiz · 검색·콘코던스 (Εὕρεσις) · 배틀 모드 · 오답함 SRS
+- 접근성: aria-label 35 · title 18 · greek lang attr 자동화
+- 다중 프로필 · 명예의 전당 · 책갈피·메모
+
+**핵심 데이터 인덱스**:
+- 어휘: `TEXTBOOK_W`, `DCC_W`, `DAILY_W`, `CIVIC_W` + `ALL_VOCAB` 통합
+- 작품·섹션: `WORKS` (data-works.js 에서 정의)
+- 형태분석: `MORPH_LOOKUP` (data-morph.js, 비동기 lazy-load)
+- 문법 토픽: `TOPICS` 배열 (42)
+- 콩트: `DIALOGUES` (data-dialogues.js)
+- 학자 낭독: `SCHOLAR_AUDIO` (본문 매칭) + `SCHOLAR_LIBRARY` (도서관)
+- 악센트 분류: `_classifyAccent()` 함수 (NFD 기반 다이아크리틱 분석)
+
+**현재 미해결·defer 상태** (§7 의 v49 끝 defer 블록 참조):
+- 외부 의존 3 항목 (SoundCloud slugs · Plato Crito sample · ScorpioMartianus) — 새 정보 없음
+- 명사·형용사 변화표 시각화 도구 (큰 신규 작업)
+- 단어 단위 시간 동기 (현재 행/단락 — 더 정밀은 큰 측정 부담)
+- plato-apology Stratakis cue points 측정 (mp3 길이 미확정으로 v50 보류)
+
+**영구 제외** (사용자 정책):
+- 다국어 UI (i18n)
 
 ## 1. 프로젝트 개요
 
@@ -297,6 +334,259 @@ defer (다음 라운드):
   · 악센트 위치 문제 유형
   · 본문 단어 클릭 → 인앱 검색 통합
   · aria 라벨 정비
+
+**v47**: deferred 목록 중 자체 완결 4 항목 묶음 처리. 외부 의존 3 항목 (SoundCloud slugs, Plato Crito sample, ScorpioMartianus) 은 *지난 라운드 한계 그대로* 라 defer 유지.
+
+**(1) 문법 토픽 3 추가** — TOPICS 39 → 42. 새 카테고리 `prep` 추가.
+  · `mi-verbs` MI 동사 패러다임 — τίθημι · δίδωμι · ἵστημι · δείκνυμι. 4 동사의 어근 reduplication, 단·복수 모음 교체 (장 η/단 ε, 장 ω/단 ο), κ-부정과거 vs σ-부정과거 vs 어근 부정과거 (ἔστην) 의 분기, 의미 확장. *그리스어 동사 학습 두 번째 큰 산*.
+  · `acc-abs` 대격 절대 — 비인칭 분사 (ἐξόν · παρόν · δοκοῦν · δέον · προσῆκον) 의 중성 단수 대격 절대 구문. 양보·인과·조건 해석. 속격 절대 와 비교 진단표.
+  · `syn-meta` σύν vs μετά — 두 전치사 + ἅμα 의 미세 차이 (협력 / 중립 동반 / 시간 동시성). μετά + 대격 ('~뒤에') 까지 포함하여 격 의존성 강조.
+
+**(2) 악센트 학습 모드 (Τόνος · Accent Quiz)** — 새 진입 카드.
+어휘 탭의 새 카드 `Τόνος · 악센트 위치 — 운율의 핵심`. 두 가지 질문 유형 번갈아:
+  · *위치 식별*: ultima (마지막) / penult (끝-2) / antepenult (끝-3) 선택.
+  · *종류 식별*: acute (´) / circumflex (῀) / grave (`) 선택.
+
+핵심 알고리즘 — `_classifyAccent(word)`:
+  · NFD 정규화 → base char + diacritics 분리.
+  · 모음 스캔, 인접한 모음 쌍이 *true diphthong* (αι ει οι υι αυ ευ ηυ ου ωυ) 이면 한 음절.
+  · 두 번째 모음에 diaeresis (U+0308) 있으면 *hiatus* → 별개 음절. 첫 모음에 diaeresis 있어도 별개.
+  · diphthong 의 어느 글자든 acute/circumflex/grave 가 그 음절의 강세 (실제 표기는 두 번째 글자).
+  · 위치는 끝에서부터 카운트 — 1=ultima, 2=penult, 3=antepenult.
+
+**검증 — 34개 단어**: 19 개 초기 테스트 (코어 어휘) + 어휘 풀 발췌 15 개 모두 통과. 분류기와 expected 가 충돌한 2 케이스 (ἐκκλησία 4음절, αὐτίκα penult) 는 *내 셈 오류* 였고 분류기가 정답 — 정확도 100% (34/34).
+
+**풀 통계 (1142 어휘 → 학습 가능 1009)**:
+  · 음절: 단음절 82 (proclitic/enclitic 18 + 강세 있는 1음절 64) / 2음절 528 / 3음절 359 / 4음절 122 / 5음절+ 33
+  · 강세 종류: acute 917, circumflex 92, grave 0
+  · 강세 위치: ultima 243, penult 563, antepenult 198
+  
+**의도된 한계**: grave 가 풀에 0 인 이유는 단어 lemma 가 사전형이고 grave 는 *문장 내 위치* 에서만 발생. 학습 시 grave 옵션은 *항상 오답* 이지만 *식별 능력* 자체는 학습 가치 있음.
+
+가중치: antepenult (덜 흔함) 와 circumflex (덜 흔함) 를 가중 — proparoxytone 과 circumflex 노출을 늘려 학습 효과 강화.
+
+**(3) 본문 단어 클릭 → 인앱 검색 통합** — UX workflow 연결.
+`openLookup(word)` modal (형태 분석 표시) 의 외부 사전 버튼 행에 **🔍 본문 검색** 버튼 추가:
+  · 분석 있는 경우 (AGDT 커버 작품) — *표제어 (lemma)* 로 검색 → 같은 lemma 의 *모든 어형 변이* 가 본문에서 어디 등장하는지 종합 표시.
+  · 분석 없는 경우 — *surface form* 으로 검색.
+
+새 헬퍼 `window._lookupToSearch(encWord, encLemma)`:
+  1. modal 닫고
+  2. `_searchInput` 에 query 저장
+  3. `setTab('vocab')` 후 `renderSearch()` 호출.
+
+`renderSearch` 에 자동 진행 분기 추가 — *인덱스 없고 prefill 된 검색어 있으면 자동으로 빌드 + 검색* (`go.click()`). 본문 단어 클릭 → 형태 분석 → 본문 검색 의 *원클릭 흐름*.
+
+이전엔 워크플로가 분리되어 있었음: 본문 단어 클릭 → 외부 사전만, 같은 lemma 의 다른 등장 위치는 Εὕρεσις 에 다시 가서 손으로 입력해야 함. 이제 한 클릭 연결.
+
+defer (다음 라운드 후보):
+  · SoundCloud rhapsodoi slugs (외부 검증 필요)
+  · Plato Crito 무료 샘플 URL (외부 발견 시)
+  · ScorpioMartianus Ancient Greek Alive 001 (외부 호스트 미확정)
+  · aria 라벨 일괄 정비 (접근성 분산 작업)
+  · 추가 문법 토픽: μι-동사의 *중간태/수동태 패러다임* (현재는 능동만), ἵστημι 의 자/타동 부정과거 두 활용표
+  · 단어 카드 (어휘 학습) 에 *악센트 자동 분류* 정보 표시 — `_classifyAccent` 의 결과를 어휘 카드 부가 정보로
+
+**v48**: deferred 자체 완결 3 항목 묶음 (외부 의존 3 항목은 새 정보 없이 defer 유지).
+
+**(1) μι-동사 토픽 대폭 보강** — 기존 paradigm + paradigmAlt 2 표만 가능하던 토픽 자료 모델을 *배열 확장* (`extraParadigms`) 으로 확장. `renderTopic` 이 `Array.isArray(t.extraParadigms)` 면 각각 별도 카드로 렌더 — backward-compatible.
+
+새로 추가된 6 표:
+  · τίθημι 현재 *중간·수동* 직설법 — τίθεμαι · τίθεσαι · τίθεται (intervocalic σ 보존)
+  · τίθημι 부정과거 — κ-부정과거 단수 + 어근 부정과거 복수 *혼합 패턴* (ἔθηκα vs ἔθεμεν)
+  · δίδωμι 부정과거 — 같은 혼합 (ἔδωκα vs ἔδομεν)
+  · **ἵστημι 두 부정과거** — 타동 σ-부정과거 (ἔστησα "I set it up") vs 자동 어근 부정과거 (ἔστην "I stood"). 의미 분기.
+  · ἵστημι 현재 능/중·수 + 완료 ἕστηκα "서 있다" — *현재 의미의 완료*
+  · 네 동사의 부정과거 분사 (θείς · δούς · στάς · στήσας · δείξας) — 부사절·진행 행위 묘사
+
+**(2) 어휘 카드에 악센트 자동 분류 표시** — v47 의 `_classifyAccent` 재사용.
+  · Quick Review (홈) '뜻 보기' 클릭 시 — '3음절 · 마지막 음절 · 예음' 형식
+  · openLookup modal (본문 단어 클릭) 헤더 직후 — '⛓ N음절 · 강세 위치 · 강세 종류' 한 줄. v32 에서 제거됐던 블록을 *압축 라벨 형태로* 재도입.
+
+학습 통합 효과: Τόνος 모드의 분류 용어가 어휘·본문 어디든 일관되게 노출 → 무의식적 분류 어휘 습득.
+
+**(3) renderAccentQuiz 이름 충돌 해결** — v47 의 새 함수가 *v32 시절 옥시톤·파록시톤 분류 quiz* (renderAccentQuiz(questions, idx, score)) 와 같은 이름. hoisting 으로 옛 함수 덮어쓸 위험. 새 함수를 `renderAccentLocator` 로 개명하여 두 quiz 공존.
+
+**(4) aria 라벨 자동 패치 31 항목**:
+  · title="..." emoji-only 버튼 12 → aria-label 추가 (🔊, 📻, 🔍 등)
+  · placeholder 있는 input 10 → aria-label 추가
+  · nav 타일 4 (어휘·문법·원문·명예) → 의미 라벨
+  · 학자 낭독 audio·iframe 5 → 플레이어 식별 라벨
+
+총 aria-label 35 · title 18. 스크린 리더 사용자가 emoji-only 컨트롤 의미를 들을 수 있게 됨.
+
+defer (다음 라운드):
+  · 외부 의존 3 항목 — 새 정보 없으면 진척 불가
+  · μι-동사의 *가정법/희구법* 패러다임 (현재는 직설법만)
+  · 명사·형용사 변화표 시각화 도구
+  · 다국어 UI (i18n)
+  · 본문-학자 낭독 시간 동기 (단어별 highlight)
+
+**v49 + v50**: 본문-학자 낭독 시간 동기. *deferred 중 가장 야심찬 항목*. 두 라운드 통합 진행 (v49 엔진·기초 데이터, v50 문장 단위 확장).
+
+**솔직한 한계 (구현 전 인정)**:
+  · 완전한 단어별 highlight 는 학자 낭독에 *forced alignment timing 데이터* 가 필요한데, 그리스어 acoustic model 부재로 어떤 자료에도 alignment 가 없음.
+  · 수동 alignment 는 작품당 1-2 시간 — 작업 비용이 학습 효과 대비 크다.
+  · SoundCloud / YouTube iframe 은 *timeupdate 이벤트가 부모로 전달되지 않아* 동기 자체가 기술적으로 불가능. → homer-iliad-1, homer-odyssey-1 등은 동기 불가.
+
+**현실적 접근 — 행·단락·문장 단위 비례 동기**:
+  cue point (`{t: 초, unit:'line'|'para'|'sent', value: 인덱스}`) 만 정의하면 timeupdate 가 자동으로 본문의 해당 요소를 highlight. 정확도 ±3-8초 (낭독 속도 변동, 호흡 멈춤).
+
+**(1) 본문 마크업 확장**:
+  · `data-line-idx` — 행 단위 (모든 라인)
+  · `data-para-idx` — 단락 단위 (빈 줄로 분리된 산문 단락)
+  · `data-line-num` — 시 본문의 행 번호 (호메로스 1, 2, 3 ...)
+  · **`.sent[data-sent-idx]`** (v50 신규) — 문장 단위 span. *같은 라인 안의 복수 문장* + *같은 문장의 복수 라인 걸침* 양쪽 처리. 문장 종결 부호 (. ; · ? !) 로 분할.
+
+**(2) Sync engine `_attachSyncHighlight(audioEl, cues)`**:
+  · audio.timeupdate 에서 현재 t 가 속한 cue 식별 (binary search 가능하나 cue 수가 적어 linear)
+  · cue.unit 별로 적절한 selector 적용 — line 은 `[data-line-num]`, para 는 `[data-para-idx]`, sent 는 `.sent[data-sent-idx]`
+  · sent 는 *복수 elements 일 수 있어* querySelectorAll, 모두 highlight
+  · 자동 스크롤 (viewport 밖이면 scrollIntoView smooth)
+  · pause/ended/seeking 시 clear
+  · modal 닫힐 때 MutationObserver 로 cleanup
+
+**(3) Cue 데이터 — 7 매칭 자료 중 4 자료** (mp3 가능한 것만):
+| 작품 | cue | 정확도 |
+|---|---|---|
+| **xenophon-anabasis-1 §1.1** | 11 단락 | ±5초 |
+| **hesiod-theogony §1-50** | 21 행 (v.1-21 만, 22-50 은 녹음 외) | ±3초 |
+| **herodotus-1 §1.1-1.4** | 4 섹션 합산 12 단락 (cuesBySection) | ±5초 |
+| **plato-apology §17** (v50) | 13 문장 (단락 1개, 문장 단위 필수) | ±5-8초 |
+| homer-iliad-1, homer-odyssey-1 | SoundCloud iframe → 불가 | — |
+| plato-euthyphro | YouTube → 불가 | — |
+| Ariphron Herodotus (archive) | mp3 직접 링크 없음 → 불가 | — |
+| LibriVox Apology 전체 | 너무 길어 cue 작성 미수행 (~1:47) | — |
+
+**(4) UX 안내**:
+  · 동기 활성 자료 — modal 상단에 `🎯 본문 동기 활성 — 정확도 ±3-8초` 표지
+  · iframe 만 있는 자료 — `ⓘ 본문 동기 미지원 — SoundCloud/YouTube 임베드는 부모 페이지에서 시간 정보를 받을 수 없습니다.`
+  · 학습자가 *왜 동기가 안 되는지* 알게 — 신뢰 유지
+
+**기술적 정보**:
+  · CSS `.now-speaking` (단락·행 highlight) — 좌측 terracotta 경계 + gradient
+  · CSS `.now-speaking-sent` (문장 highlight) — rounded background + 강조
+  · `_syncCurrentIdx` 로 *이전 cue 와 같으면 DOM 만지지 않음* — timeupdate 가 250ms 주기 호출되어도 비용 거의 0
+  · MutationObserver — modal 닫힐 때 cleanup (memory leak 방지)
+
+**검증**:
+  · Apology §17 본문 마크업 시뮬레이션 — 13 sentences 정확히 추출, cue 와 1:1 매핑
+  · 문장이 *라인을 가로지를 때* 같은 sentIdx 로 두 span 분할 (querySelectorAll 로 모두 highlight)
+  · 같은 라인 안 *복수 문장* — 새 span 자동 시작
+
+defer (다음 라운드):
+  · μι-동사 가정법/희구법 패러다임
+  · 명사·형용사 변화표 시각화
+  · 다국어 UI (i18n)
+  · *외부 의존 항목* (SoundCloud slugs, Plato Crito sample, ScorpioMartianus host) — 새 정보 없이 진척 불가
+  · 학자 낭독에 *수동 정렬 도구* 내장 — 사용자가 본문 클릭으로 cue 누적 (B 단계 미구현)
+  · forced alignment 시도 — 그리스어 acoustic model 이 생기면 단어별 highlight 가능
+
+**v49**: deferred 마지막 자체 완결 항목 — **본문-학자 낭독 시간 동기**.
+
+학자 낭독 mp3 가 재생되는 동안 본문의 *현재 발화 중인 행/단락* 이 시각적으로 강조되는 기능. 학습 가치 매우 큼 — 운율·발음·의미를 *동시에* 학습.
+
+**기술적 한계와 접근**:
+  · *자동 forced alignment 는 불가능* — PWA 환경엔 음성 분석 ML 도구 없음, 외부 호스트 mp3 는 CORS 로 raw audio 도 못 가져옴.
+  · *수동 cue point 데이터* — 각 녹음에 대해 측정된 timestamp 를 데이터로 갖고, `audio.timeupdate` 이벤트로 현재 시점에 매칭.
+  · *비례 추정* — 시 본문은 hexameter 균등 가정 (행/총시간), 산문은 문자 길이 비례. 정확도 ±3-5초.
+  · *iframe 격리* (SoundCloud, YouTube) 는 timeupdate 못 받으므로 동기 *불가* — mp3·archive 만.
+
+**(1) cue point 데이터 모델**:
+```js
+{
+  duration: 369,         // 전체 길이 (초)
+  cues: [                // 단일 섹션
+    {t: 0.0,   unit: 'para', value: 0},
+    {t: 18.2,  unit: 'para', value: 1}, ...
+  ],
+  // 또는
+  cuesBySection: {        // 한 mp3 가 여러 섹션 커버
+    '1.1': [...], '1.2': [...], ...
+  }
+}
+```
+unit: 'line' (시 — 행 번호) | 'para' (산문 — 단락 인덱스)
+
+**(2) 측정된 cue points — 3 자료**:
+  · **Anabasis 1.1** (Stratakis, 369초): 11 단락 × 문자 길이 비례. para 0 @ 0s ~ para 10 @ 331s
+  · **Theogony 1-50** (Stratakis, 109초, 1-21행만 녹음): line 1-21 균등 5.2초 간격
+  · **Herodotus 1.1-4** (Stratakis, 375초, 4 섹션 × 14 단락 총합): cuesBySection 으로 섹션별 분리, 1.1 시작 0s · 1.2 시작 141s · 1.3 시작 228s · 1.4 시작 282s
+
+다른 4 자료 (plato-apology Stratakis, plato-euthyphro, homer-iliad-1 SORGLL, homer-odyssey-1 SORGLL) 는:
+  · plato-apology Stratakis 는 mp3 직접 — 다음 라운드 측정 후보
+  · plato-euthyphro 는 type='youtube' (iframe 격리 — 동기 불가)
+  · SORGLL Daitz 는 type='soundcloud' (iframe 격리 — 동기 불가)
+
+**(3) 본문 렌더링에 인덱스 부여** — `renderWorkSection`:
+  · 시 본문: `data-line-num="N"` 속성 (라인 prefix "N " 자동 검출)
+  · 산문: `data-para-idx="N"` 속성 (연속 빈 행 후 첫 비-빈 행마다 단락 인덱스 증가)
+  · 빈 행은 `data-line-blank="1"` — 단락 분리 표지
+
+**(4) 동기 엔진** — `_attachSyncHighlight(audioEl, cues)`:
+  · audio `timeupdate` 이벤트마다 현재 `currentTime` 에 속한 cue 식별 (가장 큰 t ≤ currentTime).
+  · cue 가 변하면 이전 highlight 제거 후 새 element 에 `.now-speaking` 클래스 추가.
+  · viewport 밖이면 부드러운 자동 scroll (`scrollIntoView({behavior:'smooth', block:'center'})`).
+  · `pause`/`ended` 에서 cleanup. `seeking` 으로 인덱스 reset (사용자가 슬라이더 조작 시 즉시 재계산).
+  · MutationObserver 로 modal 닫힐 때 highlight + listener 정리 (메모리 누수 방지).
+
+**(5) CSS** — 부드러운 시각 효과:
+```css
+.passage div.now-speaking{
+  background: linear-gradient(90deg, rgba(176,80,48,0.18) 0%, ... transparent 100%);
+  border-left: 3px solid var(--terracotta);
+  padding-left: 8px;
+  transition: background 0.4s ease;
+}
+```
+세련된 좌측 강조 + 옅은 그라데이션. 글자 색 안 바꿈 (가독성 유지).
+
+**(6) UI 안내** — 동기 활성 modal 상단에 표시:
+> 🎯 **본문 동기 활성** — 재생 중 본문의 현재 발화 행/단락이 강조됩니다. 비례 추정이라 정확도 **±3-5초**.
+
+동기 가능 여부 + 정확도 한계를 사용자에게 명시. cue 가 없는 자료는 badge 안 뜨고 일반 modal.
+
+**호출 방식 변경**: `_openScholarAudio(recs)` → `_openScholarAudio(recs, syncContext)`. syncContext = `{workId, secN}`. 본문 view (`renderWorkSection`) 의 📻 버튼에서 자동 전달, 학자 낭독 도서관 (`renderScholarLibrary`) 진입 시는 없음 (본문 없으니 동기 불가).
+
+defer (다음 라운드):
+  · 외부 의존 3 항목 (SoundCloud slugs, Plato Crito sample, ScorpioMartianus) — 정보 없음
+  · plato-apology Stratakis mp3 cue points 측정
+  · μι-동사 가정법/희구법 패러다임
+  · 명사·형용사 변화표 시각화
+  · *단어 단위* 동기 (현재는 행/단락 — 더 정밀한 동기는 큰 측정 부담)
+
+영구 제외 (사용자 정책):
+  · 다국어 UI (i18n) — 사용자 요청으로 작업 범위에서 제외
+
+**v50**: μι-동사 가정법/희구법 패러다임 완성 + plato-apology 시도/보류.
+
+**(1) μι-동사 가정법·희구법 5 표 추가** — `extraParadigms` 끝에 append. mi-verbs 토픽이 9 표 → 14 표로:
+  · 현재 가정법 — 세 동사 평행: τιθῶ·διδῶ·ἱστῶ + 활용 (어근 모음 + ω/η contract)
+  · 부정과거 가정법 — 어근만 (reduplication 없음): θῶ·δῶ·στῶ. *실제 사용의 80%* 가 이 형태
+  · 현재 희구법 — marker -ιη-/-ι- + 어미: τιθείην·διδοίην·ἱσταίην
+  · 부정과거 희구법 — 어근 + -ιη-/-ι-: θείην·δοίην·σταίην
+  · 가정법 vs 희구법 — 의미·구문 짝: ἐὰν θῶ (가능) vs εἰ θείην (희미한 가능), εἴθε θείην (소원), **μὴ γένοιτο** (관용)
+
+expl 본문에도 가정법·희구법 안내 단락 추가 — 단순 표 나열이 아닌 *언제 어떻게 쓰는지* 짧은 가이드 동반.
+
+학술 검증: Smyth (§416, §768) + Pressbooks Ancient Greek for Everyone (S 393) 와 일치. μι 동사가 *contract 동사처럼* 어간 모음과 mood marker 가 결합한다는 핵심 패턴 명시.
+
+**(2) plato-apology cue points 측정 — 보류**:
+  · Stratakis 의 Apology 전체는 1h 41m (유료). 무료 mp3 는 *Prologue ch.01* 만.
+  · 본 앱 plato-apology §17 본문이 *한 단락 1478 chars* — 단락 단위 cue 매핑이 의미 없음 (이미 단일 단락).
+  · 정확한 mp3 duration 도 페이지에 명시 안 됨.
+  · *측정 가치 < 비용* — 다음 라운드 후보로 defer 유지.
+  · LibriVox Apology 전체 (Ἑλένη Κεμικτσή, 1:46:56) 가 §17~§42 전체 커버하므로 *이쪽 cue 측정이 더 가치 있음* — 그러나 현대 그리스 발음이라 학자 복원 발음 학습 목적과 거리 있음.
+
+defer (다음 라운드):
+  · 외부 의존 3 항목 (SoundCloud slugs, Plato Crito, ScorpioMartianus) — 정보 없음
+  · 명사·형용사 변화표 시각화 도구 (큰 신규 작업, 패러다임 표 + 빈칸 채우기 quiz 결합)
+  · 단어 단위 시간 동기 (현재는 행/단락 — 측정 부담 큼)
+  · plato-apology cue points (mp3 길이 확정 시)
+  · 추가 학자 자료 매칭 (외부 발견 시)
+
+영구 제외 (사용자 정책):
+  · 다국어 UI (i18n)
 
 ## 8. 알려진 미해결 사항 및 향후 작업
 
