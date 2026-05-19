@@ -1,6 +1,6 @@
 # Ἑλληνικὴ Παιδεία — PWA 설치 가이드 (v2)
 
-CIM Lab 고전 그리스어 학습기. 단일 HTML + 서비스 워커로 작동하는 Progressive Web App.
+고전 그리스어 학습기. 단일 HTML + 서비스 워커로 작동하는 Progressive Web App. **개인 프로젝트.**
 
 ## 파일 목록
 
@@ -107,4 +107,4 @@ CACHE_VERSION 안 올리면 사용자는 캐시된 옛 버전 계속 봅니다.
 - 원문: Perseus DL `canonical-greekLit` (CC BY-SA 3.0)
 - 형태분석: AGDT v2.1 — Persae · Iliad 1 · Odyssey 1 · Theogonia · Opera et Dies · Antigone · Euthyphro · Historiae 1 (CC BY-SA 3.0)
 - 사진: Wikimedia Commons Public Domain
-- 어휘 한국어: LSJ 기반 (CIM Lab)
+- 어휘 한국어: LSJ 기반

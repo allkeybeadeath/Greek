@@ -1,10 +1,10 @@
-# Ἑλληνικὴ Παιδεία — CIM Lab 인수인계
+# Ἑλληνικὴ Παιδεία — 개발 인수인계
 
-본 문서는 CIM Lab에서 운영하는 고전 그리스어 학습 Progressive Web App (PWA) 의 기술적 인수인계를 위한 자료다. 신규 합류 구성원이 별도 컨텍스트 없이도 코드베이스를 이해하고 유지·확장할 수 있도록 작성했다. 최종 갱신 **v56 (2026년 5월)**.
+본 문서는 개인 프로젝트로 운영되는 고전 그리스어 학습 Progressive Web App (PWA) 의 기술적 인수인계를 위한 자료다. 신규 합류 구성원이 별도 컨텍스트 없이도 코드베이스를 이해하고 유지·확장할 수 있도록 작성했다. 최종 갱신 **v56 (2026년 5월)**.
 
-> **다음 작업자에게**: §7 라운드별 changelog 의 *맨 마지막 항목 (v60)* 이 현재 상태다. 그 위 라운드들은 어떻게 여기까지 왔는지의 기록. 새 작업을 시작하기 전에 §7 의 가장 최근 항목과 §0 의 현재 스냅샷을 먼저 읽기.
+> **다음 작업자에게**: §7 라운드별 changelog 의 *맨 마지막 항목 (v62)* 이 현재 상태다. 그 위 라운드들은 어떻게 여기까지 왔는지의 기록. 새 작업을 시작하기 전에 `CHANGELOG_v62.md` 와 §0 의 현재 스냅샷을 먼저 읽기.
 
-## 0. 현재 상태 스냅샷 (v60, 2026-05)
+## 0. 현재 상태 스냅샷 (v62, 2026-05)
 
 **배포 산출물**: `index.html` (~975 KB, IIFE ~440K chars, ~16.4K lines — v59 의 silent failure 차단 + 진단 modal ~270 lines + **v60 의 종료 흐름 fix 4 갈래 ~110 lines**) · `sw.js` · `data-works.js` (3 MB, 45 작품 545 섹션) · `data-morph.js` (4 MB, AGDT v2.1 37K 어형 11.8K lemma) · `data-dialogues.js` (45 KB, 10 콩트 시나리오) · `data-translations.js` (~55 KB, v53 확장 — 19 발췌 정역 ~330 문장 + 34 짧은 발췌 정역) · `data-characters.js` (~22 KB, v56 — 50 캐릭터 사진 + 50 명언 인용) · `espeakng.worker.js` (760 KB) · `manifest.json` · `reset.html`.
 
@@ -23,6 +23,7 @@
 - **(v56 신규) BGM**: 절차적 고대 그리스 양식 음악 (Web Audio API, 도리아 모드 E F G A B C D, 키타라/리라 톤 합성). 홈 화면 BGM 토글 버튼. **양식적 모방** (재현 아님) 명시. Self-contained · 오프라인 · 라이선스 위험 없음.
 - **(v56 신규) 건의 사항**: 홈 푸터의 `건의` 링크 → modal (textarea 2000자) → `STORAGE.setShared('feedback:<ts>:<userId>', ...)`. 운영자는 console 에서 `STORAGE.listShared('feedback:')` 로 수집. 오프라인 시 localStorage 큐 (`paideia.feedbackQueue`).
 - **(v56 신규) 동시 학습자 카운트**: 4분 간격 `presence:<userId>` heartbeat. 홈 화면 카드에 `현재 N명 공부 중` 표시 (5분 이내 ping 한 사용자만). 60초 카운트 캐시.
+- **(v62 신규) 초보자 일일 진도 커리큘럼**: 20 일 분량 (Day 1~5 알파벳·발음 신규 콘텐츠, Day 6~20 레슨 3~7 매핑). 홈 카드 → 일정 화면 → 일차 화면 3 단 진입. 잠금 (전 일차 완료 시 다음 일차 열림). 7 종 task type (alphabet·diphthong·breathing·accent·vocab·topic·quiz). 시험 통과 기준 70%. Day 단위 완료마다 +5 XP. 데이터 정합성 검증 통과 (vocab/topic 참조 0 missing).
 - 접근성: aria-label 35+ · title 18+ · greek lang attr 자동화
 - 다중 프로필 · 명예의 전당 · 책갈피·메모
 
@@ -42,6 +43,7 @@
 - **Presence (v56)**: `pingPresence` · `startPresenceHeartbeat` · `fetchPresenceCount` · 상수 `PRESENCE_TTL_MS=5min`, `PRESENCE_PING_MS=4min` · `_presenceCountCache` (60초 TTL)
 - **(v59) Silent failure 차단 + 진단**: `BACKEND.setShared/getShared/listShared` 가 `window._battleLastError` 에 HTTP status + body 200자 + `isPermissionDenied` (401/403) 캡처 · `_battleSaveRoom` / `_lobbyPingWaiter` / `_lobbyStartMatch` 반환값 검증 · `_battleHandleUpdate` 의 `BATTLE_JUST_CREATED_GRACE_MS=5000` + `_battleState.justCreatedAt` (호스트 본인 첫 fetch transient null 흡수) · `_lobbyEnterQueue` 낙관적 UI (`_optimistic: true` 마커) + 롤백 · 진단 modal 의 `#diag-firebase-test` 자가진단 버튼 (6 경로 PUT/GET/DEL + verdict allWriteOk/allDenied/partialDenied + 권장 룰 inline 표시) · toast 시그니처 확장 (`(msg, typeOrDuration, duration)` — 숫자면 duration, 문자열이면 type) · README §3 Firebase 룰을 `.read/.write: true` 루트 허용으로 갱신
 - **(v60) 멀티 배틀 종료 흐름 fix**: `_battleSubmitProgress` 의 path-level `STORAGE.setShared` 가 hardcoded `battles:${code}` 였던 것을 `_battleState.roomPath || 'battles:'+code` 로 일반화 (공개 lobby 매치에서 player.finished PUT 이 잘못된 경로로 가서 status 전환 영구 실패하던 버그) · last-player race 의 self-merge (자기 직전 PUT 이 Firebase 의 eventual consistency 로 fresh 응답에 반영 안 됐을 때 local payload 우선) · SSE/polling onUpdate 콜백에서 `status==='finished'` 분기를 `playing` 보다 *먼저* 평가 + `inWaitOthers` 식별 변수로 `answeredThisQ` 단락 무력화 · `renderBattleGame` 에 status 전환 watchdog (room.players 가 모두 finished:true 이고 status 가 playing 이면 idempotent flip 재시도) · `_renderBattleWaitOthers` 에 wait 시작 시각 추적 + 30초 stale 알림 + 45초/all-others-finished 시 "⚡ 지금 결과 보기 (매치 종료)" 비상 버튼 (meta.forceFinishedBy 기록).
+- **(v62 신규) 초보자 커리큘럼**: `GREEK_ALPHABET` (24, 8 필드/글자: cap/low/name/nameKo/sound/soundKo/tip/mnemonic) · `GREEK_DIPHTHONGS` (9) · `GREEK_BREATHINGS` (2) · `GREEK_ACCENTS` (3) · `BEGINNER_CURRICULUM` (20 일, `{day, grkTitle, koTitle, desc, estMin, tasks: [...]}` shape) · `BEGINNER_CURRICULUM_TOTAL_DAYS=20` · 상태 `S.curriculumDay` · `S.curriculumDone[N]={completedAt,score}` · 헬퍼 `_ensureCurriculumState` · `isCurriculumDayDone(n)` · `isCurriculumDayLocked(n)` · `curriculumProgress()` · `_curriculumDayObj(n)` · `markCurriculumDayDone(n, score)` · 세션 휘발성 `_curriculumTaskState` + `_isTaskDone` / `_markTaskDone` · 렌더러 `renderCurriculum` · `renderCurriculumDay` · dispatcher `openCurriculumTask(day, idx)` · task renderer `renderAlphabetTask` · `renderDiphthongTask` · `renderBreathingTask` · `renderAccentTask` · `renderCurriculumVocabTask` · `renderCurriculumTopicTask` (renderTopic 위임 + sticky 완료 바) · `renderCurriculumQuizTask` (kind ∈ alphabet/vocab/diacritic, 70% 통과 임계) · 홈 카드는 presence card 와 quote card 사이 IIFE 블록.
 
 **현재 미해결·defer 상태** (§7 의 v60 끝 defer 블록 참조):
 - 외부 의존 3 항목 (SoundCloud slugs · Plato Crito sample · ScorpioMartianus) — 새 정보 없음
@@ -62,6 +64,12 @@
 - **(v58 defer) 재연결 시 인트로 컷 재진입 옵션** — 현재 `_battleIntroShown[code]=true` 가드라 재연결해도 인트로 안 보임.
 - **(v59 신규 defer) Firebase Auth 통합** — 현재 권장 룰 `.read/.write: true` 는 *연구실 내부용* 으로만 안전. 외부 공개 시 anonymous auth + `auth != null` 또는 email/password 로 강화 필요.
 - **(v59 신규 defer) 자가진단 modal 의 자동 룰 PUT** — 현재는 사용자가 Firebase Console 에 수동 붙여넣기. Admin API 로 자동화 가능하나 service account 키 노출 위험으로 보류.
+- **(v62 이월) Day 21~60 매핑** — 레슨 8~40 의 33 레슨이 미정의. `BEGINNER_CURRICULUM_TOTAL_DAYS` 만 갱신하면 확장 가능. 권장 작업량: 한 라운드에 ~20 일씩 두 라운드 분할.
+- **(v62 이월) 커리큘럼 task 진행 영구화** — 현재 `_curriculumTaskState` 는 세션 휘발성. 새로고침 시 일차 내 진행 풀림. `S.curriculumTaskDone` 으로 승격하면 해결.
+- **(v62 이월) 커리큘럼 시험 점수 표시** — `S.curriculumDone[n].score` 필드 예약돼 있으나 UI 미표시.
+- **(v62 이월) 커리큘럼 reading task** — 현 매핑은 vocab/topic/quiz 만. 짧은 발췌 읽기 task type 추가 시 교수학적 완성도 향상.
+- **(v62 이월) 커리큘럼 배지** — `alpha-complete` (Day 5), `lesson3-complete` (Day 9), `paideia-complete` (Day 60). `BADGES` 배열 확장 + 완료 시 award.
+- **(v61 이월, v62 미처리) 오늘의 단어 (Word of the Day)** — 홈 카드. 결정론적 일자 인덱싱. ~150 lines. CHANGELOG_v61.md 의 "다음 세션" §A 참조.
 
 **영구 제외** (사용자 정책):
 - 다국어 UI (i18n)
@@ -72,7 +80,7 @@
 
 핵심 기능은 어휘 학습 (교재 단위 및 DCC core vocabulary 523), 문법 토픽 학습, 원문 읽기 (전집 + 발췌), 배틀 모드 (시간제 객관식), 오답함 SRS, 명예의 전당, 다중 프로필, 그리고 4종 발음 시스템 (eSpeak NG · 현대 헬라어 · Erasmian · 복원 Attic) 이다.
 
-타깃 사용자는 CIM Lab 구성원과 외부 학습자이며, 주요 사용 플랫폼은 iOS Safari (한국 iPad 환경 우선 검증) 와 데스크탑 Chromium 계열이다.
+타깃 사용자는 본 프로젝트 학습자이며, 주요 사용 플랫폼은 iOS Safari (한국 iPad 환경 우선 검증) 와 데스크탑 Chromium 계열이다.
 
 ## 2. 기술 스택
 
@@ -880,7 +888,7 @@ defer (다음 라운드):
 
 **라이선스 정직성**: 대부분의 사진은 *미국 법상 PD* (>1000년 된 고대 유물의 충실한 사진은 저작권 대상 아님 — Bridgeman v. Corel 판결). 일부 (모렐서의 헤라클레이토스 등 17세기 이후 회화의 박물관 사진) 는 PD 또는 CC BY 4.0. caption 필드가 박물관·작가 정보를 명시하므로 *사실상의 attribution* 역할. 향후 라이선스 정밀화는 v54 후보.
 
-**(3) HANDOVER 동봉 정책 (재확인)**: 사용자 지시 *"인수인계도 매 세션 같이 보내"* (v53 라운드 1) + *"인수인계도 매 세션 같이 보내"* (v53 라운드 2, 재강조) → 모든 산출물 패키지에 `HANDOVER.md` 동봉 + `present_files` 로 HANDOVER 별도 노출. CIM Lab 다수 사용자가 본 계정을 공유하므로, 한 세션에서 산출한 zip 만 받아도 다음 세션 작업자가 즉시 컨텍스트 회복 가능.
+**(3) HANDOVER 동봉 정책 (재확인)**: 사용자 지시 *"인수인계도 매 세션 같이 보내"* (v53 라운드 1) + *"인수인계도 매 세션 같이 보내"* (v53 라운드 2, 재강조) → 모든 산출물 패키지에 `HANDOVER.md` 동봉 + `present_files` 로 HANDOVER 별도 노출. 다수 세션에서 동일 컨텍스트가 필요할 수 있으므로, 한 세션에서 산출한 zip 만 받아도 다음 세션 작업자가 즉시 컨텍스트 회복 가능.
 
 **구현 사항**:
   · data-translations.js: ~310 lines 추가 (216 → ~500 lines, 35 KB → 55 KB) — 14 새 발췌
@@ -1111,7 +1119,7 @@ defer (다음 라운드 후보, v56+):
 
 **(5) 건의 사항 (Feedback) modal**:
 홈 푸터의 `건의` 링크 → `openFeedbackModal()` → textarea (2000자 한도) + 전송 버튼.
-- *저장*: `STORAGE.setShared('feedback:<ts>:<short_uid>', JSON)` — CIM Lab 운영자는 console 에서 `STORAGE.listShared('feedback:')` 후 각 키 fetch 로 수집
+- *저장*: `STORAGE.setShared('feedback:<ts>:<short_uid>', JSON)` — 운영자는 console 에서 `STORAGE.listShared('feedback:')` 후 각 키 fetch 로 수집
 - *익명성*: 캐릭터·진척도·이름 *전송 안 함*. 보내는 정보: 본문, 타임스탬프, userId (앱 내 익명 ID), APP_VERSION, UA 첫 200자
 - *오프라인 안전망*: `localStorage.paideia.feedbackQueue` 에 항상 동시 저장 (큐 한도 50). supportsShared 가 false 면 토스트 `오프라인 — 로컬에 저장됨, 다음 접속 시 시도`
 - *입력 검증*: 4자 미만 차단, 2000자 한도 (maxlength + JS 입력 카운터)

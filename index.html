@@ -415,7 +415,7 @@ textarea.input{font-family:var(--font-ko);font-size:14px;line-height:1.5;min-hei
   <header class="app-header">
     <h1>
       <span class="grk">Ἑλληνικὴ Παιδεία</span>
-      <span class="sub">CIM Lab</span>
+      <span class="sub">고전 그리스어 학습</span>
     </h1>
     <div class="level-banner" id="lvl-banner"></div>
   </header>
@@ -969,7 +969,7 @@ const TEXTBOOK_W = [
 /* data_dcc.js */
 /* ============================================================================
    DCC Core Greek Vocabulary — 523 entries with Korean translations.
-   Korean glosses by Claude (CIM Lab) based on standard LSJ meanings.
+   Korean glosses based on standard LSJ meanings.
    DCC list © Dickinson College Commentaries, CC BY-SA.
    ============================================================================ */
 const DCC_W = [
@@ -4609,7 +4609,7 @@ function imageURL(imgId, width){
 
 // 앱 버전 — sw.js CACHE_VERSION과 동기화 유지. 홈 화면 푸터에 표시되어
 // 사용자가 자신이 어느 버전을 사용 중인지 확인 가능 (캐시 갱신 진단용).
-const APP_VERSION = 'v60';
+const APP_VERSION = 'v62';
 window.__paideiaVersion = APP_VERSION;
 
 // ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
@@ -4874,7 +4874,7 @@ async function persist(state){
 }
 
 // ===== 다중 사용자 프로필 (v28) =====
-// CIM Lab 같은 공유 환경 대비: 한 기기에 여러 학습자가 독립된 학습 상태를 유지
+// 공유 환경 대비: 한 기기에 여러 학습자가 독립된 학습 상태를 유지
 const PROFILE_META_KEY = 'paideia-profile-meta';
 let _currentProfileId = null;
 let _profileMetaCache = null;   // 동기 접근용 (load 후 채워짐)
@@ -5024,7 +5024,7 @@ async function renderProfiles(){
     <div class="card" style="background:var(--ivory-d);border-left:3px solid var(--clay-d)">
       <div style="font-size:12px;color:var(--clay-d);line-height:1.7">
         ◇ 각 프로필은 <b>고유한 XP·SRS·북마크·메모·연속 학습일·캐릭터</b>를 가집니다.<br>
-        ◇ CIM Lab처럼 한 iPad·계정을 여러 사람이 쓰는 환경에서 학습 데이터를 분리할 때 사용하세요.<br>
+        ◇ 한 기기·계정을 여러 사람이 함께 쓰는 환경에서 학습 데이터를 분리할 때 사용하세요.<br>
         ◇ 프로필 전환 시 페이지가 새로고침됩니다. 데이터는 기기에 로컬 저장되며 외부 전송되지 않습니다.
       </div>
     </div>
@@ -5612,6 +5612,259 @@ const BADGES = [
   {id:'salamis',       grk:'Ν', ko:'살라미스',     desc:'아이스킬로스 <i>Persae</i> 또는 플루타르코스 <i>Themistocles</i> 완독'},
 ];
 
+// ─── 초보자 커리큘럼 — 알파벳·이음·구별부호 데이터 (v62) ────────────────
+// Day 1~5 의 신규 콘텐츠. 알파벳 24글자 + 이음(diphthong) 9 + 기식 2 + 강세 3.
+// 한국어 표기는 학술 관례 (전사학 vs 음역) 절충. 음가는 Erasmian 기준,
+// 현대 헬라어/복원 Attic 차이는 발음 모드 토글에서 별도 처리.
+
+const GREEK_ALPHABET = [
+  {cap:"Α", low:"α", name:"ἄλφα", nameKo:"알파", sound:"a", soundKo:"아", tip:"단·장 두 가지 길이. 영어 father 의 a 와 가깝다.", mnemonic:"라틴 A 와 모양·소리 모두 같다."},
+  {cap:"Β", low:"β", name:"βῆτα", nameKo:"베타", sound:"b", soundKo:"브", tip:"고전기엔 영어 b. 현대 그리스어에선 v.", mnemonic:"라틴 B 와 모양·소리 같다 (고전기)."},
+  {cap:"Γ", low:"γ", name:"γάμμα", nameKo:"감마", sound:"g", soundKo:"그", tip:"단, γγ·γκ·γχ·γξ 앞에서는 영어 ng (ng-sound).", mnemonic:"ἄγγελος (앙겔로스) 처럼 γγ 가 ng."},
+  {cap:"Δ", low:"δ", name:"δέλτα", nameKo:"델타", sound:"d", soundKo:"드", tip:"무성치파열음 d. 현대 그리스어는 영어 the 의 유성치마찰음.", mnemonic:"삼각형 모양이 강의 '델타'(삼각주)."},
+  {cap:"Ε", low:"ε", name:"ἒ ψιλόν", nameKo:"엡실론", sound:"e", soundKo:"에", tip:"항상 단모음 e. 영어 bet 의 e.", mnemonic:"'ψιλόν' 은 '단순한' — Η 와 구별하는 단모음 e."},
+  {cap:"Ζ", low:"ζ", name:"ζῆτα", nameKo:"제타", sound:"zd / dz", soundKo:"즈드 / 드즈", tip:"고전 Attic 에서는 [zd] (이중자음, 음절 분리). 영어 lazy 의 z 가 아님.", mnemonic:"Ἀθήναζε (아테나즈데) = 아테네로."},
+  {cap:"Η", low:"η", name:"ἦτα", nameKo:"에타", sound:"ē", soundKo:"에이 (장)", tip:"항상 장모음. 열린 [ɛː]. Ε 의 길게 늘인 짝.", mnemonic:"가운데 가로획이 늘어진 모양 → 길게."},
+  {cap:"Θ", low:"θ", name:"θῆτα", nameKo:"테타", sound:"tʰ", soundKo:"트 (기음)", tip:"무성치기음. Erasmian 에서는 영어 thin 의 th. 고전기엔 t+h.", mnemonic:"O 안에 점 — '꽉 막힌 통' 모양."},
+  {cap:"Ι", low:"ι", name:"ἰῶτα", nameKo:"이오타", sound:"i", soundKo:"이", tip:"단·장 두 가지. 영어 machine 의 i.", mnemonic:"가장 짧은 글자 → 'every iota' = 가장 작은 것."},
+  {cap:"Κ", low:"κ", name:"κάππα", nameKo:"카파", sound:"k", soundKo:"크", tip:"무성연구개파열음. 영어 k.", mnemonic:"라틴 K 와 같다."},
+  {cap:"Λ", low:"λ", name:"λάμβδα", nameKo:"람브다", sound:"l", soundKo:"ㄹ", tip:"설측음 l. 영어 l.", mnemonic:"라틴 L 의 거꾸로."},
+  {cap:"Μ", low:"μ", name:"μῦ", nameKo:"뮈", sound:"m", soundKo:"므", tip:"비음 m.", mnemonic:"라틴 M 과 같다."},
+  {cap:"Ν", low:"ν", name:"νῦ", nameKo:"뉘", sound:"n", soundKo:"느", tip:"비음 n.", mnemonic:"라틴 N 과 같다 (소문자도 비슷)."},
+  {cap:"Ξ", low:"ξ", name:"ξῖ", nameKo:"크시", sound:"ks", soundKo:"크스", tip:"이중자음 k+s. 영어 box 의 x.", mnemonic:"3 단 가로획 — k·s 결합 시각화."},
+  {cap:"Ο", low:"ο", name:"ὂ μικρόν", nameKo:"오미크론", sound:"o", soundKo:"오", tip:"항상 단모음 o. 'μικρόν' = 작은. Ω 와 구별.", mnemonic:"작은 동그라미."},
+  {cap:"Π", low:"π", name:"πῖ", nameKo:"피", sound:"p", soundKo:"프", tip:"무성양순파열음. 영어 p.", mnemonic:"수학의 π."},
+  {cap:"Ρ", low:"ρ", name:"ῥῶ", nameKo:"로", sound:"r", soundKo:"르", tip:"떨림음 r. 어두 ρ 는 항상 거센기식 (ῥ).", mnemonic:"영어 P 처럼 보이나 r 소리."},
+  {cap:"Σ", low:"σ ς", name:"σίγμα", nameKo:"시그마", sound:"s", soundKo:"스", tip:"어말에서는 ς, 그 외 σ. 한 단어 안에서도 끝에만 ς.", mnemonic:"Διόνυσος — 어말 ς 가 보임."},
+  {cap:"Τ", low:"τ", name:"ταῦ", nameKo:"타우", sound:"t", soundKo:"트", tip:"무성치파열음.", mnemonic:"라틴 T."},
+  {cap:"Υ", low:"υ", name:"ὖ ψιλόν", nameKo:"윕실론", sound:"y / ü", soundKo:"위", tip:"단·장 두 길이. 프랑스 lu·독일 ü 의 전설원순모음. Erasmian 에서는 'ü' 발음.", mnemonic:"단독 υ 는 '위'. 디프통 일부 (αυ·ευ·ου) 의 후반."},
+  {cap:"Φ", low:"φ", name:"φῖ", nameKo:"피", sound:"pʰ", soundKo:"프 (기음)", tip:"무성양순기음. Erasmian 에서는 영어 fan 의 f. 고전기엔 p+h.", mnemonic:"Π 에 동그라미가 붙은 모양 = 기식이 추가됨."},
+  {cap:"Χ", low:"χ", name:"χῖ", nameKo:"키", sound:"kʰ", soundKo:"크 (기음)", tip:"무성연구개기음. Erasmian 에서는 독일 Bach 의 ch. 고전기엔 k+h.", mnemonic:"Κ 에 기식이 추가."},
+  {cap:"Ψ", low:"ψ", name:"ψῖ", nameKo:"프시", sound:"ps", soundKo:"프스", tip:"이중자음 p+s. 영어 lapse 의 ps.", mnemonic:"Π+Σ 의 결합."},
+  {cap:"Ω", low:"ω", name:"ὦ μέγα", nameKo:"오메가", sound:"ō", soundKo:"오 (장)", tip:"항상 장모음. 'μέγα' = 큰. Ο 와 구별.", mnemonic:"두 동그라미가 결합된 — 큰 O."},
+];
+
+const GREEK_DIPHTHONGS = [
+  {glyph:"αι", koSound:"아이", tip:"단순 디프통. 단모음 취급 (음절 운율 일반).", ex:"παιδίον (파이디온) — 아이"},
+  {glyph:"ει", koSound:"에이", tip:"단순 디프통. 영어 grey 의 ay.", ex:"εἰρήνη (에이레네) — 평화"},
+  {glyph:"οι", koSound:"오이", tip:"단순 디프통. 단모음 취급 (어말은 제외).", ex:"οἶκος (오이코스) — 집"},
+  {glyph:"υι", koSound:"위이", tip:"드문 디프통. ü+i.", ex:"υἱός (휘오스) — 아들"},
+  {glyph:"αυ", koSound:"아우", tip:"a+u.", ex:"αὐτός (아우토스) — 그 자신"},
+  {glyph:"ευ", koSound:"에우", tip:"e+u.", ex:"εὖ (에우) — 잘"},
+  {glyph:"ηυ", koSound:"에우 (장)", tip:"장 e+u. 드물다.", ex:"ηὗρον (헤우론) — 발견했다"},
+  {glyph:"ου", koSound:"우", tip:"단순 디프통. 영어 too 의 oo. 사실상 장모음 [u:].", ex:"λόγου (로구) — 말의"},
+  {glyph:"ᾳ ῃ ῳ", koSound:"아·에·오", tip:"iota subscriptum (이음 작은 ι). 고전기 [aːi̯]·[ɛːi̯]·[ɔːi̯] 의 잔영. 발음 시 ι 는 거의 들리지 않음.", ex:"τῇ (테) — 여격 단수"},
+];
+
+const GREEK_BREATHINGS = [
+  {name:"부드러운 기식 (smooth, ψιλή)", mark:"᾿", desc:"어두 모음·디프통 위에 의무적. 추가 음 없음 — 자연스러운 모음 시작.", ex:"ἄνθρωπος (안트로포스)"},
+  {name:"거센 기식 (rough, δασεῖα)", mark:"῾", desc:"어두 모음·디프통 위에 의무적. [h] 음 추가. 어두 ρ 도 항상 거센기식 (ῥ).", ex:"ἡμέρα (헤메라) — 영어식 'h-emera'"},
+];
+
+const GREEK_ACCENTS = [
+  {name:"날카로운 강세 (acute, ὀξεῖα)", mark:"´", desc:"단·장 어디든. 끝(ultima)·앞(penult)·두 앞(antepenult) 중 한 음절에.", ex:"λόγος, ἄνθρωπος"},
+  {name:"무거운 강세 (grave, βαρεῖα)", mark:"`", desc:"acute 가 어말(ultima)에 있고 다른 단어가 바로 뒤따를 때 grave 로 변경. 단독으로는 출현하지 않음.", ex:"καὶ ὁ ἄνθρωπος (καί 가 καὶ 로)"},
+  {name:"곡절 강세 (circumflex, περισπωμένη)", mark:"῀", desc:"장모음·디프통 위에만. 상승+하강 음조. ultima·penult 만.", ex:"σῶμα, δῶρον"},
+];// ─── 초보자 커리큘럼 — Day 1~20 (v62) ──────────────────────────────────────
+// 38 레슨 중 레슨 3~7 매핑. Day 21+ 는 차기 세션에서 확장.
+// Task 종류: alphabet · diphthong · breathing · accent · vocab · topic · quiz
+//   - vocab.words[] 는 TEXTBOOK_W.g 와 일치 (런타임에 찾아 표시)
+//   - topic.topicId 는 TOPICS.id 와 일치 (renderTopic 으로 라우팅)
+//   - quiz.kind ∈ {alphabet, vocab, diacritic} — kind 별 다른 renderer
+const BEGINNER_CURRICULUM = [
+  {
+    day:1, grkTitle:"Ἀλφάβητος Αʹ", koTitle:"알파벳 (1/4) — Α–Ζ",
+    desc:"그리스 문자 24개 중 1~6번 글자. 알파부터 제타까지.",
+    estMin:12,
+    tasks:[
+      {type:"alphabet", title:"문자 학습", letters:["Α", "Β", "Γ", "Δ", "Ε", "Ζ"], note:"각 글자의 대·소문자, 이름, 음가, 한국어 표기를 익힙니다. (ἄλφα · βῆτα · γάμμα · δέλτα · ἒ ψιλόν · ζῆτα)"},
+      {type:"quiz", kind:"alphabet", title:"문자 인식 시험", items:["Α", "Β", "Γ", "Δ", "Ε", "Ζ"], note:"객관식 6문제 — 글자 ↔ 이름·음가 매칭."}
+    ]
+  },
+  {
+    day:2, grkTitle:"Ἀλφάβητος Βʹ", koTitle:"알파벳 (2/4) — Η–Μ",
+    desc:"그리스 문자 24개 중 7~12번 글자. 에타부터 뮈까지.",
+    estMin:12,
+    tasks:[
+      {type:"alphabet", title:"문자 학습", letters:["Η", "Θ", "Ι", "Κ", "Λ", "Μ"], note:"각 글자의 대·소문자, 이름, 음가, 한국어 표기를 익힙니다. (ἦτα · θῆτα · ἰῶτα · κάππα · λάμβδα · μῦ)"},
+      {type:"quiz", kind:"alphabet", title:"문자 인식 시험", items:["Η", "Θ", "Ι", "Κ", "Λ", "Μ"], note:"객관식 6문제 — 글자 ↔ 이름·음가 매칭."}
+    ]
+  },
+  {
+    day:3, grkTitle:"Ἀλφάβητος Γʹ", koTitle:"알파벳 (3/4) — Ν–Σ",
+    desc:"그리스 문자 24개 중 13~18번 글자. 뉘부터 시그마까지.",
+    estMin:12,
+    tasks:[
+      {type:"alphabet", title:"문자 학습", letters:["Ν", "Ξ", "Ο", "Π", "Ρ", "Σ"], note:"각 글자의 대·소문자, 이름, 음가, 한국어 표기를 익힙니다. (νῦ · ξῖ · ὂ μικρόν · πῖ · ῥῶ · σίγμα)"},
+      {type:"quiz", kind:"alphabet", title:"문자 인식 시험", items:["Ν", "Ξ", "Ο", "Π", "Ρ", "Σ"], note:"객관식 6문제 — 글자 ↔ 이름·음가 매칭."}
+    ]
+  },
+  {
+    day:4, grkTitle:"Ἀλφάβητος Δʹ", koTitle:"알파벳 (4/4) — Τ–Ω",
+    desc:"그리스 문자 24개 중 19~24번 글자. 타우부터 오메가까지.",
+    estMin:12,
+    tasks:[
+      {type:"alphabet", title:"문자 학습", letters:["Τ", "Υ", "Φ", "Χ", "Ψ", "Ω"], note:"각 글자의 대·소문자, 이름, 음가, 한국어 표기를 익힙니다. (ταῦ · ὖ ψιλόν · φῖ · χῖ · ψῖ · ὦ μέγα)"},
+      {type:"quiz", kind:"alphabet", title:"문자 인식 시험", items:["Τ", "Υ", "Φ", "Χ", "Ψ", "Ω"], note:"객관식 6문제 — 글자 ↔ 이름·음가 매칭."}
+    ]
+  },
+  {
+    day:5, grkTitle:"Δίφθογγοι καὶ Τόνοι", koTitle:"이음·기식·강세",
+    desc:"이음(디프통) 9종, 기식 2종(부드러운·거센), 강세 3종(acute·grave·circumflex). Day 6 부터 본격 어휘 학습 전 필수 토대.",
+    estMin:18,
+    tasks:[
+      {type:"diphthong", title:"이음(diphthong) 학습", note:"αι · ει · οι · υι · αυ · ευ · ηυ · ου · ᾳ ῃ ῳ (iota subscriptum) 9 항목."},
+      {type:"breathing", title:"기식(breathing) 학습", note:"어두 모음·디프통·ρ 위의 의무적 부호. 부드러운(᾿) vs 거센(῾)."},
+      {type:"accent", title:"강세(accent) 학습", note:"acute(´) · grave(`) · circumflex(῀). 위치 규칙 (ultima·penult·antepenult)."},
+      {type:"quiz", kind:"diacritic", title:"종합 시험", items:["smooth", "rough", "acute", "grave", "circumflex", "αι", "ει", "ου", "ᾳ"], note:"이음·기식·강세 통합 10문제."}
+    ]
+  },
+  {
+    day:6, grkTitle:"Λέξεις Αʹ — Μάθημα Γʹ", koTitle:"레슨 3 어휘 (1/2)",
+    desc:"고전 그리스어 기초 어휘 첫 묶음 — 명사 12개. ἄνθρωπος · βίος · λόγος · ψυχή 같은 핵심 단어.",
+    estMin:15,
+    tasks:[
+      {type:"vocab", title:"단어 학습 (12)", words:["ἄνθρωπος", "βίος", "γνώμη", "δῶρον", "ἔργον", "λόγος", "μέτρον", "ὁδός", "παιδίον", "φίλος", "χρόνος", "ψυχή"], note:"각 단어의 그리스어 표기·기본형·한국어 뜻을 익힙니다. 발음 듣기 가능."},
+      {type:"quiz", kind:"vocab", title:"단어 시험 (6문제)", items:["ἄνθρωπος", "βίος", "γνώμη", "δῶρον", "ἔργον", "λόγος"]}
+    ]
+  },
+  {
+    day:7, grkTitle:"Λέξεις Βʹ — Μάθημα Γʹ", koTitle:"레슨 3 어휘 (2/2) + 정관사",
+    desc:"레슨 3 나머지 12 단어 + 토픽 [art]: 정관사 ὁ ἡ τό. 그리스어의 가장 빈출 단어.",
+    estMin:18,
+    tasks:[
+      {type:"vocab", title:"단어 학습 (12)", words:["ἀγαθός", "ἄριστος", "ἀθάνατος", "καλός", "κοινός", "σοφός", "χαλεπός", "γάρ", "οὐ / οὐκ / οὐχ", "ἐστί(ν)", "γράφω", "ὁ, ἡ, τό"]},
+      {type:"topic", title:"문법: 정관사 ὁ ἡ τό", topicId:"art", note:"명사 변화의 모델. 단·복 모두, 남·여·중 모두 외워야 합니다."},
+      {type:"quiz", kind:"vocab", title:"누적 시험 (8문제)", items:["ἄνθρωπος", "βίος", "γνώμη", "δῶρον", "ἔργον", "λόγος", "μέτρον", "ὁδός"]}
+    ]
+  },
+  {
+    day:8, grkTitle:"Κλίσις Αʹ", koTitle:"레슨 3 — 2변화 명사 (남·중)",
+    desc:"토픽 [decl2m]: -ος 남성 명사 (λόγος, ἄνθρωπος) + [decl2n]: -ον 중성 명사 (δῶρον, ἔργον). 두 변화표 비교.",
+    estMin:20,
+    tasks:[
+      {type:"topic", title:"문법: 2변화 남성 -ος", topicId:"decl2m"},
+      {type:"topic", title:"문법: 2변화 중성 -ον", topicId:"decl2n"},
+      {type:"quiz", kind:"vocab", title:"레슨 3 어휘 시험 (10)", items:["μέτρον", "ὁδός", "παιδίον", "φίλος", "χρόνος", "ψυχή", "ἀγαθός", "ἄριστος", "ἀθάνατος", "καλός"]}
+    ]
+  },
+  {
+    day:9, grkTitle:"Ἐπίθετον Αʹ", koTitle:"레슨 3 — 1·2변화 형용사",
+    desc:"토픽 [adj-agathos]: ἀγαθός -ή -όν 의 1·2변화 형용사. 명사와 격·수·성 일치.",
+    estMin:18,
+    tasks:[
+      {type:"topic", title:"문법: 형용사 ἀγαθός -ή -όν", topicId:"adj-agathos"},
+      {type:"quiz", kind:"vocab", title:"레슨 3 어휘 종합 (10)", items:["ἀθάνατος", "καλός", "κοινός", "σοφός", "χαλεπός", "γάρ", "οὐ / οὐκ / οὐχ", "ἐστί(ν)", "γράφω", "ὁ, ἡ, τό"]}
+    ]
+  },
+  {
+    day:10, grkTitle:"Λέξεις Γʹ — Μάθημα Δʹ", koTitle:"레슨 4 어휘 (1/2)",
+    desc:"레슨 4 어휘 전반부 11개.",
+    estMin:14,
+    tasks:[
+      {type:"vocab", title:"단어 학습 (11)", words:["θάλαττα", "θεά", "θεός", "νόμος", "πεῖρα", "πλοῦτος", "πολίτης", "σκηνή", "στρατιώτης", "συμφορά", "φιλία"]},
+      {type:"quiz", kind:"vocab", title:"단어 시험 (6)", items:["θάλαττα", "θεά", "θεός", "νόμος", "πεῖρα", "πλοῦτος"]}
+    ]
+  },
+  {
+    day:11, grkTitle:"Λέξεις Δʹ — Μάθημα Δʹ", koTitle:"레슨 4 어휘 (2/2) + 1변화 여성",
+    desc:"레슨 4 후반부 10 단어 + 토픽 [decl1f]: 1변화 여성 -η / -α 명사.",
+    estMin:20,
+    tasks:[
+      {type:"vocab", title:"단어 학습 (10)", words:["ἄδικος", "ἄξιος", "δίκαιος", "δικαστής", "κακός", "μικρός", "οὔποτε", "ἐν", "καί", "ὅς, ἥ, ὅ"]},
+      {type:"topic", title:"문법: 1변화 여성 -η, -α", topicId:"decl1f"},
+      {type:"quiz", kind:"vocab", title:"누적 시험 (8)", items:["θάλαττα", "θεά", "θεός", "νόμος", "πεῖρα", "πλοῦτος", "πολίτης", "σκηνή"]}
+    ]
+  },
+  {
+    day:12, grkTitle:"Ἀντωνυμία Αʹ", koTitle:"레슨 4 — 관계대명사",
+    desc:"토픽 [relpron]: 관계대명사 ὅς, ἥ, ὅ. 종속절을 만드는 핵심.",
+    estMin:16,
+    tasks:[
+      {type:"topic", title:"문법: 관계대명사 ὅς ἥ ὅ", topicId:"relpron"},
+      {type:"quiz", kind:"vocab", title:"레슨 4 종합 (10)", items:["φιλία", "ἄδικος", "ἄξιος", "δίκαιος", "δικαστής", "κακός", "μικρός", "οὔποτε", "ἐν", "καί", "ὅς, ἥ, ὅ"]}
+    ]
+  },
+  {
+    day:13, grkTitle:"Λέξεις Εʹ — Μάθημα Εʹ", koTitle:"레슨 5 어휘 (15) — 동사 도입",
+    desc:"레슨 5 어휘 15개. 첫 동사 학습 시작 (λύω, παύω, παιδεύω 등).",
+    estMin:18,
+    tasks:[
+      {type:"vocab", title:"단어 학습 (15)", words:["ἄγω", "Ἀθηναῖοι", "εἶναι", "εἰς", "ἡδονή", "θάνατος", "λίθος", "νομίζω", "παιδεύω", "πείθω", "πέμπω", "πιστεύω", "πολλάκις", "ὕπνος", "φέρω"]},
+      {type:"quiz", kind:"vocab", title:"단어 시험 (8)", items:["ἄγω", "Ἀθηναῖοι", "εἶναι", "εἰς", "ἡδονή", "θάνατος", "λίθος", "νομίζω"]}
+    ]
+  },
+  {
+    day:14, grkTitle:"Ῥῆμα Αʹ — Ἐνεστώς · Μέλλων", koTitle:"레슨 5 — 현재·미래 능동",
+    desc:"토픽 [pres-act]: 현재 능동 직설 -ω + [fut-act]: 미래 능동 직설 -σω. 동사 활용의 첫걸음.",
+    estMin:22,
+    tasks:[
+      {type:"topic", title:"문법: 현재 능동 직설 -ω", topicId:"pres-act"},
+      {type:"topic", title:"문법: 미래 능동 직설 -σω", topicId:"fut-act"},
+      {type:"quiz", kind:"vocab", title:"레슨 5 어휘 누적 (8)", items:["νομίζω", "παιδεύω", "πείθω", "πέμπω", "πιστεύω", "πολλάκις", "ὕπνος", "φέρω"]}
+    ]
+  },
+  {
+    day:15, grkTitle:"Ῥῆμα Βʹ — Ἀόριστος Αʹ", koTitle:"레슨 5 — 제1단순과거",
+    desc:"토픽 [aor1-act]: 제1단순과거 능동 직설 -σα. 그리스어 서사 시제의 핵심.",
+    estMin:20,
+    tasks:[
+      {type:"topic", title:"문법: 제1단순과거 -σα", topicId:"aor1-act"},
+      {type:"quiz", kind:"vocab", title:"레슨 5 종합 (12)", items:["ἄγω", "Ἀθηναῖοι", "εἶναι", "εἰς", "ἡδονή", "θάνατος", "λίθος", "νομίζω", "παιδεύω", "πείθω", "πέμπω", "πιστεύω"]}
+    ]
+  },
+  {
+    day:16, grkTitle:"Λέξεις Ϛʹ — Μάθημα Ϛʹ", koTitle:"레슨 6 어휘 (1/2)",
+    desc:"레슨 6 어휘 전반부 10개.",
+    estMin:14,
+    tasks:[
+      {type:"vocab", title:"단어 학습 (10)", words:["ἄρχων", "ἀσπίς", "δαίμων", "ἐσθλός", "φίλιος", "φύλαξ", "γέρων", "ἥλιος", "ἡμέρα", "κλώψ"]},
+      {type:"quiz", kind:"vocab", title:"단어 시험 (6)", items:["ἄρχων", "ἀσπίς", "δαίμων", "ἐσθλός", "φίλιος", "φύλαξ"]}
+    ]
+  },
+  {
+    day:17, grkTitle:"Λέξεις Ζʹ — Μάθημα Ϛʹ", koTitle:"레슨 6 어휘 (2/2) + 불완료",
+    desc:"레슨 6 후반부 9개 + 토픽 [impf-act]: 불완료 능동 ἐ-…-ον. 진행/반복 상.",
+    estMin:20,
+    tasks:[
+      {type:"vocab", title:"단어 학습 (9)", words:["μή", "μόνος", "νεανίας", "οὐρανός", "οὕτω(ς)", "ποιητής", "χάρις", "ὥστε", "ἀλλά"]},
+      {type:"topic", title:"문법: 불완료 능동 ἐ-…-ον", topicId:"impf-act"},
+      {type:"quiz", kind:"vocab", title:"누적 시험 (8)", items:["ἄρχων", "ἀσπίς", "δαίμων", "ἐσθλός", "φίλιος", "φύλαξ", "γέρων", "ἥλιος"]}
+    ]
+  },
+  {
+    day:18, grkTitle:"Κλίσις Βʹ — Τρίτη", koTitle:"레슨 6 — 3변화 자음어간",
+    desc:"토픽 [decl3]: 3변화 자음어간 명사. 가장 다양하고 어려운 변화. 어간을 파악하는 안목이 핵심.",
+    estMin:22,
+    tasks:[
+      {type:"topic", title:"문법: 3변화 자음어간 명사", topicId:"decl3"},
+      {type:"quiz", kind:"vocab", title:"레슨 6 종합 (10)", items:["κλώψ", "μή", "μόνος", "νεανίας", "οὐρανός", "οὕτω(ς)", "ποιητής", "χάρις", "ὥστε", "ἀλλά"]}
+    ]
+  },
+  {
+    day:19, grkTitle:"Λέξεις Ηʹ — Μάθημα Ζʹ", koTitle:"레슨 7 어휘 (1/2)",
+    desc:"레슨 7 어휘 전반부 10개.",
+    estMin:14,
+    tasks:[
+      {type:"vocab", title:"단어 학습 (10)", words:["ἀνήρ", "βασιλεύς", "γένος", "γυνή", "δέκα", "Ἕλλην", "καιρός", "κρίνω", "μήτηρ", "μετά"]},
+      {type:"quiz", kind:"vocab", title:"단어 시험 (6)", items:["ἀνήρ", "βασιλεύς", "γένος", "γυνή", "δέκα", "Ἕλλην"]}
+    ]
+  },
+  {
+    day:20, grkTitle:"Κλίσις Γʹ — Τρίτη Οὐδέτερον", koTitle:"레슨 7 어휘 (2/2) + 3변화 중성",
+    desc:"레슨 7 후반부 10개 + 토픽 [decl3n]: 3변화 중성 명사. σῶμα-종류.",
+    estMin:22,
+    tasks:[
+      {type:"vocab", title:"단어 학습 (10)", words:["παῖς", "πατήρ", "πόλις", "πράττω", "πῦρ", "σῶμα", "στράτευμα", "χείρ", "χρῆμα", "ὡς"]},
+      {type:"topic", title:"문법: 3변화 중성 명사", topicId:"decl3n"},
+      {type:"quiz", kind:"vocab", title:"레슨 7 종합 (10)", items:["παῖς", "πατήρ", "πόλις", "πράττω", "πῦρ", "σῶμα", "στράτευμα", "χείρ", "χρῆμα", "ὡς"]}
+    ]
+  }
+];
+
+const BEGINNER_CURRICULUM_TOTAL_DAYS = 20;  // v62: Day 1~20
+// 미래 확장 시 이 상수를 갱신하고 BEGINNER_CURRICULUM 배열 길이가 일치해야 함
+
 // ─── 상태 ────────────────────────────────────────────────────────────────────
 let S = {
   xp:0,
@@ -5640,6 +5893,8 @@ let S = {
   readColorize: true,                            // 원문 품사별 색칠 (v29) — true: 활성, false: 흑색 단일색
   character: 'athena',                           // 캐릭터 (v52) — 학습자 정체성. 50종 중 1. 기본: 지혜의 여신.
   showTranslation: false,                        // 원문 해석 표시 (v52) — 본문 각 문장 아래 한국어 해석 노출
+  curriculumDay: 1,                              // 초보자 커리큘럼 (v62) — 현재 진행 중인 일차 (1부터)
+  curriculumDone: {},                            // {[day]: {completedAt:ms, score?:0~100}} — 완료한 일차들
 };
 
 function todayStr(){ const d=new Date(); return d.toISOString().slice(0,10); }
@@ -5892,7 +6147,7 @@ window.toggleBgm = toggleBgm;
 
 // ─── v56: 건의 사항 modal ─────────────────────────────────────────────────
 // 사용자 건의를 STORAGE.setShared 의 `feedback:<ts>:<userId>` 키로 저장.
-// CIM Lab 운영자가 console 에서 STORAGE.listShared('feedback:') 로 수집 가능.
+// 관리자는 console 에서 STORAGE.listShared('feedback:') 로 수집 가능.
 // supportsShared 가 false 면 localStorage 큐에 보관 (다음 온라인 시도시 flush 가능).
 async function openFeedbackModal(){
   const modalRoot = document.getElementById('modal-root') || document.body;
@@ -6179,6 +6434,42 @@ function renderHome(){
       </div>
     </div>
 
+    ${(()=>{
+      // v62: 초보자 커리큘럼 — 오늘의 진도 카드. BEGINNER_CURRICULUM 이 정의돼 있고 적어도 1일차가 있을 때만.
+      if(typeof BEGINNER_CURRICULUM === 'undefined' || !BEGINNER_CURRICULUM.length) return '';
+      try {
+        _ensureCurriculumState();
+        const prog = curriculumProgress();
+        const todayD = _curriculumDayObj(prog.current);
+        if(!todayD) return '';
+        const allDone = prog.doneN >= prog.total;
+        return `<div class="card warm fade-in" style="border-left:3px solid var(--terracotta);padding:14px 16px;margin-bottom:10px;cursor:pointer" id="home-curriculum-card" role="button" aria-label="오늘의 진도 — Day ${prog.current}">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div style="flex:1;min-width:160px">
+              <div style="font-size:11px;color:var(--clay-d);letter-spacing:.05em;text-transform:uppercase">
+                ${allDone ? '커리큘럼 완주' : '오늘의 진도'}
+              </div>
+              <div style="font-size:16px;font-weight:600;margin-top:2px">
+                ${allDone ? '🏛️ 모든 일차 완료' : `Day ${prog.current} · ${escapeHtml(todayD.koTitle)}`}
+              </div>
+              <div style="font-size:11.5px;color:var(--clay-d);margin-top:2px">
+                <span class="grk">${escapeHtml(todayD.grkTitle)}</span>${allDone ? '' : ` · 약 ${todayD.estMin}분`}
+              </div>
+            </div>
+            <button class="btn btn-p btn-sm" id="home-curriculum-btn" style="padding:8px 16px;flex-shrink:0">
+              ${allDone ? '복습' : (isCurriculumDayDone(prog.current) ? '다시' : '시작')} →
+            </button>
+          </div>
+          <div style="background:var(--ivory-d);height:4px;border-radius:2px;margin-top:10px;overflow:hidden">
+            <div style="background:var(--terracotta);height:100%;width:${prog.percent}%;transition:width .3s"></div>
+          </div>
+          <div style="font-size:10.5px;color:var(--clay-d);margin-top:4px;text-align:right">
+            ${prog.doneN} / ${prog.total} 완료 (${prog.percent}%)
+          </div>
+        </div>`;
+      } catch(_) { return ''; }
+    })()}
+
     <div class="quote-card fade-in">
       <div class="grk">"${q.grk}"</div>
       <div class="src">— ${q.src}</div>
@@ -6263,6 +6554,16 @@ function renderHome(){
       if(nowOn) toast('🎵 도리아 모드 BGM — 학습 동반 음악');
     });
   }
+  // v62: 커리큘럼 카드 → renderCurriculum 진입 (카드 전체와 버튼 모두 클릭 가능)
+  const currCard = view.querySelector('#home-curriculum-card');
+  const currBtn  = view.querySelector('#home-curriculum-btn');
+  const currHandler = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if(typeof renderCurriculum === 'function') renderCurriculum();
+  };
+  if(currCard) currCard.addEventListener('click', currHandler);
+  if(currBtn)  currBtn.addEventListener('click', currHandler);
   // v56: presence 표시 — 비동기로 채움
   (async () => {
     const slot = view.querySelector('#home-presence-text');
@@ -6317,6 +6618,623 @@ function renderQuickReview(){
     showBtn.disabled = true;
   });
   slot.querySelector('#qr-next').addEventListener('click', renderQuickReview);
+}
+
+// ─── 초보자 커리큘럼 — 상태·렌더러 (v62) ────────────────────────────────────
+// 상태: S.curriculumDay (현재 진행 중인 일차, 1부터. 미시작이면 1).
+//       S.curriculumDone (객체: {[day]: {completedAt:ms, score?:0~100}}).
+// 잠금: 전 일차 완료 전까지 다음 일차 비활성. 단 이미 완료한 일차는 자유 재방문.
+// 홈 카드 → renderCurriculum() → renderCurriculumDay(N) 의 3단 진입.
+// 각 task 는 자체 mini-renderer 가 그리며, 완료 시 markTaskDone 호출.
+// 모든 task 완료 시 markCurriculumDayDone 으로 일차 종료.
+
+function _ensureCurriculumState(){
+  // 마이그레이션: 구버전 state 에 필드가 없으면 초기화.
+  if(typeof S.curriculumDay !== 'number') S.curriculumDay = 1;
+  if(typeof S.curriculumDone !== 'object' || S.curriculumDone === null) S.curriculumDone = {};
+  // 현재 일차 보정: 완료된 최대 일차 + 1 (단, total 초과 금지).
+  const done = Object.keys(S.curriculumDone).map(n=>parseInt(n,10)).filter(n=>!isNaN(n));
+  const maxDone = done.length ? Math.max(...done) : 0;
+  const expectedNext = Math.min(maxDone + 1, BEGINNER_CURRICULUM_TOTAL_DAYS);
+  if(S.curriculumDay < expectedNext) S.curriculumDay = expectedNext;
+  if(S.curriculumDay < 1) S.curriculumDay = 1;
+  if(S.curriculumDay > BEGINNER_CURRICULUM_TOTAL_DAYS) S.curriculumDay = BEGINNER_CURRICULUM_TOTAL_DAYS;
+}
+
+function isCurriculumDayDone(n){
+  return !!(S.curriculumDone && S.curriculumDone[n]);
+}
+
+function isCurriculumDayLocked(n){
+  // Day 1 은 항상 열림. 그 외 day N 은 day N-1 완료해야 열림.
+  if(n <= 1) return false;
+  return !isCurriculumDayDone(n - 1);
+}
+
+function curriculumProgress(){
+  _ensureCurriculumState();
+  const total = BEGINNER_CURRICULUM_TOTAL_DAYS;
+  const doneN = Object.keys(S.curriculumDone || {}).length;
+  return {
+    current: S.curriculumDay,
+    total: total,
+    doneN: doneN,
+    percent: Math.round(doneN / total * 100),
+  };
+}
+
+function _curriculumDayObj(n){
+  return BEGINNER_CURRICULUM.find(d => d.day === n) || null;
+}
+
+function markCurriculumDayDone(n, score){
+  if(!S.curriculumDone) S.curriculumDone = {};
+  S.curriculumDone[n] = { completedAt: Date.now(), score: typeof score === 'number' ? score : null };
+  // 다음 일차로 진행 (한도 내).
+  if(S.curriculumDay <= n && n < BEGINNER_CURRICULUM_TOTAL_DAYS){
+    S.curriculumDay = n + 1;
+  }
+  // XP 보상 (5 XP / 일차).
+  S.xp += 5;
+  saveState();
+}
+
+// task 별 임시 진행 상태 — 세션 내 휘발성. 새로고침 시 다시 풀어야 함.
+// 영구화는 차기 라운드에서 (Day 단위 완료만 영구).
+const _curriculumTaskState = {};  // {`${day}:${idx}`: true}
+
+function _taskKey(day, idx){ return `${day}:${idx}`; }
+function _isTaskDone(day, idx){ return !!_curriculumTaskState[_taskKey(day, idx)]; }
+function _markTaskDone(day, idx){
+  _curriculumTaskState[_taskKey(day, idx)] = true;
+  const d = _curriculumDayObj(day);
+  if(d && d.tasks.every((_, i) => _isTaskDone(day, i))){
+    markCurriculumDayDone(day);
+    toast(`✨ ${day}일차 완료! +5 XP`, 'success', 2400);
+  }
+  // 일차 화면 다시 그리기.
+  renderCurriculumDay(day);
+}
+
+// ─── 메인 진입: 일차 리스트 ───────────────────────────────────────────────
+function renderCurriculum(){
+  _ensureCurriculumState();
+  const prog = curriculumProgress();
+  const todayD = _curriculumDayObj(prog.current);
+
+  view.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <button class="btn btn-sm btn-o" onclick="setTab('home')" style="font-size:11px;padding:4px 10px">← 홈</button>
+      <h2 class="view-title fade-in" style="margin:0;flex:1"><span class="grk">Παίδευσις</span> 일일 진도</h2>
+    </div>
+    <div class="view-sub">초보자용 ${prog.total}일 커리큘럼 — Day 1~5 알파벳·발음, Day 6+ 어휘·문법.</div>
+
+    <div class="card warm" style="border-left:3px solid var(--terracotta);padding:14px 16px">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <div style="font-size:11px;color:var(--clay-d);letter-spacing:.05em;text-transform:uppercase">오늘의 진도</div>
+          <div style="font-size:18px;font-weight:600;margin-top:2px">
+            Day ${prog.current} · ${todayD ? escapeHtml(todayD.koTitle) : '—'}
+          </div>
+          <div style="font-size:12px;color:var(--clay-d);margin-top:2px">
+            ${todayD ? `<span class="grk">${escapeHtml(todayD.grkTitle)}</span> · 약 ${todayD.estMin}분` : ''}
+          </div>
+        </div>
+        <button class="btn btn-p" onclick="renderCurriculumDay(${prog.current})" style="padding:10px 18px">
+          ${isCurriculumDayDone(prog.current) ? '복습' : '시작'} →
+        </button>
+      </div>
+      <div style="background:var(--ivory-d);height:6px;border-radius:3px;margin-top:12px;overflow:hidden">
+        <div style="background:var(--terracotta);height:100%;width:${prog.percent}%;transition:width .3s"></div>
+      </div>
+      <div style="font-size:11px;color:var(--clay-d);margin-top:5px;text-align:right">
+        ${prog.doneN} / ${prog.total} 완료 (${prog.percent}%)
+      </div>
+    </div>
+
+    <div style="margin-top:16px">
+      <b style="font-size:12px;color:var(--clay-d);letter-spacing:.05em;text-transform:uppercase">전체 일정</b>
+    </div>
+    <div id="curriculum-list" style="display:flex;flex-direction:column;gap:6px;margin-top:8px"></div>
+  `;
+
+  const listEl = view.querySelector('#curriculum-list');
+  BEGINNER_CURRICULUM.forEach(d => {
+    const locked = isCurriculumDayLocked(d.day);
+    const done = isCurriculumDayDone(d.day);
+    const isCurrent = d.day === prog.current && !done;
+    const row = document.createElement('button');
+    row.className = 'card';
+    row.style.cssText = `
+      display:flex;align-items:center;gap:10px;padding:10px 14px;text-align:left;
+      ${locked ? 'opacity:.45;cursor:not-allowed' : 'cursor:pointer'};
+      ${isCurrent ? 'border-left:3px solid var(--terracotta)' : ''};
+      background:${done ? 'var(--ivory-d)' : 'var(--ivory)'};
+      width:100%;border:none;font:inherit;color:inherit
+    `;
+    row.disabled = locked;
+    row.innerHTML = `
+      <div style="font-size:13px;font-weight:600;color:${done?'var(--clay-d)':'var(--black-glaze)'};min-width:55px">
+        Day ${d.day}${done ? ' ✓' : (locked ? ' 🔒' : '')}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;color:${done?'var(--clay-d)':'var(--black-glaze)'};${done?'text-decoration:line-through;text-decoration-thickness:1px':''}">
+          ${escapeHtml(d.koTitle)}
+        </div>
+        <div style="font-size:11px;color:var(--clay-d);margin-top:1px">
+          <span class="grk">${escapeHtml(d.grkTitle)}</span> · ${d.tasks.length}개 과제 · ${d.estMin}분
+        </div>
+      </div>
+    `;
+    if(!locked){
+      row.addEventListener('click', () => renderCurriculumDay(d.day));
+    }
+    listEl.appendChild(row);
+  });
+
+  view.scrollTop = 0;
+}
+
+// ─── 일차 화면 ─────────────────────────────────────────────────────────────
+function renderCurriculumDay(n){
+  _ensureCurriculumState();
+  const d = _curriculumDayObj(n);
+  if(!d){ renderCurriculum(); return; }
+  if(isCurriculumDayLocked(n)){
+    toast('이전 일차를 먼저 완료해 주세요.', 'warn', 2200);
+    renderCurriculum();
+    return;
+  }
+  const done = isCurriculumDayDone(n);
+  const tasksDone = d.tasks.filter((_, i) => _isTaskDone(n, i)).length;
+  const pct = Math.round(tasksDone / d.tasks.length * 100);
+
+  view.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <button class="btn btn-sm btn-o" onclick="renderCurriculum()" style="font-size:11px;padding:4px 10px">← 일정</button>
+      <h2 class="view-title fade-in" style="margin:0;flex:1">Day ${n} ${done ? '<span style="color:var(--terracotta-d);font-size:14px">· 완료 ✓</span>' : ''}</h2>
+    </div>
+    <div class="view-sub">
+      <span class="grk">${escapeHtml(d.grkTitle)}</span> — ${escapeHtml(d.koTitle)}
+    </div>
+    <div class="card" style="padding:12px 14px">
+      <div style="font-size:13px;line-height:1.55;color:var(--black-glaze-l)">${escapeHtml(d.desc)}</div>
+      <div style="margin-top:8px;font-size:11px;color:var(--clay-d)">
+        ${d.tasks.length}개 과제 · 약 ${d.estMin}분 · ${tasksDone}/${d.tasks.length} 완료
+      </div>
+      <div style="background:var(--ivory-d);height:4px;border-radius:2px;margin-top:6px;overflow:hidden">
+        <div style="background:var(--terracotta);height:100%;width:${pct}%;transition:width .3s"></div>
+      </div>
+    </div>
+
+    <div id="curriculum-tasks" style="display:flex;flex-direction:column;gap:8px;margin-top:14px"></div>
+  `;
+
+  const tasksEl = view.querySelector('#curriculum-tasks');
+  d.tasks.forEach((t, idx) => {
+    const taskDone = _isTaskDone(n, idx);
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.cssText = `padding:12px 14px;${taskDone?'background:var(--ivory-d);opacity:.85':''}`;
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-size:18px;line-height:1">${taskDone ? '✓' : (idx + 1)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:14px;${taskDone?'text-decoration:line-through;color:var(--clay-d)':''}">
+            ${escapeHtml(t.title)}
+          </div>
+          ${t.note ? `<div style="font-size:11.5px;color:var(--clay-d);margin-top:2px;line-height:1.5">${escapeHtml(t.note)}</div>` : ''}
+        </div>
+        <button class="btn btn-sm ${taskDone?'btn-o':'btn-p'}" data-task-idx="${idx}" style="padding:6px 14px;flex-shrink:0">
+          ${taskDone ? '다시' : '시작'}
+        </button>
+      </div>
+    `;
+    tasksEl.appendChild(card);
+  });
+
+  // 태스크 시작 버튼 위임
+  tasksEl.querySelectorAll('[data-task-idx]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.taskIdx, 10);
+      openCurriculumTask(n, idx);
+    });
+  });
+
+  if(done && tasksDone === d.tasks.length){
+    const completionCard = document.createElement('div');
+    completionCard.className = 'card warm';
+    completionCard.style.cssText = 'border-left:3px solid var(--terracotta);padding:14px 16px;margin-top:12px;text-align:center';
+    completionCard.innerHTML = `
+      <div style="font-size:24px">🏛️</div>
+      <div style="font-weight:600;margin-top:6px">${n}일차 완주</div>
+      <div style="font-size:12px;color:var(--clay-d);margin-top:4px">
+        다음 일차로 이동하거나 일정을 확인해 보세요.
+      </div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap">
+        ${n < BEGINNER_CURRICULUM_TOTAL_DAYS ? `<button class="btn btn-p btn-sm" onclick="renderCurriculumDay(${n+1})">다음 일차 →</button>` : ''}
+        <button class="btn btn-o btn-sm" onclick="renderCurriculum()">일정 보기</button>
+      </div>
+    `;
+    view.appendChild(completionCard);
+  }
+
+  view.scrollTop = 0;
+}
+
+// ─── 태스크 진입 dispatcher ──────────────────────────────────────────────
+function openCurriculumTask(day, taskIdx){
+  const d = _curriculumDayObj(day);
+  if(!d) return;
+  const t = d.tasks[taskIdx];
+  if(!t) return;
+
+  if(t.type === 'alphabet'){
+    renderAlphabetTask(day, taskIdx, t.letters);
+  } else if(t.type === 'diphthong'){
+    renderDiphthongTask(day, taskIdx);
+  } else if(t.type === 'breathing'){
+    renderBreathingTask(day, taskIdx);
+  } else if(t.type === 'accent'){
+    renderAccentTask(day, taskIdx);
+  } else if(t.type === 'vocab'){
+    renderCurriculumVocabTask(day, taskIdx, t.words, t.title);
+  } else if(t.type === 'topic'){
+    renderCurriculumTopicTask(day, taskIdx, t.topicId);
+  } else if(t.type === 'quiz'){
+    renderCurriculumQuizTask(day, taskIdx, t.kind, t.items, t.title);
+  } else {
+    toast('알 수 없는 과제 유형: ' + t.type, 'warn');
+  }
+}
+
+// ─── 알파벳 task ──────────────────────────────────────────────────────────
+function renderAlphabetTask(day, idx, letters){
+  const cards = letters.map(L => GREEK_ALPHABET.find(a => a.cap === L)).filter(Boolean);
+  view.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <button class="btn btn-sm btn-o" onclick="renderCurriculumDay(${day})" style="font-size:11px;padding:4px 10px">← Day ${day}</button>
+      <h2 class="view-title fade-in" style="margin:0;flex:1">알파벳 학습</h2>
+    </div>
+    <div class="view-sub">${cards.length}개 글자 · 각 카드를 탭하면 발음을 들려줍니다.</div>
+
+    <div id="alpha-cards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:12px"></div>
+
+    <div style="margin-top:20px;text-align:center">
+      <button class="btn btn-p" id="alpha-complete-btn" style="padding:10px 24px">학습 완료</button>
+    </div>
+  `;
+  const grid = view.querySelector('#alpha-cards');
+  cards.forEach(c => {
+    const card = document.createElement('button');
+    card.className = 'card';
+    card.style.cssText = 'padding:14px 10px;text-align:center;cursor:pointer;border:1px solid var(--ivory-d);background:var(--ivory);font:inherit;color:inherit';
+    card.innerHTML = `
+      <div class="grk" style="font-size:34px;line-height:1.1;letter-spacing:.05em">
+        ${escapeHtml(c.cap)} <span style="color:var(--clay-d)">${escapeHtml(c.low)}</span>
+      </div>
+      <div class="grk" style="font-size:13px;color:var(--terracotta-d);margin-top:4px">${escapeHtml(c.name)}</div>
+      <div style="font-size:12px;margin-top:2px"><b>${escapeHtml(c.nameKo)}</b></div>
+      <div style="font-size:11px;color:var(--clay-d);margin-top:2px">/${escapeHtml(c.sound)}/ · ${escapeHtml(c.soundKo)}</div>
+      <div style="font-size:10.5px;color:var(--clay-d);margin-top:6px;line-height:1.45;text-align:left">${escapeHtml(c.tip)}</div>
+      <div style="font-size:10px;color:var(--clay-l,#9a8c75);margin-top:4px;font-style:italic;line-height:1.4;text-align:left">${escapeHtml(c.mnemonic)}</div>
+    `;
+    card.addEventListener('click', () => {
+      if(typeof speakGreek === 'function') speakGreek(c.low);
+    });
+    grid.appendChild(card);
+  });
+  view.querySelector('#alpha-complete-btn').addEventListener('click', () => {
+    _markTaskDone(day, idx);
+  });
+  view.scrollTop = 0;
+}
+
+// ─── 이음 / 기식 / 강세 task (Day 5) ─────────────────────────────────────
+function _renderDiacriticTaskCommon(day, idx, headerKo, headerGrk, items, renderRow, complete){
+  view.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <button class="btn btn-sm btn-o" onclick="renderCurriculumDay(${day})" style="font-size:11px;padding:4px 10px">← Day ${day}</button>
+      <h2 class="view-title fade-in" style="margin:0;flex:1">${escapeHtml(headerKo)}</h2>
+    </div>
+    <div class="view-sub"><span class="grk">${escapeHtml(headerGrk)}</span> · ${items.length}개</div>
+
+    <div id="diac-list" style="display:flex;flex-direction:column;gap:8px;margin-top:14px"></div>
+
+    <div style="margin-top:20px;text-align:center">
+      <button class="btn btn-p" id="diac-complete-btn" style="padding:10px 24px">학습 완료</button>
+    </div>
+  `;
+  const list = view.querySelector('#diac-list');
+  items.forEach(it => list.appendChild(renderRow(it)));
+  view.querySelector('#diac-complete-btn').addEventListener('click', () => {
+    _markTaskDone(day, idx);
+  });
+  view.scrollTop = 0;
+}
+
+function renderDiphthongTask(day, idx){
+  _renderDiacriticTaskCommon(day, idx, '이음 (디프통)', 'Δίφθογγοι', GREEK_DIPHTHONGS, (it) => {
+    const row = document.createElement('div');
+    row.className = 'card';
+    row.style.cssText = 'padding:10px 14px;display:flex;align-items:center;gap:12px';
+    row.innerHTML = `
+      <div class="grk" style="font-size:24px;min-width:60px;text-align:center">${escapeHtml(it.glyph)}</div>
+      <div style="flex:1;min-width:0">
+        <div><b>${escapeHtml(it.koSound)}</b></div>
+        <div style="font-size:12px;color:var(--clay-d);margin-top:2px;line-height:1.45">${escapeHtml(it.tip)}</div>
+        <div class="grk" style="font-size:12.5px;color:var(--terracotta-d);margin-top:3px">${escapeHtml(it.ex)}</div>
+      </div>
+    `;
+    return row;
+  });
+}
+
+function renderBreathingTask(day, idx){
+  _renderDiacriticTaskCommon(day, idx, '기식 (breathing)', 'Πνεύματα', GREEK_BREATHINGS, (it) => {
+    const row = document.createElement('div');
+    row.className = 'card';
+    row.style.cssText = 'padding:12px 14px';
+    row.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="font-size:32px;min-width:50px;text-align:center;font-family:serif">${escapeHtml(it.mark)}</div>
+        <div style="flex:1"><b>${escapeHtml(it.name)}</b></div>
+      </div>
+      <div style="font-size:12.5px;color:var(--clay-d);margin-top:6px;line-height:1.5">${escapeHtml(it.desc)}</div>
+      <div class="grk" style="font-size:14px;color:var(--terracotta-d);margin-top:6px">${escapeHtml(it.ex)}</div>
+    `;
+    return row;
+  });
+}
+
+function renderAccentTask(day, idx){
+  _renderDiacriticTaskCommon(day, idx, '강세 (accent)', 'Τόνοι', GREEK_ACCENTS, (it) => {
+    const row = document.createElement('div');
+    row.className = 'card';
+    row.style.cssText = 'padding:12px 14px';
+    row.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="font-size:32px;min-width:50px;text-align:center;font-family:serif">${escapeHtml(it.mark)}</div>
+        <div style="flex:1"><b>${escapeHtml(it.name)}</b></div>
+      </div>
+      <div style="font-size:12.5px;color:var(--clay-d);margin-top:6px;line-height:1.5">${escapeHtml(it.desc)}</div>
+      <div class="grk" style="font-size:14px;color:var(--terracotta-d);margin-top:6px">${escapeHtml(it.ex)}</div>
+    `;
+    return row;
+  });
+}
+
+// ─── 어휘 task ────────────────────────────────────────────────────────────
+function renderCurriculumVocabTask(day, idx, words, title){
+  // 카드 시리즈로 그리스어 표기 + 한국어 뜻 + pp + note. 발음 버튼.
+  const lookup = {};
+  if(typeof TEXTBOOK_W !== 'undefined'){
+    TEXTBOOK_W.forEach(w => { lookup[w.g] = w; });
+  }
+  const items = words.map(g => lookup[g]).filter(Boolean);
+
+  view.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <button class="btn btn-sm btn-o" onclick="renderCurriculumDay(${day})" style="font-size:11px;padding:4px 10px">← Day ${day}</button>
+      <h2 class="view-title fade-in" style="margin:0;flex:1">${escapeHtml(title || '어휘 학습')}</h2>
+    </div>
+    <div class="view-sub">${items.length}개 단어 · 각 카드를 탭하면 발음을 들려줍니다.</div>
+
+    <div id="vocab-cards" style="display:flex;flex-direction:column;gap:8px;margin-top:12px"></div>
+
+    <div style="margin-top:20px;text-align:center">
+      <button class="btn btn-p" id="vocab-complete-btn" style="padding:10px 24px">학습 완료</button>
+    </div>
+  `;
+  const list = view.querySelector('#vocab-cards');
+  const posKo = {N:'명사', V:'동사', A:'형용사', ADV:'부사', C:'접속사', D:'부정', P:'전치사', PR:'대명사', ART:'관사', PRTC:'분사', PT:'분사'};
+  items.forEach(w => {
+    const card = document.createElement('button');
+    card.className = 'card';
+    card.style.cssText = 'padding:12px 14px;text-align:left;cursor:pointer;background:var(--ivory);border:1px solid var(--ivory-d);font:inherit;color:inherit;width:100%';
+    card.innerHTML = `
+      <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+        <span class="grk" style="font-size:22px">${escapeHtml(w.g)}</span>
+        ${w.r ? `<span class="grk" style="font-size:13px;color:var(--clay-d)">${escapeHtml(w.r)}</span>` : ''}
+        <span style="font-size:10px;color:var(--terracotta-d);background:var(--ivory-d);padding:1px 6px;border-radius:3px;margin-left:auto">${escapeHtml(posKo[w.pos] || w.pos)}</span>
+      </div>
+      <div style="margin-top:4px;font-size:14px"><b>${escapeHtml(w.ko)}</b></div>
+      ${w.en ? `<div style="font-size:11.5px;color:var(--clay-d);margin-top:2px;font-style:italic">${escapeHtml(w.en)}</div>` : ''}
+      ${w.pp ? `<div class="grk" style="font-size:11.5px;color:var(--terracotta-d);margin-top:4px">기본형: ${escapeHtml(w.pp)}</div>` : ''}
+      ${w.note ? `<div style="font-size:11px;color:var(--clay-d);margin-top:4px;line-height:1.45">${escapeHtml(w.note)}</div>` : ''}
+    `;
+    card.addEventListener('click', () => {
+      if(typeof speakGreek === 'function') speakGreek(w.g);
+    });
+    list.appendChild(card);
+  });
+  view.querySelector('#vocab-complete-btn').addEventListener('click', () => {
+    _markTaskDone(day, idx);
+  });
+  view.scrollTop = 0;
+}
+
+// ─── 문법 토픽 task — 기존 renderTopic 위임 ────────────────────────────────
+function renderCurriculumTopicTask(day, idx, topicId){
+  // 기존 renderTopic 가 있다고 가정. 없으면 grammar 탭 진입.
+  if(typeof renderTopic === 'function'){
+    // hand-off: renderTopic 가 그린 화면 위에 '학습 완료' 플로팅 버튼 부착.
+    renderTopic(topicId);
+    // 학습 완료 버튼 부착 — view 상단에 back & complete.
+    const bar = document.createElement('div');
+    bar.style.cssText = 'position:sticky;top:0;background:var(--ivory);border-bottom:1px solid var(--ivory-d);padding:8px 0;margin:-12px 0 12px;display:flex;gap:8px;align-items:center;z-index:5';
+    bar.innerHTML = `
+      <button class="btn btn-sm btn-o" id="topic-back-btn" style="font-size:11px;padding:4px 10px">← Day ${day}</button>
+      <div style="flex:1;font-size:12px;color:var(--clay-d)">Day ${day} 문법 과제</div>
+      <button class="btn btn-sm btn-p" id="topic-complete-btn" style="font-size:11px;padding:4px 12px">학습 완료</button>
+    `;
+    view.insertBefore(bar, view.firstChild);
+    bar.querySelector('#topic-back-btn').addEventListener('click', () => renderCurriculumDay(day));
+    bar.querySelector('#topic-complete-btn').addEventListener('click', () => {
+      // 기존 토픽 학습 카운트도 함께 적립.
+      if(!S.topicsStudied.includes(topicId)) S.topicsStudied.push(topicId);
+      _markTaskDone(day, idx);
+    });
+    view.scrollTop = 0;
+  } else {
+    toast('renderTopic 함수가 없습니다.', 'err');
+    renderCurriculumDay(day);
+  }
+}
+
+// ─── 시험 task (kind: alphabet · vocab · diacritic) ──────────────────────
+function _shuffleCopy(arr){
+  const a = arr.slice();
+  for(let i=a.length-1; i>0; i--){
+    const j = Math.floor(Math.random() * (i+1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function renderCurriculumQuizTask(day, idx, kind, items, title){
+  // 문제 구성: kind 별 다른 prompt/option 생성.
+  // 결과는 score 로 누적, 100% 면 미보스 통과·아니면 다시 시도 가능 (단 통과해야 mark done).
+  let questions = [];
+  if(kind === 'alphabet'){
+    items.forEach(letter => {
+      const a = GREEK_ALPHABET.find(x => x.cap === letter);
+      if(!a) return;
+      // prompt: 글자 → 이름 선택 (한국어 이름)
+      const wrong = _shuffleCopy(GREEK_ALPHABET.filter(x => x.cap !== letter)).slice(0,3).map(x => x.nameKo);
+      const opts = _shuffleCopy([a.nameKo, ...wrong]);
+      questions.push({
+        prompt: `<span class="grk" style="font-size:30px">${escapeHtml(a.cap)} ${escapeHtml(a.low)}</span>`,
+        promptHint: '이 글자의 이름은?',
+        options: opts,
+        correct: a.nameKo,
+      });
+    });
+  } else if(kind === 'vocab'){
+    const lookup = {};
+    if(typeof TEXTBOOK_W !== 'undefined') TEXTBOOK_W.forEach(w => { lookup[w.g] = w; });
+    items.forEach(g => {
+      const w = lookup[g];
+      if(!w) return;
+      // prompt: 그리스어 → 한국어 뜻 선택
+      const pool = (typeof TEXTBOOK_W !== 'undefined') ? TEXTBOOK_W.filter(x => x.g !== g && x.ko && x.ko !== w.ko) : [];
+      const wrong = _shuffleCopy(pool).slice(0,3).map(x => x.ko);
+      const opts = _shuffleCopy([w.ko, ...wrong]);
+      questions.push({
+        prompt: `<span class="grk" style="font-size:24px">${escapeHtml(w.g)}</span>${w.r ? `<span class="grk" style="font-size:13px;color:var(--clay-d);margin-left:6px">${escapeHtml(w.r)}</span>` : ''}`,
+        promptHint: '이 단어의 뜻은?',
+        options: opts,
+        correct: w.ko,
+      });
+    });
+  } else if(kind === 'diacritic'){
+    // 이음·기식·강세 통합 시험.
+    const allTargets = [
+      ...GREEK_DIPHTHONGS.map(d => ({key: d.glyph, prompt: `<span class="grk" style="font-size:28px">${escapeHtml(d.glyph)}</span>`, promptHint:'발음(한국어)?', correct: d.koSound, pool: GREEK_DIPHTHONGS.map(x => x.koSound)})),
+      ...GREEK_BREATHINGS.map(b => ({key: b.name.includes('부드러운')?'smooth':'rough', prompt: `<span style="font-size:36px;font-family:serif">${escapeHtml(b.mark)}</span>`, promptHint:'이 부호의 이름은?', correct: b.name.split(' ')[0], pool: GREEK_BREATHINGS.map(x => x.name.split(' ')[0])})),
+      ...GREEK_ACCENTS.map(a => ({key: a.name.includes('날카로운')?'acute':(a.name.includes('무거운')?'grave':'circumflex'), prompt: `<span style="font-size:36px;font-family:serif">${escapeHtml(a.mark)}</span>`, promptHint:'이 부호의 이름은?', correct: a.name.split(' ')[0], pool: GREEK_ACCENTS.map(x => x.name.split(' ')[0])})),
+    ];
+    items.forEach(key => {
+      const t = allTargets.find(x => x.key === key);
+      if(!t) return;
+      const wrong = _shuffleCopy(t.pool.filter(p => p !== t.correct)).slice(0,3);
+      // 옵션이 부족하면 채움 (다른 카테고리에서)
+      while(wrong.length < 3){
+        const others = ['부드러운','거센','날카로운','무거운','곡절','아이','에이','오이','우'].filter(o => o!==t.correct && !wrong.includes(o));
+        if(!others.length) break;
+        wrong.push(others[0]);
+      }
+      const opts = _shuffleCopy([t.correct, ...wrong]);
+      questions.push({
+        prompt: t.prompt,
+        promptHint: t.promptHint,
+        options: opts,
+        correct: t.correct,
+      });
+    });
+  }
+
+  if(!questions.length){
+    toast('시험 문제 생성 실패', 'err');
+    renderCurriculumDay(day);
+    return;
+  }
+
+  questions = _shuffleCopy(questions);
+  let qIdx = 0, correct = 0;
+
+  function renderQ(){
+    if(qIdx >= questions.length){
+      // 결과
+      const pct = Math.round(correct / questions.length * 100);
+      const passed = pct >= 70;
+      view.innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <button class="btn btn-sm btn-o" onclick="renderCurriculumDay(${day})" style="font-size:11px;padding:4px 10px">← Day ${day}</button>
+          <h2 class="view-title fade-in" style="margin:0;flex:1">시험 결과</h2>
+        </div>
+        <div class="card warm" style="border-left:3px solid var(--terracotta);padding:18px;text-align:center;margin-top:12px">
+          <div style="font-size:42px">${passed?'🎉':'📚'}</div>
+          <div style="font-size:24px;font-weight:600;margin-top:8px">${correct} / ${questions.length}</div>
+          <div style="font-size:14px;color:var(--clay-d);margin-top:4px">${pct}%</div>
+          <div style="font-size:13px;color:var(--clay-d);margin-top:8px;line-height:1.5">
+            ${passed ? '잘했어요! 통과입니다.' : '70% 이상 필요. 한 번 더 풀어 보세요.'}
+          </div>
+          <div style="display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap">
+            ${passed ? `<button class="btn btn-p btn-sm" id="quiz-pass-btn">완료 → Day ${day}</button>` : `<button class="btn btn-p btn-sm" id="quiz-retry-btn">다시 풀기</button>`}
+            <button class="btn btn-o btn-sm" onclick="renderCurriculumDay(${day})">돌아가기</button>
+          </div>
+        </div>
+      `;
+      if(passed){
+        view.querySelector('#quiz-pass-btn').addEventListener('click', () => _markTaskDone(day, idx));
+      } else {
+        view.querySelector('#quiz-retry-btn').addEventListener('click', () => {
+          qIdx = 0; correct = 0;
+          questions = _shuffleCopy(questions);
+          renderQ();
+        });
+      }
+      view.scrollTop = 0;
+      return;
+    }
+    const q = questions[qIdx];
+    view.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <button class="btn btn-sm btn-o" onclick="renderCurriculumDay(${day})" style="font-size:11px;padding:4px 10px">← Day ${day}</button>
+        <h2 class="view-title fade-in" style="margin:0;flex:1">${escapeHtml(title || '시험')}</h2>
+      </div>
+      <div class="view-sub">문제 ${qIdx+1} / ${questions.length} · 현재 ${correct} 정답</div>
+
+      <div class="card" style="padding:24px 18px;text-align:center;margin-top:12px">
+        <div>${q.prompt}</div>
+        <div style="font-size:13px;color:var(--clay-d);margin-top:10px">${escapeHtml(q.promptHint)}</div>
+      </div>
+
+      <div id="quiz-options" style="display:flex;flex-direction:column;gap:8px;margin-top:14px"></div>
+    `;
+    const optsEl = view.querySelector('#quiz-options');
+    q.options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'btn btn-o';
+      btn.style.cssText = 'padding:12px 16px;text-align:left;font-size:15px;width:100%';
+      btn.textContent = opt;
+      btn.addEventListener('click', () => {
+        const isRight = (opt === q.correct);
+        if(isRight){ correct++; }
+        // 시각 피드백
+        optsEl.querySelectorAll('button').forEach(b => {
+          b.disabled = true;
+          if(b.textContent === q.correct){ b.style.background='var(--terracotta)'; b.style.color='white'; b.style.borderColor='var(--terracotta)'; }
+          else if(b === btn){ b.style.opacity='.45'; }
+        });
+        setTimeout(() => { qIdx++; renderQ(); }, 700);
+      });
+      optsEl.appendChild(btn);
+    });
+    view.scrollTop = 0;
+  }
+  renderQ();
 }
 
 // ─── 어휘 탭 ─────────────────────────────────────────────────────────────────
@@ -11572,7 +12490,7 @@ function renderHall(){
     </div>
     <input type="file" id="import-file" accept=".json,application/json" style="display:none">
     <div style="font-size:11px;color:var(--clay-d);margin-top:8px;line-height:1.6;font-style:italic">
-      📋 CIM Lab 다중 사용자 안내: 각자 학습 후 <b>내보내기</b>로 JSON 백업을 보관하고,
+      📋 다중 사용자 안내: 각자 학습 후 <b>내보내기</b>로 JSON 백업을 보관하고,
       다음 세션에서 <b>가져오기</b>로 복원하면 학습 진척이 분리됩니다.
       라이브 순위 ID·표시 이름은 가져오기 시 현재 기기 값이 유지됩니다.
     </div>
