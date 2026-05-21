@@ -9467,7 +9467,10 @@ function renderClozeQuiz(questions, idx, score){
       <div style="text-align:center;padding:14px 0">
         <div style="font-family:var(--font-display);font-size:28px;color:var(--terracotta-d);font-weight:600">${score}/${total}</div>
         <div style="font-size:13px;color:var(--clay-d);margin-top:4px">정답률 ${pct}%</div>
-        <button class="btn" style="margin-top:14px" onclick="startCloze()">다시 →</button>
+        <div class="btn-row" style="margin-top:14px">
+          <button class="btn btn-sm" onclick="startCloze()">다시 →</button>
+          <button class="btn btn-sm btn-o" onclick="setTab('read')">← 원문 목록</button>
+        </div>
       </div>`;
     if(typeof S !== 'undefined' && typeof saveState === 'function'){
       S.xp = (S.xp || 0) + score * 3;
@@ -9482,7 +9485,10 @@ function renderClozeQuiz(questions, idx, score){
     return tok;
   }).join(' ');
   host.innerHTML = `
-    <div style="font-size:11px;color:var(--clay-d);margin-bottom:8px">문제 ${idx+1}/${questions.length} · 점수 ${score}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="font-size:11px;color:var(--clay-d)">문제 ${idx+1}/${questions.length} · 점수 ${score}</div>
+      <button class="btn btn-sm btn-o" onclick="setTab('read')" style="font-size:10px;padding:3px 8px">× 나가기</button>
+    </div>
     <div style="font-size:11px;color:var(--clay-d);margin-bottom:4px">${Q.workTitle} · ${Q.sectionLabel}</div>
     <div style="font-family:var(--font-grk);font-size:17px;line-height:1.9;color:var(--black-glaze);padding:14px 4px;text-align:center">${display}</div>
     <div style="font-size:12px;color:var(--clay-d);text-align:center;margin-bottom:12px">빈칸에 들어갈 단어는?</div>
@@ -11118,7 +11124,8 @@ function finishGrammar(){
   const xpGain = s.right * 15;
   if(xpGain>0) addXP(xpGain, `문법 드릴 ${s.right}/${s.total}`);
   view.innerHTML = `
-    <div class="card warm fade-in">
+    <button class="btn btn-sm btn-o" onclick="renderTopic('${s.topic.id}')">← 토픽</button>
+    <div class="card warm fade-in" style="margin-top:10px">
       <h3 style="font-family:var(--font-display);color:var(--terracotta-d);font-size:20px">드릴 결과 — ${s.topic.title}</h3>
       <div style="font-size:15px;margin:6px 0">정답 <b>${s.right}/${s.total}</b> · 획득 XP: <b>${xpGain}</b></div>
       <div class="btn-row" style="margin-top:12px">
@@ -12817,7 +12824,7 @@ function estimateReadingMinutes(work){
 
 const PRON_SYSTEMS = {
   espeak_grc: {
-    label: 'eSpeak NG · 기기 무관 (권장)',
+    label: 'eSpeak NG · 기기 무관',
     desc: 'PWA 내장 합성 · 모든 기기 동일 음 · OS 음성 의존 없음 · 첫 사용 시 ~3MB · 로봇 음질',
     voiceLang: 'grc',
     transliterate: null,   // espeak grc가 그리스 글자를 직접 처리
@@ -12831,7 +12838,7 @@ const PRON_SYSTEMS = {
     engine: 'webspeech',
   },
   erasmian: {
-    label: '에라스무스식 (이탈리아어 음성)',
+    label: '에라스무스식 (이탈리아어 음성, 권장)',
     desc: '르네상스 유럽 학계 관용 — φ=ph, β=b, η=e, υ=u, αι=ai',
     voiceLang: 'it',
     transliterate: 'erasmian',
@@ -14015,11 +14022,22 @@ function _ensureSpeechSettings(){
   if(typeof S.speech.rate !== 'number')  S.speech.rate  = 0.85;
   if(typeof S.speech.pitch !== 'number') S.speech.pitch = 1.0;
   if(typeof S.speech.voiceName !== 'string') S.speech.voiceName = '';
-  // v39: 기본 시스템을 eSpeak NG로 변경. OS 음성의 변덕 — polytonic letter-name,
-  // 짧은 단어 spelling 등 — 영향을 받지 않고 모든 기기에서 일관된 출력 제공.
-  // 기존 사용자(S.speech.system이 이미 설정됨)는 자신의 설정 유지.
-  if(!S.speech.system)  S.speech.system  = 'espeak_grc';
+  // v63: 기본 발음 시스템을 Erasmian 으로 변경 — 학술 정확도 (η=ē, υ=ü, αι=ai)
+  // 와 한국어 학습자 가독성(5모음 체계·자음 매핑 직관성)을 함께 만족. v39 의
+  // espeak_grc 기본은 OS 의존성 0 이라는 장점이 있었으나, 합성 음질이 로봇음이고
+  // 첫 사용 시 ~3MB 데이터 + 워커 부팅 latency 가 첫인상에 부담. Erasmian 은 OS
+  // 의 이탈리아어 음성을 활용해 즉발화·자연성 동시 확보.
+  if(!S.speech.system)  S.speech.system  = 'erasmian';
   if(!S.speech.dialect) S.speech.dialect = 'default';
+  // v63: 기존 사용자에 대한 일회성 재설정 — 기본 시스템 정책 변경 (espeak_grc → erasmian)
+  // 을 기존 진행자에게도 한 번만 적용. 마이그레이션 플래그 `_v63SpeechReset` 가 set
+  // 되면 이후 로딩에서는 건너뜀. 사용자가 v63 적용 이후 음성 합성 설정 화면에서
+  // 다른 시스템으로 변경하면 그 선택이 영구 유지됨.
+  if(!S._v63SpeechReset){
+    S.speech.system = 'erasmian';
+    S._v63SpeechReset = true;
+    try{ saveState(); }catch(_){}
+  }
 }
 function renderSpeechSettings(){
   _ensureSpeechSettings();
@@ -16450,6 +16468,7 @@ function renderBattleResult(code, room){
   const rankColor = myRank === 1 ? 'var(--terracotta-d)' : 'var(--clay-d)';
 
   view.innerHTML = `
+    <button class="btn btn-sm btn-o" onclick="renderBattle()">← 배틀</button>
     <h2 class="view-title fade-in" style="margin-top:6px"><span class="grk">Ἀγών</span>배틀 결과</h2>
 
     <div class="card" style="text-align:center;padding:26px 16px">
@@ -17197,7 +17216,10 @@ function renderSRSCard(){
       <div class="card" style="text-align:center;padding:24px">
         <div style="font-family:var(--font-display);font-size:24px;color:var(--terracotta-d);font-weight:600">${_srsCorrect}/${_srsQueue.length}</div>
         <div style="font-size:12px;color:var(--clay-d);margin-top:6px">세션 완료.</div>
-        <button class="btn" style="margin-top:14px" onclick="renderSRS()">메인 →</button>
+        <div class="btn-row" style="margin-top:14px">
+          <button class="btn btn-sm" onclick="renderSRS()">메인 →</button>
+          <button class="btn btn-sm btn-o" onclick="setTab('vocab')">← 어휘</button>
+        </div>
       </div>`;
     if(typeof addXP === 'function') addXP(_srsCorrect * 3, 'SRS 복습');
     return;
@@ -17208,7 +17230,10 @@ function renderSRSCard(){
   const hasSpeech = ('speechSynthesis' in window);
   host.innerHTML = `
     <div class="card" style="text-align:center">
-      <div style="font-size:11px;color:var(--clay-d);margin-bottom:6px">${_srsIdx+1}/${_srsQueue.length}${card.isNew?' · 새 카드':''}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-size:11px;color:var(--clay-d)">${_srsIdx+1}/${_srsQueue.length}${card.isNew?' · 새 카드':''}</div>
+        <button class="btn btn-sm btn-o" onclick="renderSRS()" style="font-size:10px;padding:3px 8px">× 나가기</button>
+      </div>
       <div style="font-family:var(--font-grk);font-size:38px;color:var(--terracotta-d);font-weight:600;line-height:1.2;padding:14px 0">${w.g}</div>
       ${w.r?`<div style="font-family:var(--font-grk);font-size:14px;color:var(--clay-d)">${w.r}</div>`:''}
       ${hasSpeech?`<button class="btn btn-sm btn-o" onclick="speakGreek('${w.g.replace(/'/g,"\\'")}')" style="margin-top:6px;font-size:11px">🔊 발음</button>`:''}
