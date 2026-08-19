@@ -4462,6 +4462,10 @@ const IMAGES = {
     file: 'Ippocrate, replica del I sec da orig. greco del 150 ac ca. 6131.JPG',
     caption: '《히포크라테스 흉상 (Ritratto di Ippocrate)》 — 로마 시대 (1세기) 대리석 복제, 기원전 150년경 헬레니즘 원본. 나폴리 국립고고학박물관 (inv. 6131). 의학의 아버지 — *Ἐπιδημίαι* 의 임상 관찰 정신.',
   },
+  'hippocrates-bust-aph': {
+    file: 'Ippocrate, replica del I sec da orig. greco del 150 ac ca. 6131.JPG',
+    caption: '《히포크라테스 흉상 (Ritratto di Ippocrate)》 — 로마 시대 (1세기) 대리석 복제, 기원전 150년경 헬레니즘 원본. 나폴리 국립고고학박물관 (inv. 6131). 의학의 아버지 — *Ἀφορισμοί* 의 격언 전통.',
+  },
 };
 
 // 작품 ID → 이미지 ID 매핑 (모든 매핑이 검증된 파일을 가리킴)
@@ -4519,6 +4523,7 @@ const WORK_IMAGE = {
   'sophocles-oedipus':     'ingres-oedipus-sphinx',       // 스핑크스의 수수께끼
   // ── 히포크라테스 ── 의학의 아버지
   'hippocrates-epidemics': 'hippocrates-bust',            // 임상 관찰의 시조
+  'hippocrates-aphorisms': 'hippocrates-bust-aph',        // 의학 격언의 정전
 };
 
 // 작품 ID → SVG 폴백 (네트워크 실패 시 표시)
@@ -4609,7 +4614,7 @@ function imageURL(imgId, width){
 
 // 앱 버전 — sw.js CACHE_VERSION과 동기화 유지. 홈 화면 푸터에 표시되어
 // 사용자가 자신이 어느 버전을 사용 중인지 확인 가능 (캐시 갱신 진단용).
-const APP_VERSION = 'v62';
+const APP_VERSION = 'v63';
 window.__paideiaVersion = APP_VERSION;
 
 // ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
@@ -11230,8 +11235,8 @@ const WORK_GROUPS = [
     works:['herodotus-1','xenophon-anabasis-1','plutarch-themistocles']},
   {id:'gr-medicine',  groupKo:'히포크라테스 의학', groupGrk:'Ἰατρική',
     author:'Hippocrates', authorKo:'히포크라테스', era:'고전기', eraIdx:2, kind:'prose',
-    desc:'코스 학파의 임상 기록. 의학사 최초의 case study. 이오니아 산문.',
-    works:['hippocrates-epidemics']},
+    desc:'코스 학파의 임상 기록과 의학 격언. 최초의 case study(역병론) + 413항의 잠언집. 이오니아 산문.',
+    works:['hippocrates-epidemics','hippocrates-aphorisms']},
   // === 신약성서 ===
   {id:'gr-nt-gospels', groupKo:'신약 사복음서 + 사도행전', groupGrk:'Εὐαγγέλια',
     author:'NT', authorKo:'신약', era:'헬레니즘기', eraIdx:3, kind:'prose',
@@ -11377,7 +11382,7 @@ function renderWork(workId){
 
     <div class="card">
       <div style="line-height:1.65;font-size:13.5px">${w.note}</div>
-      ${(typeof MORPH_WORKS !== 'undefined' && MORPH_WORKS.includes(w.id)) ? `<div class="hint" style="margin-top:10px;color:var(--terracotta-d);font-weight:500"><b>AGDT 분석 제공:</b> 본문의 단어를 누르면 표제어·격·시제 등 검증된 형태분석이 표시됩니다.</div>` : ''}
+      ${(typeof MORPH_WORKS !== 'undefined' && MORPH_WORKS.includes(w.id)) ? `<div class="hint" style="margin-top:10px;color:var(--terracotta-d);font-weight:500"><b>형태분석 제공:</b> 본문의 단어를 누르면 표제어·격·시제 등 검증된 형태분석이 표시됩니다.</div>` : ''}
     </div>
 
     <div class="card">
@@ -12136,9 +12141,12 @@ function openLookup(encWord){
   if(analyses && analyses.length){
     const allAuto = analyses.every(a => a.auto);
     const hasAuto = analyses.some(a => a.auto);
+    // 분석 출처는 항목의 src 로 판별 (AGDT: 무표기 / PROIEL / Diorisis)
+    const srcNames = [...new Set(analyses.map(a => a.src).filter(Boolean))];
+    const corpusName = srcNames.length ? srcNames.join(' + ') : 'AGDT';
     const sourceLabel = allAuto
       ? 'CLTK 자동 lemmatize · 표제어만 (격·시제 미식별)'
-      : (hasAuto ? '혼합 분석 (수동 + 자동)' : 'AGDT 수동 분석 · ' + analyses.length + '가지 가능성');
+      : (hasAuto ? '혼합 분석 (수동 + 자동)' : corpusName + ' 수동 분석 · ' + analyses.length + '가지 가능성');
     body = `
       <div style="font-family:var(--font-grk);font-size:28px;color:var(--terracotta-d);font-weight:600;line-height:1.2;margin-bottom:8px">${w}</div>
       ${accentBlock}
