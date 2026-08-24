@@ -4614,7 +4614,7 @@ function imageURL(imgId, width){
 
 // 앱 버전 — sw.js CACHE_VERSION과 동기화 유지. 홈 화면 푸터에 표시되어
 // 사용자가 자신이 어느 버전을 사용 중인지 확인 가능 (캐시 갱신 진단용).
-const APP_VERSION = 'v65';
+const APP_VERSION = 'v66';
 window.__paideiaVersion = APP_VERSION;
 
 // ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
@@ -11632,7 +11632,9 @@ function renderWorkSection(workId, secIdx){
     }
     // 문장 단위 마크업
     // 라인을 토큰화 후, 토큰 단위로 문장 종결 검사. 종결되면 sentIdx 증가.
-    const tokens = line.split(/(\s+)/);
+    // v66: 줄표(—/–)도 분리자로 취급. 없으면 stripWord 가 줄표를 지우면서
+    // 앞뒤 단어가 한 토큰으로 붙어 조회가 실패한다 (예: γʼ—οὐ -> γʼοὐ).
+    const tokens = line.split(/(\s+|[—–])/);
     const parts = [];
     if(!inSentence){
       parts.push(`<span class="sent" data-sent-idx="${sentIdx}">`);
@@ -11839,7 +11841,7 @@ function renderPassage(id){
   // 한 줄씩 분리 후 단어별로 wrap
   const lines = r.greek.split('\n').map((line,i)=>{
     const num = i+1;
-    const words = line.split(/(\s+)/).map(tok=>{
+    const words = line.split(/(\s+|[—–])/).map(tok=>{
       if(/^\s+$/.test(tok)) return tok;
       const clean = stripWord(tok);
       if(!clean) return tok;
