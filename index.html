@@ -4614,7 +4614,7 @@ function imageURL(imgId, width){
 
 // 앱 버전 — sw.js CACHE_VERSION과 동기화 유지. 홈 화면 푸터에 표시되어
 // 사용자가 자신이 어느 버전을 사용 중인지 확인 가능 (캐시 갱신 진단용).
-const APP_VERSION = 'v64';
+const APP_VERSION = 'v65';
 window.__paideiaVersion = APP_VERSION;
 
 // ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
@@ -11222,21 +11222,25 @@ const WORK_GROUPS = [
     desc:'그리스 신화의 우주발생론(신통기) + 농민 윤리(일과 날). 호메로스와 함께 그리스 종교·도덕 체계의 두 기둥.',
     works:['hesiod-theogony','hesiod-wd']},
   {id:'gr-tragedy',   groupKo:'아티카 비극', groupGrk:'Τραγῳδία',
-    author:'Aeschylus·Sophocles', authorKo:'아이스킬로스·소포클레스', era:'고전기', eraIdx:2, kind:'verse',
-    desc:'5세기 BCE 디오뉘소스 극장의 비극. 코로스 합창 + 대화.',
-    works:['aeschylus-persians','sophocles-antigone','sophocles-oedipus']},
+    author:'Aeschylus·Sophocles·Euripides', authorKo:'아이스킬로스·소포클레스·에우리피데스', era:'고전기', eraIdx:2, kind:'verse',
+    desc:'5세기 BCE 디오뉘소스 극장의 비극. 코로스 합창 + 대화. 3대 비극가 모두 수록.',
+    works:['aeschylus-persians','sophocles-antigone','sophocles-oedipus','euripides-medea']},
+  {id:'gr-comedy',    groupKo:'아티카 구희극', groupGrk:'Κωμῳδία',
+    author:'Aristophanes', authorKo:'아리스토파네스', era:'고전기', eraIdx:2, kind:'verse',
+    desc:'5세기 BCE 아테네의 정치·풍자 희극. 비극과 같은 극장, 정반대의 어조.',
+    works:['aristophanes-clouds']},
   {id:'gr-plato',     groupKo:'플라톤 대화편', groupGrk:'Πλάτων',
     author:'Plato', authorKo:'플라톤', era:'고전기', eraIdx:2, kind:'prose',
-    desc:'소크라테스 재판 3부작(에우튀프론·변론·크리톤). Attic 산문의 정점.',
-    works:['plato-euthyphro','plato-apology','plato-crito']},
+    desc:'소크라테스 최후 4부작(에우튀프론·변론·크리톤·파이돈). Attic 산문의 정점.',
+    works:['plato-euthyphro','plato-apology','plato-crito','plato-phaedo']},
   {id:'gr-historiog', groupKo:'그리스 산문 역사·전기', groupGrk:'Ἱστορία',
-    author:'Herodotus·Xenophon·Plutarch', authorKo:'헤로도토스·크세노폰·플루타르코스', era:'고전기', eraIdx:2, kind:'prose',
-    desc:'헤로도토스(역사학의 아버지)·크세노폰(소크라테스 제자, 군사가)·플루타르코스(영웅전).',
-    works:['herodotus-1','xenophon-anabasis-1','plutarch-themistocles']},
+    author:'Herodotus·Thucydides·Xenophon·Plutarch', authorKo:'헤로도토스·투키디데스·크세노폰·플루타르코스', era:'고전기', eraIdx:2, kind:'prose',
+    desc:'헤로도토스(역사학의 아버지)·투키디데스(사료 비판의 시조)·크세노폰(소크라테스 제자)·플루타르코스(영웅전).',
+    works:['herodotus-1','thucydides-1','xenophon-anabasis-1','plutarch-themistocles']},
   {id:'gr-medicine',  groupKo:'히포크라테스 의학', groupGrk:'Ἰατρική',
     author:'Hippocrates', authorKo:'히포크라테스', era:'고전기', eraIdx:2, kind:'prose',
-    desc:'코스 학파의 임상 기록과 의학 격언. 최초의 case study(역병론) + 413항의 잠언집. 이오니아 산문.',
-    works:['hippocrates-epidemics','hippocrates-aphorisms']},
+    desc:'코스 학파의 임상 기록과 의학 격언, 그리고 의료 윤리의 정전. 역병론 + 잠언집 413항 + 선서.',
+    works:['hippocrates-epidemics','hippocrates-aphorisms','hippocrates-oath']},
   // === 신약성서 ===
   {id:'gr-nt-gospels', groupKo:'신약 사복음서 + 사도행전', groupGrk:'Εὐαγγέλια',
     author:'NT', authorKo:'신약', era:'헬레니즘기', eraIdx:3, kind:'prose',
