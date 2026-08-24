@@ -4614,7 +4614,7 @@ function imageURL(imgId, width){
 
 // 앱 버전 — sw.js CACHE_VERSION과 동기화 유지. 홈 화면 푸터에 표시되어
 // 사용자가 자신이 어느 버전을 사용 중인지 확인 가능 (캐시 갱신 진단용).
-const APP_VERSION = 'v66';
+const APP_VERSION = 'v67';
 window.__paideiaVersion = APP_VERSION;
 
 // ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
@@ -11207,16 +11207,13 @@ function renderRead(){
 // ===== 작품 그룹 정의 (시리즈·저자 단위 그룹핑) =====
 // 단일 작품도 OK; 시리즈 작품(Iliad 5권, NT 27권)은 한 묶음.
 const WORK_GROUPS = [
-  {id:'gr-iliad',     groupKo:'일리아스', groupGrk:'Ἰλιάς',
+  {id:'gr-homer',     groupKo:'호메로스', groupGrk:'Ὅμηρος',
     author:'Homer', authorKo:'호메로스', era:'상고기', eraIdx:1, kind:'verse',
-    desc:'아킬레우스의 분노로 시작하는 24권 서사시. 트로이아 전쟁 10년차의 50일.',
-    works:['homer-iliad-1','homer-iliad-6','homer-iliad-9','homer-iliad-22','homer-iliad-24'],
+    desc:'유럽 문학의 출발점. 두 서사시 모두 24권이며, 여기서는 일리아스 5편 발췌와 오뒷세이아 1권을 싣는다.',
+    works:['homer-iliad-1','homer-iliad-6','homer-iliad-9','homer-iliad-22','homer-iliad-24','homer-odyssey-1'],
+    subs:[{label:'일리아스 Ἰλιάς', works:['homer-iliad-1','homer-iliad-6','homer-iliad-9','homer-iliad-22','homer-iliad-24']},
+          {label:'오뒷세이아 Ὀδύσσεια', works:['homer-odyssey-1']}],
     imgFrom:'homer-iliad-1'},
-  {id:'gr-odyssey',   groupKo:'오뒷세이아', groupGrk:'Ὀδύσσεια',
-    author:'Homer', authorKo:'호메로스', era:'상고기', eraIdx:1, kind:'verse',
-    desc:'오뒷세우스의 10년 귀향. 24권 서사시.',
-    works:['homer-odyssey-1'],
-    imgFrom:'homer-odyssey-1'},
   {id:'gr-hesiod',    groupKo:'헤시오도스', groupGrk:'Ἡσίοδος',
     author:'Hesiod', authorKo:'헤시오도스', era:'상고기', eraIdx:1, kind:'verse',
     desc:'그리스 신화의 우주발생론(신통기) + 농민 윤리(일과 날). 호메로스와 함께 그리스 종교·도덕 체계의 두 기둥.',
@@ -11242,24 +11239,21 @@ const WORK_GROUPS = [
     desc:'코스 학파의 임상 기록과 의학 격언, 그리고 의료 윤리의 정전. 역병론 + 잠언집 413항 + 선서.',
     works:['hippocrates-epidemics','hippocrates-aphorisms','hippocrates-oath']},
   // === 신약성서 ===
-  {id:'gr-nt-gospels', groupKo:'신약 사복음서 + 사도행전', groupGrk:'Εὐαγγέλια',
+  {id:'gr-nt',        groupKo:'신약성서', groupGrk:'Καινὴ Διαθήκη',
     author:'NT', authorKo:'신약', era:'헬레니즘기', eraIdx:3, kind:'prose',
-    desc:'마태·마가·누가·요한 + 사도행전. Koine 그리스어, 1세기 CE.',
-    works:['nt-matthew','nt-mark','nt-luke','nt-john','nt-acts']},
-  {id:'gr-nt-pauline', groupKo:'신약 바울 서신', groupGrk:'Παῦλος',
-    author:'NT', authorKo:'신약', era:'헬레니즘기', eraIdx:3, kind:'prose',
-    desc:'바울의 13서신. 로마서·고린도·갈라디아·에베소·빌립보 등.',
-    works:['nt-romans','nt-1corinthians','nt-2corinthians','nt-galatians','nt-ephesians',
+    desc:'1세기 CE 코이네 그리스어 27권 전체. 사복음서와 사도행전, 바울 서신 13, 공동서신 8, 요한 묵시록.',
+    works:['nt-matthew','nt-mark','nt-luke','nt-john','nt-acts',
+           'nt-romans','nt-1corinthians','nt-2corinthians','nt-galatians','nt-ephesians',
+           'nt-philippians','nt-colossians','nt-1thessalonians','nt-2thessalonians',
+           'nt-1timothy','nt-2timothy','nt-titus','nt-philemon',
+           'nt-hebrews','nt-james','nt-1peter','nt-2peter','nt-1john','nt-2john','nt-3john','nt-jude',
+           'nt-revelation'],
+    subs:[{label:'사복음서 + 사도행전 Εὐαγγέλια', works:['nt-matthew','nt-mark','nt-luke','nt-john','nt-acts']},
+          {label:'바울 서신 Παῦλος', works:['nt-romans','nt-1corinthians','nt-2corinthians','nt-galatians','nt-ephesians',
            'nt-philippians','nt-colossians','nt-1thessalonians','nt-2thessalonians',
            'nt-1timothy','nt-2timothy','nt-titus','nt-philemon']},
-  {id:'gr-nt-general', groupKo:'신약 공동서신', groupGrk:'Καθολικαὶ ἐπιστολαί',
-    author:'NT', authorKo:'신약', era:'헬레니즘기', eraIdx:3, kind:'prose',
-    desc:'히브리서·야고보·베드로·요한·유다.',
-    works:['nt-hebrews','nt-james','nt-1peter','nt-2peter','nt-1john','nt-2john','nt-3john','nt-jude']},
-  {id:'gr-nt-revelation', groupKo:'요한 묵시록', groupGrk:'Ἀποκάλυψις',
-    author:'NT', authorKo:'신약', era:'헬레니즘기', eraIdx:3, kind:'prose',
-    desc:'신약 마지막 권. 묵시문학.',
-    works:['nt-revelation']},
+          {label:'공동서신 Καθολικαὶ ἐπιστολαί', works:['nt-hebrews','nt-james','nt-1peter','nt-2peter','nt-1john','nt-2john','nt-3john','nt-jude']},
+          {label:'요한 묵시록 Ἀποκάλυψις', works:['nt-revelation']}]},
 ];
 function _resolveWork(id){ return WORKS.find(w => w.id === id); }
 function _groupProgress(g){
@@ -11329,7 +11323,8 @@ function renderGroup(gid){
     <div id="group-works"></div>
   `;
   const host = document.getElementById('group-works');
-  host.innerHTML = works.map(w => {
+  // v67: subs 가 있으면 하위 구분별로 소제목을 두고 나눠 보여준다.
+  const cardHTML = (w) => {
     const done = S.worksFinished.includes(w.id);
     const progress = (S.sectionsDone[w.id] || []).length;
     const total = w.sections.length;
@@ -11346,14 +11341,24 @@ function renderGroup(gid){
             <span style="color:var(--terracotta-d);font-weight:600">${progress}/${total}</span>
             <span class="progress" style="flex:1;max-width:100px;min-width:60px"><span class="fill" style="width:${pct}%"></span></span>
             ${mins?`<span style="color:var(--clay-d);font-size:10px">⏱ ${mins}분</span>`:''}
-            ${agdt?'<span style="background:var(--terracotta);color:var(--ivory-w);font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px">AGDT</span>':''}
+            ${agdt?'<span style="background:var(--terracotta);color:var(--ivory-w);font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px">분석</span>':''}
             ${done?'<span style="color:var(--terracotta-d)">✓</span>':''}
           </div>
         </div>
         <div style="font-size:18px;color:var(--terracotta);flex-shrink:0">→</div>
       </div>
     </button>`;
-  }).join('');
+  };
+  const subHead = (t, n) => `<div style="margin:16px 0 4px;font-size:12px;font-weight:700;color:var(--clay-d);letter-spacing:.03em;border-bottom:1px solid var(--clay);padding-bottom:4px">${t} <span style="font-weight:500;opacity:.75">${n}편</span></div>`;
+  if(Array.isArray(g.subs) && g.subs.length){
+    host.innerHTML = g.subs.map(sub => {
+      const ws = (sub.works || []).map(_resolveWork).filter(Boolean);
+      if(!ws.length) return '';
+      return subHead(sub.label, ws.length) + ws.map(cardHTML).join('');
+    }).join('');
+  } else {
+    host.innerHTML = works.map(cardHTML).join('');
+  }
   host.querySelectorAll('[data-id]').forEach(b => b.addEventListener('click', () => renderWork(b.dataset.id)));
 }
 
