@@ -4614,7 +4614,7 @@ function imageURL(imgId, width){
 
 // 앱 버전 — sw.js CACHE_VERSION과 동기화 유지. 홈 화면 푸터에 표시되어
 // 사용자가 자신이 어느 버전을 사용 중인지 확인 가능 (캐시 갱신 진단용).
-const APP_VERSION = 'v68';
+const APP_VERSION = 'v69';
 window.__paideiaVersion = APP_VERSION;
 
 // ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
@@ -6311,6 +6311,11 @@ function refreshBanner(){
 
 // ─── 어휘 풀 / 유틸 ──────────────────────────────────────────────────────────
 const ALL_VOCAB = [].concat(TEXTBOOK_W).concat(DCC_W).concat(typeof DAILY_W !== 'undefined' ? DAILY_W : []).concat(typeof CIVIC_W !== 'undefined' ? CIVIC_W : []);
+// v69: DEFAULT_W 는 v26 이전의 통합 배열 이름. 데이터는 위 네 배열로 쪼개졌으나
+// renderWordOfDay·srsDueCards 등이 아직 옛 이름을 참조해 두 기능이 죽어 있었다. 별칭으로 되살린다.
+const DEFAULT_W = ALL_VOCAB;
+// v69: SRS 신규 카드 하루 상한. 없으면 첫날 전체 어휘가 한꺼번에 due 로 잡힌다.
+const SRS_NEW_PER_DAY = 20;
 const POS_LABELS = {N:'명사',V:'동사',A:'형용사',D:'부사',C:'접속사',P:'전치사',PR:'대명사',NUM:'수사',ART:'관사'};
 function uniqByGreek(arr){
   const seen = new Map();
@@ -6475,6 +6480,31 @@ function renderHome(){
       } catch(_) { return ''; }
     })()}
 
+    ${(()=>{
+      // v69: 오늘의 단어 홈 카드. renderWordOfDay 와 같은 시드를 써서 같은 단어를 보인다.
+      if(typeof ALL_VOCAB === 'undefined' || !ALL_VOCAB.length) return '';
+      if(typeof _seededPick !== 'function' || typeof _todaySeed !== 'function') return '';
+      try {
+        const w = _seededPick(ALL_VOCAB, _todaySeed());
+        if(!w || !w.g) return '';
+        const posKo = ({N:'명사',V:'동사',A:'형용사',D:'부사',C:'접속사',P:'전치사',PR:'대명사'})[w.pos] || w.pos || '';
+        return `<div class="card fade-in" style="border-left:3px solid var(--terracotta);padding:14px 16px;margin-bottom:10px;cursor:pointer" id="home-wod-card" role="button" tabindex="0" aria-label="오늘의 단어 ${escapeHtml(w.g)}">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div style="flex:1;min-width:160px">
+              <div style="font-size:11px;color:var(--clay-d);letter-spacing:.05em;text-transform:uppercase">오늘의 단어</div>
+              <div style="font-family:var(--font-grk);font-size:24px;color:var(--terracotta-d);font-weight:600;line-height:1.2;margin-top:2px">${escapeHtml(w.g)}</div>
+              <div style="font-size:13px;color:var(--black-glaze);margin-top:3px">${escapeHtml(w.ko || '')}</div>
+              <div style="font-size:11px;color:var(--clay-d);margin-top:5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                ${posKo ? `<span style="background:var(--ivory-d);padding:2px 7px;border-radius:8px">${escapeHtml(posKo)}</span>` : ''}
+                ${w.r ? `<span class="grk">${escapeHtml(w.r)}</span>` : ''}
+              </div>
+            </div>
+            <button class="btn btn-o btn-sm" id="home-wod-btn" style="padding:8px 14px;flex-shrink:0">자세히 →</button>
+          </div>
+        </div>`;
+      } catch(_) { return ''; }
+    })()}
+
     <div class="quote-card fade-in">
       <div class="grk">"${q.grk}"</div>
       <div class="src">— ${q.src}</div>
@@ -6569,6 +6599,22 @@ function renderHome(){
   };
   if(currCard) currCard.addEventListener('click', currHandler);
   if(currBtn)  currBtn.addEventListener('click', currHandler);
+
+  // v69: 오늘의 단어 카드 → renderWordOfDay (카드 전체·버튼·키보드 모두 진입)
+  const wodCard = view.querySelector('#home-wod-card');
+  const wodBtn  = view.querySelector('#home-wod-btn');
+  const wodHandler = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if(typeof renderWordOfDay === 'function') renderWordOfDay();
+  };
+  if(wodCard){
+    wodCard.addEventListener('click', wodHandler);
+    wodCard.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter' || e.key === ' ') wodHandler(e);
+    });
+  }
+  if(wodBtn) wodBtn.addEventListener('click', wodHandler);
   // v56: presence 표시 — 비동기로 채움
   (async () => {
     const slot = view.querySelector('#home-presence-text');
@@ -16975,14 +17021,16 @@ function srsDueCards(){
   _ensureSRS();
   if(typeof DEFAULT_W === 'undefined') return [];
   const today = _srsToday();
-  const due = [];
+  const review = [], fresh = [];
   for(const w of DEFAULT_W){
     const k = _srsKey(w);
     const st = S.srs[k];
-    if(!st){ due.push({word: w, isNew: true, st: null}); }
-    else if(st.due <= today){ due.push({word: w, isNew: false, st}); }
+    if(!st){ fresh.push({word: w, isNew: true, st: null}); }
+    else if(st.due <= today){ review.push({word: w, isNew: false, st}); }
   }
-  return due;
+  // v69: 복습 대상은 전부, 신규는 하루 상한까지만.
+  const cap = (typeof SRS_NEW_PER_DAY === 'number') ? SRS_NEW_PER_DAY : 20;
+  return review.concat(fresh.slice(0, cap));
 }
 function srsGrade(word, quality){
   _ensureSRS();
