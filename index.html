@@ -13,16 +13,16 @@ function __paideiaShowError(label, detail){
   // splash가 아직 안 그려졌으면 다음 틱에 재시도
   const sp = document.getElementById('splash-stage');
   if(!sp){ setTimeout(() => __paideiaShowError(label, detail), 50); return; }
-  sp.style.color = '#c44536';
+  sp.style.color = '#14508F';
   sp.style.fontWeight = '600';
   sp.style.textAlign = 'left';
   sp.style.maxWidth = '92vw';
   sp.style.margin = '0 auto';
   sp.innerHTML = '<div style="font-size:13px;margin-bottom:6px">❌ ' + label + '</div>' +
-                 '<div style="font-size:11px;font-weight:400;color:#5c4e3e;font-family:Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-all;background:#fbf0ee;padding:8px 10px;border-radius:6px;border:1px solid #e8b5ab">' +
+                 '<div style="font-size:11px;font-weight:400;color:#3A526B;font-family:Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-all;background:#EFF5FB;padding:8px 10px;border-radius:0;border:1px solid #BBD8EE">' +
                  (detail || '(추가 정보 없음)') +
                  '</div>' +
-                 '<div style="font-size:10px;font-weight:400;margin-top:8px;color:#8a7a6a">이 화면을 캡처해서 보고해 주세요. reset.html 적용도 시도해 보세요.</div>';
+                 '<div style="font-size:10px;font-weight:400;margin-top:8px;color:#7B92A8">이 화면을 캡처해서 보고해 주세요. reset.html 적용도 시도해 보세요.</div>';
 }
 window.addEventListener('error', e => {
   const msg = (e.message || 'unknown error') +
@@ -41,7 +41,7 @@ window.addEventListener('unhandledrejection', e => {
 
 <!-- ===== PWA ===== -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1a1612">
+<meta name="theme-color" content="#16283A">
 <meta name="application-name" content="Παιδεία">
 <meta name="description" content="고전 그리스어 학습기 — 어휘·문법·원문·형태분석·라이브 순위">
 <!-- iOS -->
@@ -58,37 +58,58 @@ window.addEventListener('unhandledrejection', e => {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- Google Fonts 비차단 로드: 첫 페인트 차단 방지 (display=swap으로 시스템 폰트 폴백 후 교체) -->
-<link rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Gentium+Book+Plus:ital,wght@0,400;0,700;1,400&family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap"
-      media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Gentium+Book+Plus:ital,wght@0,400;0,700;1,400&family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap"></noscript>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=GFS+Didot&family=Gentium+Book+Plus:ital,wght@0,400;0,700;1,400&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=GFS+Didot&family=Gentium+Book+Plus:ital,wght@0,400;0,700;1,400&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap"></noscript>
 <style>
 /* ============================================================================
    적색상 도기(red-figure) 미학 — terracotta / black-glaze / ivory
    ============================================================================ */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --terracotta:#C44536;
-  --terracotta-d:#9E3528;
-  --terracotta-l:#D87060;
-  --black-glaze:#1a1612;
-  --black-glaze-l:#2a241e;
-  --ivory:#F4E8D8;
-  --ivory-d:#E5D5BC;
-  --ivory-w:#FBF6EC;
-  --clay:#C4986A;
-  --clay-d:#8B6B45;
-  --gold:#B8945B;
-  --shadow:rgba(26,22,18,0.18);
-  --shadow-s:rgba(26,22,18,0.08);
-  --ok:#5C8A4A;
-  --bad:#A1342B;
-  --warn:#C49849;
-  --font-display:'Cormorant Garamond',serif;
-  --font-grk:'Gentium Book Plus','GFS Didot',Georgia,serif;
-  --font-ko:'Noto Sans KR',-apple-system,sans-serif;
-  --r:8px;
-  --r-l:14px;
+  /* v71 · 펜텔리콘 — 흰 대리석과 에게해 파랑.
+     새 이름이 기준이고, 옛 이름은 별칭으로 남겨 기존 1,287곳의 참조를 그대로 살린다. */
+  --marble:#F2F6FA;
+  --marble-hi:#FFFFFF;
+  --marble-lo:#E4EBF3;
+  --flute:#E4EBF3;
+  --sky:#6FA8D6;
+  --sky-d:#4E8CBE;
+  --veil:rgba(111,168,214,.13);
+  --veil-edge:rgba(111,168,214,.34);
+  --aegean:#14508F;
+  --aegean-d:#0E3A6B;
+  --ink:#16283A;
+  --ink-mid:#26405A;
+  --ink-soft:#55708A;
+  --rule:#CFDCE8;
+
+  /* 옛 이름 → 새 값 (의미가 뒤집히지 않도록 역할 기준으로 짝지음) */
+  --terracotta:var(--aegean);
+  --terracotta-d:var(--aegean-d);
+  --terracotta-l:var(--sky);
+  --black-glaze:var(--ink);
+  --black-glaze-l:var(--ink-mid);
+  --ivory:var(--marble);
+  --ivory-d:var(--marble-lo);
+  --ivory-w:var(--marble-hi);
+  --clay:var(--rule);
+  --clay-d:var(--ink-soft);
+  --gold:var(--sky);
+
+  --shadow:rgba(22,40,58,0.14);
+  --shadow-s:rgba(22,40,58,0.06);
+  --ok:#3E7D6B;
+  --bad:#C0453A;
+  --warn:#B8873A;
+
+  --font-display:'GFS Didot',Georgia,serif;
+  --font-grk:'GFS Didot','Gentium Book Plus',Georgia,serif;
+  --font-ko:'Gowun Dodum',system-ui,-apple-system,sans-serif;
+  --font-serif:'Gowun Batang',Georgia,serif;
+
+  /* 신전에는 둥근 모서리가 없다 */
+  --r:0px;
+  --r-l:0px;
   --t:.2s cubic-bezier(.4,0,.2,1);
 }
 html,body{height:100%;background:var(--ivory);color:var(--black-glaze);font-family:var(--font-ko);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;overscroll-behavior-y:none}
@@ -105,9 +126,9 @@ html,body{height:100%;background:var(--ivory);color:var(--black-glaze);font-fami
 body::before{
   content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;
   background:
-    radial-gradient(ellipse 60% 80% at 20% 20%,rgba(196,134,86,.10),transparent 60%),
-    radial-gradient(ellipse 70% 90% at 80% 90%,rgba(196,69,54,.08),transparent 60%),
-    repeating-linear-gradient(45deg,transparent 0 7px,rgba(139,107,69,.018) 7px 8px);
+    radial-gradient(ellipse 60% 80% at 20% 20%,rgba(111,168,214,.10),transparent 60%),
+    radial-gradient(ellipse 70% 90% at 80% 90%,rgba(20,80,143,.08),transparent 60%),
+    repeating-linear-gradient(90deg,transparent 0 43px,rgba(85,112,138,.018) 43px 44px);
 }
 
 /* Meander border (Greek key) — used as decorative divider */
@@ -130,10 +151,10 @@ body::before{
 .app-header h1{font-family:var(--font-display);font-weight:600;font-size:24px;letter-spacing:.02em;display:flex;align-items:baseline;gap:8px}
 .app-header h1 .grk{font-family:var(--font-grk);color:var(--terracotta-l);font-size:.85em}
 .app-header h1 .sub{font-family:var(--font-ko);font-weight:400;font-size:13px;color:var(--clay);margin-left:auto;opacity:.85}
-.level-banner{display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(244,232,216,.15)}
+.level-banner{display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(242,246,250,.15)}
 .level-banner .lvl-name{font-family:var(--font-grk);font-size:18px;color:var(--terracotta-l);font-weight:700}
 .level-banner .lvl-name .ko{font-family:var(--font-ko);font-size:11px;color:var(--clay);font-weight:400;margin-left:4px}
-.xp-bar{flex:1;height:6px;background:rgba(244,232,216,.12);border-radius:3px;overflow:hidden;margin-left:auto;max-width:180px}
+.xp-bar{flex:1;height:6px;background:rgba(242,246,250,.12);border-radius:0;overflow:hidden;margin-left:auto;max-width:180px}
 .xp-bar .fill{height:100%;background:linear-gradient(90deg,var(--terracotta),var(--terracotta-l));transition:width .6s ease-out}
 .xp-num{font-size:11px;color:var(--clay);font-variant-numeric:tabular-nums;min-width:60px;text-align:right}
 
@@ -155,39 +176,55 @@ body::before{
 .nav-btn .lb{font-size:10px;letter-spacing:.05em}
 .nav-btn.active{color:var(--terracotta)}
 .nav-btn.active .ic{color:var(--terracotta)}
-.nav-btn.active::before{content:"";position:absolute;top:0;left:25%;right:25%;height:2px;background:var(--terracotta);border-radius:1px}
+.nav-btn.active::before{content:"";position:absolute;top:0;left:25%;right:25%;height:2px;background:var(--terracotta);border-radius:0}
 .nav-btn:active{transform:scale(.95)}
 
 /* ============================================================================
    메인 콘텐츠
    ============================================================================ */
 main#view{flex:1;padding:16px 16px 24px;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.view-title{font-family:var(--font-display);font-size:22px;font-weight:600;color:var(--black-glaze);margin-bottom:4px;letter-spacing:.01em}
+.view-title{
+  font-family:var(--font-display);font-size:30px;font-weight:400;
+  color:var(--aegean);margin-bottom:6px;letter-spacing:.02em;line-height:1.1;
+}
 .view-title .grk{color:var(--terracotta-d);font-weight:600;margin-right:8px}
-.view-sub{font-size:13px;color:var(--clay-d);margin-bottom:18px}
+.view-sub{font-size:12px;color:var(--ink-soft);margin-bottom:22px;letter-spacing:.06em}
 
 /* 카드 — 도기 패널 */
 .card{
-  background:var(--ivory-w);border:1px solid var(--clay);border-radius:var(--r-l);
-  padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 3px var(--shadow-s);
+  background:var(--marble-hi);
+  background-image:repeating-linear-gradient(90deg,transparent 0 43px,var(--flute) 43px 44px);
+  border:0;border-top:2px solid var(--aegean);border-radius:0;
+  padding:16px 18px;margin-bottom:14px;box-shadow:none;
   position:relative;overflow:hidden;
 }
-.card.warm{background:linear-gradient(135deg,var(--ivory-w) 0%,var(--clay) 200%);border-color:var(--terracotta-d)}
+.card.warm{background:var(--veil);border-top-color:var(--aegean-d)}
 .card.dark{background:var(--black-glaze);color:var(--ivory);border-color:var(--black-glaze)}
 .card.dark .grk{color:var(--terracotta-l)}
 
 /* 통계 띠 */
-.stat-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
-.stat-cell{background:var(--ivory-w);border:1px solid var(--clay);border-radius:var(--r);padding:10px 6px;text-align:center}
+.stat-strip{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+  border-top:1px solid var(--rule);margin-bottom:18px;
+}
+.stat-cell{
+  background:transparent;border:0;border-right:1px solid var(--rule);border-radius:0;
+  padding:14px 6px 12px;text-align:center;font-variant-numeric:tabular-nums;
+}
+.stat-strip .stat-cell:last-child{border-right:0}
 .stat-cell .v{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--terracotta-d);line-height:1.1}
 .stat-cell .l{font-size:10px;color:var(--clay-d);margin-top:2px;letter-spacing:.02em}
 
 /* 타일 */
-.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0}
+@media (max-width:480px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .tile{
-  background:var(--ivory-w);border:1px solid var(--clay);border-radius:var(--r-l);
-  padding:16px 14px;text-align:left;cursor:pointer;transition:transform var(--t),box-shadow var(--t);
-  display:flex;flex-direction:column;gap:6px;font-family:inherit;color:inherit;
+  background:var(--marble-hi);
+  background-image:repeating-linear-gradient(90deg,transparent 0 11px,var(--flute) 11px 12px);
+  border:0;border-top:2px solid var(--aegean);border-radius:0;
+  padding:18px 10px 16px;text-align:center;cursor:pointer;
+  transition:background-color var(--t);
+  display:flex;flex-direction:column;align-items:center;gap:2px;
 }
 .tile:active{transform:scale(.97)}
 .tile:hover{box-shadow:0 4px 14px var(--shadow)}
@@ -196,31 +233,58 @@ main#view{flex:1;padding:16px 16px 24px;overflow-y:auto;-webkit-overflow-scrolli
 .tile .desc{font-size:11px;color:var(--clay-d)}
 
 /* 일일 인용구 */
-.quote-card{background:linear-gradient(135deg,var(--black-glaze) 0%,#0f0c09 100%);color:var(--ivory);padding:18px;border-radius:var(--r-l);margin-bottom:16px;border:1px solid var(--terracotta-d);position:relative}
+.quote-card{
+  background:var(--veil);color:var(--ink);
+  padding:20px 22px;border:0;border-left:1px solid var(--veil-edge);border-radius:0;
+  margin-bottom:18px;position:relative;
+}
 .quote-card .grk{font-family:var(--font-grk);font-size:18px;line-height:1.5;color:var(--ivory);font-style:italic}
 .quote-card .src{font-size:11px;color:var(--terracotta-l);margin-top:8px;letter-spacing:.05em;text-transform:uppercase}
 
 /* 버튼 — 도기 표면 같은 매트 톤 */
 .btn{
-  border:none;background:var(--terracotta);color:var(--ivory-w);
-  padding:11px 18px;border-radius:var(--r);font-family:inherit;font-size:14px;font-weight:600;
-  cursor:pointer;transition:all var(--t);letter-spacing:.02em;
+  border:1px solid var(--aegean);background:transparent;color:var(--aegean);
+  padding:10px 18px;border-radius:0;font-family:inherit;font-size:13.5px;font-weight:400;
+  cursor:pointer;transition:background var(--t),color var(--t);letter-spacing:.04em;
 }
-.btn:active{transform:scale(.97)}
-.btn:hover{background:var(--terracotta-d)}
+.btn:hover{background:var(--aegean);color:var(--marble-hi)}
+.btn:active{background:var(--aegean-d);border-color:var(--aegean-d);color:var(--marble-hi)}
 .btn:disabled{opacity:.4;cursor:not-allowed}
-.btn-g{background:var(--black-glaze);color:var(--ivory)}
-.btn-g:hover{background:var(--black-glaze-l)}
-.btn-o{background:transparent;color:var(--terracotta-d);border:1px solid var(--terracotta-d)}
-.btn-o:hover{background:var(--terracotta);color:var(--ivory-w)}
+/* 채운 단추 = 으뜸 · 윤곽 단추 = 보통 · 회색 윤곽 = 조용한 것 */
+.btn-g{background:var(--aegean);color:var(--marble-hi);border-color:var(--aegean)}
+.btn-g:hover{background:var(--aegean-d);border-color:var(--aegean-d)}
+.btn-o{background:transparent;color:var(--ink-soft);border:1px solid var(--rule)}
+.btn-o:hover{background:var(--veil);color:var(--aegean);border-color:var(--veil-edge)}
 .btn-sm{padding:6px 12px;font-size:12px}
 .btn-row{display:flex;gap:8px;flex-wrap:wrap}
+/* v71 · 여백 주석 (scholion)
+   모달은 본문을 덮어 문맥을 끊는다. 필사본의 방주처럼 짚은 낱말이 있는
+   *그 행 아래* 펼치면, 앞뒤 문장을 보면서 읽을 수 있다. */
+.scholion{
+  margin:6px 0 10px;padding:10px 0 10px 14px;
+  border-left:2px solid var(--aegean);background:var(--veil);
+  font-size:13px;line-height:1.6;color:var(--ink-mid);
+  animation:scholion-in .18s ease-out;
+}
+@keyframes scholion-in{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+.scholion .hw{font-family:var(--font-grk);font-size:20px;color:var(--aegean);line-height:1.2}
+.scholion .meta{font-size:10.5px;color:var(--ink-soft);letter-spacing:.04em;margin-top:2px}
+.scholion .an{margin-top:8px;padding-top:8px;border-top:1px solid var(--veil-edge)}
+.scholion .an:first-of-type{border-top:0;padding-top:0;margin-top:9px}
+.scholion .lem{font-family:var(--font-grk);font-size:16px;color:var(--ink)}
+.scholion .prs{font-size:12px;color:var(--ink-soft);margin-top:2px}
+.scholion .glo{font-size:13px;color:var(--aegean-d);margin-top:3px}
+.scholion .lnk{margin-top:10px;display:flex;gap:13px;flex-wrap:wrap;font-size:11px;letter-spacing:.03em}
+.scholion .lnk a,.scholion .lnk button{color:var(--ink-soft);text-decoration:none;border:0;
+  border-bottom:1px solid var(--rule);background:none;padding:0;font:inherit;cursor:pointer}
+.scholion .lnk a:hover,.scholion .lnk button:hover{color:var(--aegean);border-bottom-color:var(--aegean)}
+.passage .w.on{background:var(--veil);box-shadow:0 1px 0 var(--aegean)}
 
 /* 필터 칩 */
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
 .chip{
   background:var(--ivory-w);border:1px solid var(--clay);color:var(--black-glaze);
-  padding:5px 11px;border-radius:14px;font-size:12px;cursor:pointer;transition:all var(--t);
+  padding:5px 11px;border-radius:0;font-size:12px;cursor:pointer;transition:all var(--t);
   font-family:inherit;white-space:nowrap;
 }
 .chip:hover{border-color:var(--terracotta)}
@@ -239,14 +303,14 @@ main#view{flex:1;padding:16px 16px 24px;overflow-y:auto;-webkit-overflow-scrolli
   cursor:pointer;transition:all var(--t);
 }
 .opt:hover{border-color:var(--terracotta);background:var(--ivory-d)}
-.opt.right{background:#E8F0DD;border-color:var(--ok);color:var(--ok)}
-.opt.wrong{background:#F4D8D4;border-color:var(--bad);color:var(--bad)}
+.opt.right{background:#E2EFEA;border-color:var(--ok);color:var(--ok)}
+.opt.wrong{background:#F7E4E1;border-color:var(--bad);color:var(--bad)}
 .opt.dim{opacity:.4}
 .opt .grk{font-size:18px}
 
 .feedback{margin:14px 0;padding:12px;border-radius:var(--r);font-size:14px;text-align:left}
-.feedback.ok{background:#E8F0DD;color:var(--ok);border:1px solid var(--ok)}
-.feedback.bad{background:#F4D8D4;color:var(--bad);border:1px solid var(--bad)}
+.feedback.ok{background:#E2EFEA;color:var(--ok);border:1px solid var(--ok)}
+.feedback.bad{background:#F7E4E1;color:var(--bad);border:1px solid var(--bad)}
 .feedback .grk{font-size:17px;font-weight:600}
 
 input.input{
@@ -267,15 +331,15 @@ textarea.input{font-family:var(--font-ko);font-size:14px;line-height:1.5;min-hei
 
 /* 원문 뷰어 */
 .passage{font-family:var(--font-grk);font-size:18px;line-height:2.2;color:var(--black-glaze);padding:18px 4px;text-align:left}
-.passage .w{cursor:pointer;border-radius:3px;padding:1px 2px;transition:background var(--t)}
+.passage .w{cursor:pointer;border-radius:0;padding:1px 2px;transition:background var(--t)}
 /* 품사별 본문 단어 색상 (terracotta 팔레트 조화) */
-.passage .w.pos-noun  { color: #8b2e1f; }   /* 명사: 짙은 terracotta */
-.passage .w.pos-verb  { color: #2d6354; }   /* 동사: 깊은 청록 */
-.passage .w.pos-adj   { color: #6d3f8a; }   /* 형용사: 무화과 보라 */
-.passage .w.pos-art   { color: #7a6a4f; }   /* 관사: 회색 갈색 */
-.passage .w.pos-prep  { color: #8c5e30; }   /* 전치사: 진한 청동 */
-.passage .w.pos-adv   { color: #a87d1d; }   /* 부사: 황금 */
-.passage .w.pos-conj  { color: #888080; }   /* 접속사: 중성 회색 */
+.passage .w.pos-noun  { color: #14508F; }   /* 명사: 짙은 terracotta */
+.passage .w.pos-verb  { color: #2C6E63; }   /* 동사: 깊은 청록 */
+.passage .w.pos-adj   { color: #6A4E9C; }   /* 형용사: 무화과 보라 */
+.passage .w.pos-art   { color: #8496A8; }   /* 관사: 회색 갈색 */
+.passage .w.pos-prep  { color: #3E7D6B; }   /* 전치사: 진한 청동 */
+.passage .w.pos-adv   { color: #4E8CBE; }   /* 부사: 황금 */
+.passage .w.pos-conj  { color: #8A8F98; }   /* 접속사: 중성 회색 */
 .passage .w.pos-pron  { color: #234c75; }   /* 대명사: 청남 */
 .passage .w.pos-ptcp  { color: #4d3a70; }   /* 분사: 어두운 보라 */
 .passage .w.pos-inf   { color: #3a5a3d; }   /* 부정사: 어두운 녹색 */
@@ -283,8 +347,8 @@ textarea.input{font-family:var(--font-ko);font-size:14px;line-height:1.5;min-hei
 
 /* v49: 학자 낭독 시간 동기 — 현재 발화 중인 행/단락 highlight */
 .passage div.now-speaking{
-  background:linear-gradient(90deg, rgba(176, 80, 48, 0.18) 0%, rgba(176, 80, 48, 0.08) 70%, transparent 100%);
-  border-left:3px solid var(--terracotta);
+  background:linear-gradient(90deg, rgba(20,80,143,0.18) 0%, rgba(20,80,143,0.08) 70%, transparent 100%);
+  border-left:1px solid var(--veil-edge);
   padding-left:8px;
   margin-left:-11px;
   transition:background 0.4s ease, border-left-color 0.4s ease;
@@ -292,8 +356,8 @@ textarea.input{font-family:var(--font-ko);font-size:14px;line-height:1.5;min-hei
 .passage div.now-speaking .w{font-weight:500}
 /* v49b: 문장 단위 highlight — 단락 1개 자료 (Plato Apology 등) 용 세밀한 동기 */
 .passage .sent.now-speaking-sent{
-  background:linear-gradient(90deg, rgba(176, 80, 48, 0.22) 0%, rgba(176, 80, 48, 0.12) 80%, transparent 100%);
-  border-radius:4px;
+  background:linear-gradient(90deg, rgba(20,80,143,0.22) 0%, rgba(20,80,143,0.12) 80%, transparent 100%);
+  border-radius:0;
   padding:1px 3px;
   margin:0 -3px;
   transition:background 0.3s ease;
@@ -317,11 +381,11 @@ textarea.input{font-family:var(--font-ko);font-size:14px;line-height:1.5;min-hei
 /* 명예의 전당 */
 .badge-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
 .badge{
-  aspect-ratio:1;background:var(--ivory-w);border:2px solid var(--clay);border-radius:50%;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6px;
-  transition:all var(--t);position:relative;
+  aspect-ratio:1;background:var(--marble-hi);border:1px solid var(--rule);border-radius:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:8px;transition:border-color var(--t),background var(--t);
 }
-.badge.got{border-color:var(--terracotta);background:linear-gradient(135deg,var(--ivory-w),var(--clay));box-shadow:0 2px 8px var(--shadow)}
+.badge.got{border-color:var(--aegean);background:var(--veil);box-shadow:none}
 .badge.locked{opacity:.35;filter:grayscale(.8)}
 .badge .ic{font-family:var(--font-grk);font-size:22px;color:var(--terracotta-d);line-height:1;margin-bottom:2px}
 .badge .nm{font-size:9px;line-height:1.1;color:var(--black-glaze-l)}
@@ -337,7 +401,7 @@ textarea.input{font-family:var(--font-ko);font-size:14px;line-height:1.5;min-hei
 /* 토스트 */
 .toast{
   position:fixed;left:50%;bottom:80px;transform:translateX(-50%);
-  background:var(--black-glaze);color:var(--ivory-w);padding:10px 18px;border-radius:20px;
+  background:var(--black-glaze);color:var(--ivory-w);padding:10px 18px;border-radius:0;
   font-size:13px;box-shadow:0 4px 16px var(--shadow);z-index:100;
   opacity:0;pointer-events:none;transition:opacity .3s;
 }
@@ -367,14 +431,14 @@ textarea.input{font-family:var(--font-ko);font-size:14px;line-height:1.5;min-hei
 .minlink:hover{color:var(--terracotta)}
 
 /* 진행률 */
-.progress{height:5px;background:var(--ivory-d);border-radius:3px;overflow:hidden;margin:8px 0}
-.progress .fill{height:100%;background:var(--terracotta);transition:width .4s}
+.progress{height:1px;background:var(--rule);border-radius:0;overflow:visible;margin:12px 0 6px}
+.progress .fill{height:1px;background:var(--aegean);transition:width .4s}
 
 /* 큰 그리스어 표시 */
 .big-grk{font-family:var(--font-grk);font-size:28px;color:var(--terracotta-d);font-weight:600;line-height:1.3;margin:8px 0}
 
 /* 모달 */
-.modal-bg{position:fixed;inset:0;background:rgba(26,22,18,.55);z-index:80;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-bg{position:fixed;inset:0;background:rgba(22,40,58,.55);z-index:80;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
 .modal-bg.show{opacity:1;pointer-events:auto}
 .modal{background:var(--ivory-w);border-radius:var(--r-l);padding:22px;max-width:380px;width:100%;max-height:80vh;overflow-y:auto;border:1px solid var(--clay)}
 .modal h3{font-family:var(--font-display);font-size:20px;color:var(--terracotta-d);margin-bottom:10px;font-weight:600}
@@ -383,11 +447,11 @@ textarea.input{font-family:var(--font-ko);font-size:14px;line-height:1.5;min-hei
 /* 데스크탑 너비 적응 */
 @media(min-width:560px){
   #app{max-width:520px;margin:20px auto;border-radius:var(--r-l);overflow:hidden;min-height:calc(100vh - 40px)}
-  body{background:var(--clay-d)}
+  body{background:var(--marble-lo)}
   body::before{background:
-    radial-gradient(ellipse 60% 80% at 20% 20%,rgba(196,134,86,.20),transparent 60%),
-    radial-gradient(ellipse 70% 90% at 80% 90%,rgba(196,69,54,.18),transparent 60%),
-    repeating-linear-gradient(45deg,transparent 0 7px,rgba(0,0,0,.025) 7px 8px)}
+    radial-gradient(ellipse 60% 80% at 20% 20%,rgba(111,168,214,.20),transparent 60%),
+    radial-gradient(ellipse 70% 90% at 80% 90%,rgba(20,80,143,.18),transparent 60%),
+    repeating-linear-gradient(90deg,transparent 0 43px,rgba(0,0,0,.025) 43px 44px)}
 }
 /* ─── 로딩 스플래시 (데이터 동기 로드 중 표시) ─── */
 .splash-init{
@@ -396,7 +460,7 @@ textarea.input{font-family:var(--font-ko);font-size:14px;line-height:1.5;min-hei
   font-family:Georgia, 'Times New Roman', serif; /* Google Fonts 로드 전 폴백 */
 }
 .splash-grk{
-  font-size:30px;font-weight:600;color:#9C3F2D;
+  font-size:30px;font-weight:600;color:#0E3A6B;
   letter-spacing:.01em;margin-bottom:18px;
   animation: splash-fade 1.4s ease-in-out infinite alternate;
 }
@@ -405,8 +469,8 @@ textarea.input{font-family:var(--font-ko);font-size:14px;line-height:1.5;min-hei
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='18' viewBox='0 0 40 18'><path d='M0 14h6V4h14v6h-6v4h12V4h6v10h6' fill='none' stroke='%23C44536' stroke-width='1.2'/></svg>");
   background-repeat:repeat-x;opacity:.7;
 }
-.splash-stage{font-size:14px;color:#2a241e;margin-bottom:6px}
-.splash-hint{font-size:11px;color:#8a7a6a;font-style:italic}
+.splash-stage{font-size:14px;color:#26405A;margin-bottom:6px}
+.splash-hint{font-size:11px;color:#7B92A8;font-style:italic}
 @keyframes splash-fade { from{opacity:.55} to{opacity:1} }
 </style>
 </head>
@@ -454,7 +518,7 @@ if ('serviceWorker' in navigator) {
             // 새 버전이 대기 중 — 토스트 표시
             const t = document.getElementById('toast');
             if (t) {
-              t.innerHTML = '새 버전 사용 가능 — <button style="background:none;border:none;color:#D87060;text-decoration:underline;cursor:pointer;font:inherit" onclick="navigator.serviceWorker.controller.postMessage(\'skipWaiting\');location.reload()">새로고침</button>';
+              t.innerHTML = '새 버전 사용 가능 — <button style="background:none;border:none;color:#6FA8D6;text-decoration:underline;cursor:pointer;font:inherit" onclick="navigator.serviceWorker.controller.postMessage(\'skipWaiting\');location.reload()">새로고침</button>';
               t.classList.add('show');
               setTimeout(() => t.classList.remove('show'), 8000);
             }
@@ -4573,18 +4637,18 @@ function svgFallback(workId){
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 270" style="width:100%;height:100%;display:block">
     <defs>
       <linearGradient id="bg-${workId}" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#1a1612"/>
-        <stop offset="1" stop-color="#2a241e"/>
+        <stop offset="0" stop-color="#16283A"/>
+        <stop offset="1" stop-color="#26405A"/>
       </linearGradient>
       <pattern id="m-${workId}" width="40" height="18" patternUnits="userSpaceOnUse">
-        <path d="M0 14h6V4h14v6h-6v4h12V4h6v10h6" fill="none" stroke="#C44536" stroke-width="1.2"/>
+        <path d="M0 14h6V4h14v6h-6v4h12V4h6v10h6" fill="none" stroke="#14508F" stroke-width="1.2"/>
       </pattern>
     </defs>
     <rect width="480" height="270" fill="url(#bg-${workId})"/>
     <rect x="0" y="0" width="480" height="20" fill="url(#m-${workId})" opacity=".55"/>
     <rect x="0" y="250" width="480" height="20" fill="url(#m-${workId})" opacity=".55"/>
-    <text x="240" y="135" text-anchor="middle" dominant-baseline="middle" font-size="64" fill="#C44536">${ico}</text>
-    <text x="240" y="210" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="20" font-style="italic" fill="#F4E8D8" opacity=".85">${ko}</text>
+    <text x="240" y="135" text-anchor="middle" dominant-baseline="middle" font-size="64" fill="#14508F">${ico}</text>
+    <text x="240" y="210" text-anchor="middle" font-family="GFS Didot,Georgia,serif" font-size="20" font-style="italic" fill="#F2F6FA" opacity=".85">${ko}</text>
   </svg>`;
 }
 
@@ -4614,7 +4678,7 @@ function imageURL(imgId, width){
 
 // 앱 버전 — sw.js CACHE_VERSION과 동기화 유지. 홈 화면 푸터에 표시되어
 // 사용자가 자신이 어느 버전을 사용 중인지 확인 가능 (캐시 갱신 진단용).
-const APP_VERSION = 'v70';
+const APP_VERSION = 'v71';
 window.__paideiaVersion = APP_VERSION;
 
 // ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
@@ -5036,7 +5100,7 @@ async function renderProfiles(){
 
     ${curChar ? `
     <h3 style="font-family:var(--font-display);font-size:14px;color:var(--terracotta-d);margin:18px 0 6px;text-transform:uppercase;letter-spacing:.08em">내 캐릭터 <span class="grk" style="text-transform:none">Παίγνια</span></h3>
-    <button class="card" type="button" id="open-char-picker" style="cursor:pointer;width:100%;text-align:left;border-left:3px solid var(--terracotta);background:var(--ivory-d);padding:12px">
+    <button class="card" type="button" id="open-char-picker" style="cursor:pointer;width:100%;text-align:left;border-left:1px solid var(--veil-edge);background:var(--ivory-d);padding:12px">
       <div style="display:flex;align-items:center;gap:14px">
         <div style="flex-shrink:0">${(typeof _charPhotoMedallion==='function')? _charPhotoMedallion(curChar, 80) : _charMedallion(curChar, 80)}</div>
         <div style="flex:1;min-width:0">
@@ -5064,7 +5128,7 @@ async function renderProfiles(){
             <div style="flex:1;min-width:0">
               <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
                 <span style="font-family:var(--font-display);font-size:17px;color:var(--black-glaze);font-weight:600">${nameEsc}</span>
-                ${isCurrent ? '<span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:2px 8px;border-radius:9px;letter-spacing:.04em;font-weight:600">현재</span>' : ''}
+                ${isCurrent ? '<span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:2px 8px;border-radius:0;letter-spacing:.04em;font-weight:600">현재</span>' : ''}
               </div>
               ${isCurrent && curChar ? `<div style="font-size:11px;color:var(--terracotta-d);margin-top:2px;font-style:italic">${curChar.ko} · ${curChar.ep}</div>` : ''}
               <div style="font-size:11px;color:var(--clay-d);margin-top:4px;line-height:1.5">
@@ -5164,24 +5228,24 @@ window.renderProfiles = renderProfiles;
 // ─── 카테고리별 팔레트 (5종) ────────────────────────────────────────────────
 const CHAR_PALETTES = {
   god: {     // 올림포스 신 — 황금 + 테라코타 (찬란한 권위)
-    bg1: '#B8945B', bg2: '#9E3528', ring: '#7A5A38', fg: '#FBF6EC',
-    initBg: '#1a1612', initFg: '#F4E8D8'
+    bg1: '#6FA8D6', bg2: '#0E3A6B', ring: '#4E8CBE', fg: '#FFFFFF',
+    initBg: '#16283A', initFg: '#F2F6FA'
   },
   hero: {    // 영웅 — 청동 + 흑색 (전사의 무게)
-    bg1: '#8B6B45', bg2: '#2a241e', ring: '#1a1612', fg: '#E5D5BC',
-    initBg: '#9E3528', initFg: '#FBF6EC'
+    bg1: '#55708A', bg2: '#26405A', ring: '#16283A', fg: '#E4EBF3',
+    initBg: '#0E3A6B', initFg: '#FFFFFF'
   },
   heroine: { // 여성 영웅·여신 — 분홍점토 + 상아 (부드러운 권위)
-    bg1: '#D87060', bg2: '#E5D5BC', ring: '#C44536', fg: '#1a1612',
-    initBg: '#9E3528', initFg: '#FBF6EC'
+    bg1: '#6FA8D6', bg2: '#E4EBF3', ring: '#14508F', fg: '#16283A',
+    initBg: '#0E3A6B', initFg: '#FFFFFF'
   },
   philo: {   // 철학자 — 청회색 + 상아 (사색의 차분함)
-    bg1: '#5C6B7A', bg2: '#E5D5BC', ring: '#3A4754', fg: '#1a1612',
-    initBg: '#1a1612', initFg: '#F4E8D8'
+    bg1: '#5C6B7A', bg2: '#E4EBF3', ring: '#3A4754', fg: '#16283A',
+    initBg: '#16283A', initFg: '#F2F6FA'
   },
   poet: {    // 시인·역사가·정치가 — 상아 + 점토 (문화의 따스함)
-    bg1: '#F4E8D8', bg2: '#C4986A', ring: '#8B6B45', fg: '#1a1612',
-    initBg: '#9E3528', initFg: '#FBF6EC'
+    bg1: '#F2F6FA', bg2: '#CFDCE8', ring: '#55708A', fg: '#16283A',
+    initBg: '#0E3A6B', initFg: '#FFFFFF'
   }
 };
 
@@ -5409,7 +5473,7 @@ const CAT_LABELS = {
 function _charMedallion(charOrId, size){
   const c = (typeof charOrId === 'string') ? CHARACTERS_BY_ID[charOrId] : charOrId;
   if(!c){
-    return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" aria-hidden="true" style="display:inline-block;vertical-align:middle"><circle cx="50" cy="50" r="48" fill="#8B6B45"/><text x="50" y="68" text-anchor="middle" font-family="serif" font-size="44" font-weight="700" fill="#F4E8D8">?</text></svg>`;
+    return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" aria-hidden="true" style="display:inline-block;vertical-align:middle"><circle cx="50" cy="50" r="48" fill="#55708A"/><text x="50" y="68" text-anchor="middle" font-family="serif" font-size="44" font-weight="700" fill="#F2F6FA">?</text></svg>`;
   }
   const p = CHAR_PALETTES[c.cat] || CHAR_PALETTES.god;
   const sym = CHAR_SYMBOLS[c.sym] || '';
@@ -5423,7 +5487,7 @@ function _charMedallion(charOrId, size){
   // showSymbol=false (작은 메달리온): 이니셜 y=72 (글자 중심 약 y=55, 거의 중앙)
   const initY = showSymbol ? 55 : 72;
   const initSize = showSymbol ? 40 : 56;
-  return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" role="img" aria-label="${c.ko} (${c.grk})" style="display:inline-block;vertical-align:middle"><defs><radialGradient id="${gradId}" cx="50%" cy="40%" r="65%"><stop offset="0%" stop-color="${p.bg1}"/><stop offset="100%" stop-color="${p.bg2}"/></radialGradient></defs><circle cx="50" cy="50" r="49" fill="${p.ring}"/><circle cx="50" cy="50" r="46" fill="url(#${gradId})"/><g fill="${p.ring}" opacity="0.7">${[0,45,90,135,180,225,270,315].map(deg=>{const rad=(deg-90)*Math.PI/180;const x=50+Math.cos(rad)*43;const y=50+Math.sin(rad)*43;return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.6"/>`;}).join('')}</g><text x="50" y="${initY}" text-anchor="middle" font-family="'Gentium Book Plus','GFS Didot',Georgia,serif" font-size="${initSize}" font-weight="700" fill="${p.fg}">${c.init}</text>${showSymbol?`<g transform="translate(30,62) scale(0.5)" fill="${p.fg}" opacity="0.85">${sym}</g>`:''}${showName?`<path d="M 14,82 Q 50,90 86,82 L 86,90 Q 50,98 14,90 Z" fill="${p.initBg}" opacity="0.92"/><text x="50" y="91" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-size="9" font-weight="600" letter-spacing="0.5" fill="${p.initFg}">${c.ko.toUpperCase()}</text>`:''}</svg>`;
+  return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" role="img" aria-label="${c.ko} (${c.grk})" style="display:inline-block;vertical-align:middle"><defs><radialGradient id="${gradId}" cx="50%" cy="40%" r="65%"><stop offset="0%" stop-color="${p.bg1}"/><stop offset="100%" stop-color="${p.bg2}"/></radialGradient></defs><circle cx="50" cy="50" r="49" fill="${p.ring}"/><circle cx="50" cy="50" r="46" fill="url(#${gradId})"/><g fill="${p.ring}" opacity="0.7">${[0,45,90,135,180,225,270,315].map(deg=>{const rad=(deg-90)*Math.PI/180;const x=50+Math.cos(rad)*43;const y=50+Math.sin(rad)*43;return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.6"/>`;}).join('')}</g><text x="50" y="${initY}" text-anchor="middle" font-family="'Gentium Book Plus','GFS Didot',Georgia,serif" font-size="${initSize}" font-weight="700" fill="${p.fg}">${c.init}</text>${showSymbol?`<g transform="translate(30,62) scale(0.5)" fill="${p.fg}" opacity="0.85">${sym}</g>`:''}${showName?`<path d="M 14,82 Q 50,90 86,82 L 86,90 Q 50,98 14,90 Z" fill="${p.initBg}" opacity="0.92"/><text x="50" y="91" text-anchor="middle" font-family="'GFS Didot',Georgia,serif" font-size="9" font-weight="600" letter-spacing="0.5" fill="${p.initFg}">${c.ko.toUpperCase()}</text>`:''}</svg>`;
 }
 window._charMedallion = _charMedallion;
 
@@ -5454,7 +5518,7 @@ function _charPhotoMedallion(charOrId, size){
     <img src="${meta.url}" alt="${labelEsc}" loading="lazy" decoding="async"
          onerror="this.style.display='none'"
          style="position:absolute;inset:${Math.max(2, Math.round(size*0.04))}px;width:calc(100% - ${Math.max(2, Math.round(size*0.04))*2}px);height:calc(100% - ${Math.max(2, Math.round(size*0.04))*2}px);border-radius:50%;object-fit:cover;border:2px solid ${CHAR_PALETTES[c.cat].ring};box-shadow:0 1px 4px rgba(0,0,0,0.25);background:var(--ivory)">
-    ${size>=80?`<div style="position:absolute;left:0;right:0;bottom:0;padding:3px 4px;background:linear-gradient(to bottom, transparent 0%, rgba(26,22,18,0.95) 60%);color:var(--ivory-w);font-size:${Math.max(8,Math.round(size*0.10))}px;text-align:center;font-family:'Cormorant Garamond',serif;font-weight:600;letter-spacing:0.04em;border-radius:0 0 50% 50%/0 0 100% 100%;pointer-events:none">${c.ko}</div>`:''}
+    ${size>=80?`<div style="position:absolute;left:0;right:0;bottom:0;padding:3px 4px;background:linear-gradient(to bottom, transparent 0%, rgba(22,40,58,0.95) 60%);color:var(--ivory-w);font-size:${Math.max(8,Math.round(size*0.10))}px;text-align:center;font-family:'GFS Didot',Georgia,serif;font-weight:600;letter-spacing:0.04em;border-radius:0 0 50% 50%/0 0 100% 100%;pointer-events:none">${c.ko}</div>`:''}
   </div>`;
 }
 window._charPhotoMedallion = _charPhotoMedallion;
@@ -5502,7 +5566,7 @@ function renderCharacterPicker(){
     <h2 class="view-title fade-in" style="margin-top:10px"><span class="grk">Παίγνια</span>캐릭터 선택</h2>
     <div class="view-sub">학습 정체성 — 프로필 · 명예의 전당 · 멀티 배틀에 표시됩니다 (총 ${CHARACTERS.length}명)</div>
 
-    <div class="card" style="background:var(--ivory-d);border-left:3px solid var(--terracotta);padding:16px">
+    <div class="card" style="background:var(--ivory-d);border-left:1px solid var(--veil-edge);padding:16px">
       <div style="font-size:11px;color:var(--clay-d);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;text-align:center">현재 캐릭터</div>
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center">
         <div style="flex-shrink:0">${(typeof _charPhotoMedallion==='function')? _charPhotoMedallion(current, 96) : _charMedallion(current, 96)}</div>
@@ -5535,7 +5599,7 @@ function renderCharacterPicker(){
           return `<button class="char-card" data-pick="${c.id}"
             title="${c.ko} (${c.grk}) — ${c.ep}"
             aria-label="${c.ko}, ${c.ep}"
-            style="border:${isCur?'2.5px solid var(--terracotta-d)':'1.5px solid var(--clay)'};border-radius:12px;padding:8px 4px;cursor:pointer;transition:transform .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;gap:4px;background:${isCur?'var(--ivory-d)':'var(--ivory)'}">
+            style="border:${isCur?'2.5px solid var(--terracotta-d)':'1.5px solid var(--clay)'};border-radius:0;padding:8px 4px;cursor:pointer;transition:transform .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;gap:4px;background:${isCur?'var(--ivory-d)':'var(--ivory)'}">
             ${(typeof _charPhotoMedallion==='function')? _charPhotoMedallion(c, 72) : _charMedallion(c, 72)}
             <div style="font-size:10.5px;font-weight:${isCur?'700':'500'};color:${isCur?'var(--terracotta-d)':'var(--black-glaze)'};text-align:center;line-height:1.2;margin-top:2px">${c.ko}</div>
             <div style="font-family:var(--font-grk);font-size:10px;color:var(--clay-d);text-align:center;line-height:1" lang="grc">${c.grk}</div>
@@ -6172,7 +6236,7 @@ async function openFeedbackModal(){
         익명으로 전송되며, 캐릭터·진척도 정보는 포함되지 않습니다.
       </div>
       <textarea id="feedback-text" rows="6" placeholder="어떤 점이 좋았거나 불편하셨나요? (최대 2000자)" maxlength="2000"
-        style="width:100%;padding:10px;border:1px solid var(--clay);border-radius:6px;font:inherit;font-size:14px;line-height:1.5;background:var(--ivory-w);box-sizing:border-box"></textarea>
+        style="width:100%;padding:10px;border:1px solid var(--clay);border-radius:0;font:inherit;font-size:14px;line-height:1.5;background:var(--ivory-w);box-sizing:border-box"></textarea>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:11px;color:var(--clay-d)">
         <span id="feedback-charcount">0 / 2000</span>
         <span>${(STORAGE && STORAGE.supportsShared) ? '✓ 실시간 전송 가능' : '⚠ 오프라인 — 다음 접속 시 전송'}</span>
@@ -6452,7 +6516,7 @@ function renderHome(){
       </button>
     </div>
 
-    <div id="home-presence-card" class="card" style="background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);border-left:3px solid var(--terracotta);display:flex;align-items:center;gap:10px;padding:10px 14px;margin-bottom:10px">
+    <div id="home-presence-card" class="card" style="background:var(--marble-hi);border-left:1px solid var(--veil-edge);display:flex;align-items:center;gap:10px;padding:10px 14px;margin-bottom:10px">
       <div style="font-size:20px;line-height:1">📚</div>
       <div style="flex:1;font-size:13px;color:var(--clay-d);line-height:1.45">
         <span id="home-presence-text">현재 학습자 수를 확인하는 중...</span>
@@ -6468,7 +6532,7 @@ function renderHome(){
         const todayD = _curriculumDayObj(prog.current);
         if(!todayD) return '';
         const allDone = prog.doneN >= prog.total;
-        return `<div class="card warm fade-in" style="border-left:3px solid var(--terracotta);padding:14px 16px;margin-bottom:10px;cursor:pointer" id="home-curriculum-card" role="button" aria-label="오늘의 진도 — Day ${prog.current}">
+        return `<div class="card warm fade-in" style="border-left:1px solid var(--veil-edge);padding:14px 16px;margin-bottom:10px;cursor:pointer" id="home-curriculum-card" role="button" aria-label="오늘의 진도 — Day ${prog.current}">
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
             <div style="flex:1;min-width:160px">
               <div style="font-size:11px;color:var(--clay-d);letter-spacing:.05em;text-transform:uppercase">
@@ -6485,7 +6549,7 @@ function renderHome(){
               ${allDone ? '복습' : (isCurriculumDayDone(prog.current) ? '다시' : '시작')} →
             </button>
           </div>
-          <div style="background:var(--ivory-d);height:4px;border-radius:2px;margin-top:10px;overflow:hidden">
+          <div style="background:var(--ivory-d);height:4px;border-radius:0;margin-top:10px;overflow:hidden">
             <div style="background:var(--terracotta);height:100%;width:${prog.percent}%;transition:width .3s"></div>
           </div>
           <div style="font-size:10.5px;color:var(--clay-d);margin-top:4px;text-align:right">
@@ -6503,14 +6567,14 @@ function renderHome(){
         const w = _seededPick(vocabPool(), _todaySeed());
         if(!w || !w.g) return '';
         const posKo = ({N:'명사',V:'동사',A:'형용사',D:'부사',C:'접속사',P:'전치사',PR:'대명사'})[w.pos] || w.pos || '';
-        return `<div class="card fade-in" style="border-left:3px solid var(--terracotta);padding:14px 16px;margin-bottom:10px;cursor:pointer" id="home-wod-card" role="button" tabindex="0" aria-label="오늘의 단어 ${escapeHtml(w.g)}">
+        return `<div class="card fade-in" style="border-left:1px solid var(--veil-edge);padding:14px 16px;margin-bottom:10px;cursor:pointer" id="home-wod-card" role="button" tabindex="0" aria-label="오늘의 단어 ${escapeHtml(w.g)}">
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
             <div style="flex:1;min-width:160px">
               <div style="font-size:11px;color:var(--clay-d);letter-spacing:.05em;text-transform:uppercase">오늘의 단어</div>
               <div style="font-family:var(--font-grk);font-size:24px;color:var(--terracotta-d);font-weight:600;line-height:1.2;margin-top:2px">${escapeHtml(w.g)}</div>
               <div style="font-size:13px;color:var(--black-glaze);margin-top:3px">${escapeHtml(w.ko || '')}</div>
               <div style="font-size:11px;color:var(--clay-d);margin-top:5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-                ${posKo ? `<span style="background:var(--ivory-d);padding:2px 7px;border-radius:8px">${escapeHtml(posKo)}</span>` : ''}
+                ${posKo ? `<span style="background:var(--ivory-d);padding:2px 7px;border-radius:0">${escapeHtml(posKo)}</span>` : ''}
                 ${w.r ? `<span class="grk">${escapeHtml(w.r)}</span>` : ''}
               </div>
             </div>
@@ -6546,7 +6610,7 @@ function renderHome(){
         _ensureSRS();
         const due = srsDueCards();
         if (!due || !due.length) return '';
-        return `<div class="card warm" style="border-left:3px solid var(--terracotta)">
+        return `<div class="card warm" style="border-left:1px solid var(--veil-edge)">
           <b>오늘의 SRS 복습</b> — <span class="grk" style="color:var(--terracotta-d)">Ἐπανάληψις</span>
           <div style="font-size:13px;line-height:1.55;margin-top:5px;color:var(--black-glaze-l)">
             간격 반복 학습으로 망각 곡선을 다스리세요. <b>${due.length}개</b> 단어가 오늘 due.
@@ -6775,7 +6839,7 @@ function renderCurriculum(){
     </div>
     <div class="view-sub">초보자용 ${prog.total}일 커리큘럼 — Day 1~5 알파벳·발음, Day 6+ 어휘·문법.</div>
 
-    <div class="card warm" style="border-left:3px solid var(--terracotta);padding:14px 16px">
+    <div class="card warm" style="border-left:1px solid var(--veil-edge);padding:14px 16px">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
         <div style="flex:1;min-width:200px">
           <div style="font-size:11px;color:var(--clay-d);letter-spacing:.05em;text-transform:uppercase">오늘의 진도</div>
@@ -6790,7 +6854,7 @@ function renderCurriculum(){
           ${isCurriculumDayDone(prog.current) ? '복습' : '시작'} →
         </button>
       </div>
-      <div style="background:var(--ivory-d);height:6px;border-radius:3px;margin-top:12px;overflow:hidden">
+      <div style="background:var(--ivory-d);height:6px;border-radius:0;margin-top:12px;overflow:hidden">
         <div style="background:var(--terracotta);height:100%;width:${prog.percent}%;transition:width .3s"></div>
       </div>
       <div style="font-size:11px;color:var(--clay-d);margin-top:5px;text-align:right">
@@ -6814,7 +6878,7 @@ function renderCurriculum(){
     row.style.cssText = `
       display:flex;align-items:center;gap:10px;padding:10px 14px;text-align:left;
       ${locked ? 'opacity:.45;cursor:not-allowed' : 'cursor:pointer'};
-      ${isCurrent ? 'border-left:3px solid var(--terracotta)' : ''};
+      ${isCurrent ? 'border-left:1px solid var(--veil-edge)' : ''};
       background:${done ? 'var(--ivory-d)' : 'var(--ivory)'};
       width:100%;border:none;font:inherit;color:inherit
     `;
@@ -6868,7 +6932,7 @@ function renderCurriculumDay(n){
       <div style="margin-top:8px;font-size:11px;color:var(--clay-d)">
         ${d.tasks.length}개 과제 · 약 ${d.estMin}분 · ${tasksDone}/${d.tasks.length} 완료
       </div>
-      <div style="background:var(--ivory-d);height:4px;border-radius:2px;margin-top:6px;overflow:hidden">
+      <div style="background:var(--ivory-d);height:4px;border-radius:0;margin-top:6px;overflow:hidden">
         <div style="background:var(--terracotta);height:100%;width:${pct}%;transition:width .3s"></div>
       </div>
     </div>
@@ -6910,7 +6974,7 @@ function renderCurriculumDay(n){
   if(done && tasksDone === d.tasks.length){
     const completionCard = document.createElement('div');
     completionCard.className = 'card warm';
-    completionCard.style.cssText = 'border-left:3px solid var(--terracotta);padding:14px 16px;margin-top:12px;text-align:center';
+    completionCard.style.cssText = 'border-left:1px solid var(--veil-edge);padding:14px 16px;margin-top:12px;text-align:center';
     completionCard.innerHTML = `
       <div style="font-size:24px">🏛️</div>
       <div style="font-weight:600;margin-top:6px">${n}일차 완주</div>
@@ -6983,7 +7047,7 @@ function renderAlphabetTask(day, idx, letters){
       <div style="font-size:12px;margin-top:2px"><b>${escapeHtml(c.nameKo)}</b></div>
       <div style="font-size:11px;color:var(--clay-d);margin-top:2px">/${escapeHtml(c.sound)}/ · ${escapeHtml(c.soundKo)}</div>
       <div style="font-size:10.5px;color:var(--clay-d);margin-top:6px;line-height:1.45;text-align:left">${escapeHtml(c.tip)}</div>
-      <div style="font-size:10px;color:var(--clay-l,#9a8c75);margin-top:4px;font-style:italic;line-height:1.4;text-align:left">${escapeHtml(c.mnemonic)}</div>
+      <div style="font-size:10px;color:var(--clay-l,#7B92A8);margin-top:4px;font-style:italic;line-height:1.4;text-align:left">${escapeHtml(c.mnemonic)}</div>
     `;
     card.addEventListener('click', () => {
       if(typeof speakGreek === 'function') speakGreek(c.low);
@@ -7102,7 +7166,7 @@ function renderCurriculumVocabTask(day, idx, words, title){
       <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
         <span class="grk" style="font-size:22px">${escapeHtml(w.g)}</span>
         ${w.r ? `<span class="grk" style="font-size:13px;color:var(--clay-d)">${escapeHtml(w.r)}</span>` : ''}
-        <span style="font-size:10px;color:var(--terracotta-d);background:var(--ivory-d);padding:1px 6px;border-radius:3px;margin-left:auto">${escapeHtml(posKo[w.pos] || w.pos)}</span>
+        <span style="font-size:10px;color:var(--terracotta-d);background:var(--ivory-d);padding:1px 6px;border-radius:0;margin-left:auto">${escapeHtml(posKo[w.pos] || w.pos)}</span>
       </div>
       <div style="margin-top:4px;font-size:14px"><b>${escapeHtml(w.ko)}</b></div>
       ${w.en ? `<div style="font-size:11.5px;color:var(--clay-d);margin-top:2px;font-style:italic">${escapeHtml(w.en)}</div>` : ''}
@@ -7239,7 +7303,7 @@ function renderCurriculumQuizTask(day, idx, kind, items, title){
           <button class="btn btn-sm btn-o" onclick="renderCurriculumDay(${day})" style="font-size:11px;padding:4px 10px">← Day ${day}</button>
           <h2 class="view-title fade-in" style="margin:0;flex:1">시험 결과</h2>
         </div>
-        <div class="card warm" style="border-left:3px solid var(--terracotta);padding:18px;text-align:center;margin-top:12px">
+        <div class="card warm" style="border-left:1px solid var(--veil-edge);padding:18px;text-align:center;margin-top:12px">
           <div style="font-size:42px">${passed?'🎉':'📚'}</div>
           <div style="font-size:24px;font-weight:600;margin-top:8px">${correct} / ${questions.length}</div>
           <div style="font-size:14px;color:var(--clay-d);margin-top:4px">${pct}%</div>
@@ -7320,7 +7384,7 @@ function renderVocab(){
     <h2 class="view-title fade-in"><span class="grk">Λέξεις</span>어휘</h2>
     <div class="view-sub">현재 풀: <b>${pool.length}</b>개 단어 · 오답함: <b>${wrongN}</b>개</div>
 
-    <button class="card" type="button" data-render="renderConversation" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
+    <button class="card" type="button" data-render="renderConversation" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:1px solid var(--veil-edge);background:var(--marble-hi);margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Διάλογος</div>
@@ -7331,18 +7395,18 @@ function renderVocab(){
       </div>
     </button>
 
-    <button class="card" type="button" data-render="renderDialogues" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
+    <button class="card" type="button" data-render="renderDialogues" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:1px solid var(--veil-edge);background:var(--marble-hi);margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Σκηνή</div>
-          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">콩트 장면 — 캐릭터 대화 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:6px;margin-left:4px;vertical-align:middle">new</span></div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">콩트 장면 — 캐릭터 대화 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:0;margin-left:4px;vertical-align:middle">new</span></div>
           <div style="font-size:11px;color:var(--clay-d);margin-top:3px">${(typeof DIALOGUES!=='undefined'?DIALOGUES.length:6)} 장면 · 아테네 사회 풍경 · Aristophanes 풍 가벼운 코미디 · 🔊 인라인 발음</div>
         </div>
         <div style="font-size:22px;color:var(--terracotta)">→</div>
       </div>
     </button>
 
-    <button class="card" type="button" data-render="renderWordOfDay" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
+    <button class="card" type="button" data-render="renderWordOfDay" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:1px solid var(--veil-edge);background:var(--marble-hi);margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Λέξις ἡμέρας</div>
@@ -7353,7 +7417,7 @@ function renderVocab(){
       </div>
     </button>
 
-    <button class="card" type="button" data-render="renderSRS" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
+    <button class="card" type="button" data-render="renderSRS" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:1px solid var(--veil-edge);background:var(--marble-hi);margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Ἐπανάληψις</div>
@@ -7364,62 +7428,62 @@ function renderVocab(){
       </div>
     </button>
 
-    <button class="card" type="button" data-render="renderDictation" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
+    <button class="card" type="button" data-render="renderDictation" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:1px solid var(--veil-edge);background:var(--marble-hi);margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Ἀκοή</div>
-          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">받아쓰기 — 듣고 입력 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:6px;margin-left:4px;vertical-align:middle">new</span></div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">받아쓰기 — 듣고 입력 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:0;margin-left:4px;vertical-align:middle">new</span></div>
           <div style="font-size:11px;color:var(--clay-d);margin-top:3px">TTS 발음 → 그리스어로 입력 · polytonic/대소문자 관용 · 신규 어휘 우선</div>
         </div>
         <div style="font-size:22px;color:var(--terracotta)">→</div>
       </div>
     </button>
 
-    <button class="card" type="button" data-render="renderAccentLocator" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
+    <button class="card" type="button" data-render="renderAccentLocator" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:1px solid var(--veil-edge);background:var(--marble-hi);margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Τόνος</div>
-          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">악센트 위치 — 운율의 핵심 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:6px;margin-left:4px;vertical-align:middle">new</span></div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">악센트 위치 — 운율의 핵심 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:0;margin-left:4px;vertical-align:middle">new</span></div>
           <div style="font-size:11px;color:var(--clay-d);margin-top:3px">위치 (ultima/penult/antepenult) · 종류 (acute/circumflex/grave) 식별 학습</div>
         </div>
         <div style="font-size:22px;color:var(--terracotta)">→</div>
       </div>
     </button>
 
-    <button class="card" type="button" data-render="renderSearch" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
+    <button class="card" type="button" data-render="renderSearch" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:1px solid var(--veil-edge);background:var(--marble-hi);margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Εὕρεσις</div>
-          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">검색·콘코던스 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:6px;margin-left:4px;vertical-align:middle">new</span></div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">검색·콘코던스 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:0;margin-left:4px;vertical-align:middle">new</span></div>
           <div style="font-size:11px;color:var(--clay-d);margin-top:3px">어형·표제어로 본문 검색 · 작품·섹션별 등장 위치 · 형태분석 통합 (AGDT v2.1)</div>
         </div>
         <div style="font-size:22px;color:var(--terracotta)">→</div>
       </div>
     </button>
 
-    <button class="card" type="button" data-render="renderParadigmBuilder" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
+    <button class="card" type="button" data-render="renderParadigmBuilder" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:1px solid var(--veil-edge);background:var(--marble-hi);margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Παράδειγμα</div>
-          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">변화표 만들기 — 명사·형용사·대명사 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:6px;margin-left:4px;vertical-align:middle">new</span></div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">변화표 만들기 — 명사·형용사·대명사 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:0;margin-left:4px;vertical-align:middle">new</span></div>
           <div style="font-size:11px;color:var(--clay-d);margin-top:3px">76 표제어 큐레이션 (Smyth/Goodwin 표준형) + AGDT 실제 출현 어형 · 빈칸 채우기 시험 모드</div>
         </div>
         <div style="font-size:22px;color:var(--terracotta)">→</div>
       </div>
     </button>
 
-    <button class="card" type="button" data-render="renderScholarLibrary" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
+    <button class="card" type="button" data-render="renderScholarLibrary" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:1px solid var(--veil-edge);background:var(--marble-hi);margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Ἀκρόασις</div>
-          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">학자 낭독 도서관 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:6px;margin-left:4px;vertical-align:middle">new</span></div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">학자 낭독 도서관 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:0;margin-left:4px;vertical-align:middle">new</span></div>
           <div style="font-size:11px;color:var(--clay-d);margin-top:3px">Stratakis · SORGLL Daitz · Projet Homere 등 학자 낭독 모음 · 발음 체계 비교</div>
         </div>
         <div style="font-size:22px;color:var(--terracotta)">→</div>
       </div>
     </button>
 
-    <button class="card" type="button" data-render="renderFrequency" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:10px">
+    <button class="card" type="button" data-render="renderFrequency" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:1px solid var(--veil-edge);background:var(--marble-hi);margin-bottom:10px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Συχνότης</div>
@@ -7430,7 +7494,7 @@ function renderVocab(){
       </div>
     </button>
 
-    <button class="card" type="button" data-render="renderSpeechSettings" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--clay-d);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:10px">
+    <button class="card" type="button" data-render="renderSpeechSettings" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--clay-d);background:var(--marble-hi);margin-bottom:10px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--clay-d);font-weight:600">Φωνή</div>
@@ -7441,11 +7505,11 @@ function renderVocab(){
       </div>
     </button>
 
-    <button class="card" type="button" data-render="renderBattle" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:10px">
+    <button class="card" type="button" data-render="renderBattle" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:1px solid var(--veil-edge);background:var(--marble-hi);margin-bottom:10px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Ἀγών</div>
-          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">멀티 배틀 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:6px;margin-left:4px;vertical-align:middle">β</span></div>
+          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">멀티 배틀 <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:1px 6px;border-radius:0;margin-left:4px;vertical-align:middle">β</span></div>
           <div style="font-size:11px;color:var(--clay-d);margin-top:3px">실시간 어휘 경기 · 2~6명 · 속도 점수 · SSE 실시간 동기</div>
         </div>
         <div style="font-size:22px;color:var(--terracotta)">→</div>
@@ -7797,7 +7861,7 @@ function renderGrammar(){
     <h2 class="view-title fade-in"><span class="grk">Γραμματική</span>문법</h2>
     <div class="view-sub">${TOPICS.length}개 주제 · 학습 완료 <b>${S.topicsStudied.length}</b></div>
 
-    <button class="card" type="button" data-render="renderAccent" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%)">
+    <button class="card" type="button" data-render="renderAccent" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:1px solid var(--veil-edge);background:var(--marble-hi)">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Τόνοι</div>
@@ -7808,7 +7872,7 @@ function renderGrammar(){
       </div>
     </button>
 
-    <button class="card" type="button" data-render="renderInflection" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%)">
+    <button class="card" type="button" data-render="renderInflection" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:1px solid var(--veil-edge);background:var(--marble-hi)">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Κλίσις</div>
@@ -7819,7 +7883,7 @@ function renderGrammar(){
       </div>
     </button>
 
-    <button class="card" type="button" data-render="renderDialects" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%)">
+    <button class="card" type="button" data-render="renderDialects" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:1px solid var(--veil-edge);background:var(--marble-hi)">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Διάλεκτοι</div>
@@ -7925,7 +7989,7 @@ function renderAccent(){
     ${ACCENT_TYPES.map(t => {
       const corpusWords = (byType[t.type] || []).slice().sort(()=>Math.random()-.5).slice(0,12);
       return `
-      <div class="card" style="border-left:3px solid var(--terracotta)">
+      <div class="card" style="border-left:1px solid var(--veil-edge)">
         <div style="font-family:var(--font-grk);font-size:22px;color:var(--terracotta-d);font-weight:600">${t.greek}</div>
         <div style="font-size:14px;color:var(--black-glaze);font-weight:600;margin-top:2px">${t.korean}</div>
         <div style="font-size:13px;color:var(--black-glaze-l);margin-top:6px;line-height:1.6">${t.rule}</div>
@@ -8361,12 +8425,12 @@ const DIALECT_TOPICS = [
 
 // 방언별 색상 (각 방언 형태 카드의 좌측 띠)
 const DIALECT_COLORS = {
-  attic:   '#C44536',
-  ionic:   '#9C3F2D',
-  homeric: '#7a2920',
-  aeolic:  '#5c4e3e',
-  doric:   '#8a7a6a',
-  koine:   '#b59070',
+  attic:   '#14508F',
+  ionic:   '#0E3A6B',
+  homeric: '#0A2C52',
+  aeolic:  '#3A526B',
+  doric:   '#7B92A8',
+  koine:   '#A8C3DC',
 };
 
 function renderDialects(){
@@ -8590,7 +8654,7 @@ function renderDialectQuiz(questions, idx, score){
   }
   host.innerHTML = `
     <div style="font-size:11px;color:var(--clay-d);margin-bottom:8px">문제 ${idx+1}/${questions.length} · 점수 ${score}</div>
-    <div style="background:var(--ivory-d);border-radius:8px;padding:14px 16px;margin-bottom:10px;border-left:3px solid var(--terracotta)">
+    <div style="background:var(--ivory-d);border-radius:0;padding:14px 16px;margin-bottom:10px;border-left:1px solid var(--veil-edge)">
       <div class="grk" style="font-size:17px;line-height:1.65;color:var(--black-glaze)">${q.text}</div>
       <div style="font-size:11px;color:var(--clay-d);margin-top:8px;font-style:italic">${q.cite.replace(/\s*\([^)]*\)\s*/, '').trim()} — <span style="color:var(--terracotta-d)">${q.topicTitle}</span></div>
     </div>
@@ -8856,7 +8920,7 @@ function _paradigmMeta(entry){
 function _paradigmFooter(entry){
   let html = '';
   if(entry.gloss)  html += '<div style="font-size:12px;color:var(--clay-d);margin-top:6px">의미: ' + _esc(entry.gloss) + '</div>';
-  if(entry.note)   html += '<div style="font-size:11px;color:var(--black-glaze-l);margin-top:4px;line-height:1.55;padding:6px 8px;background:var(--ivory-d);border-left:2px solid var(--clay);border-radius:3px"><b>주:</b> ' + _esc(entry.note) + '</div>';
+  if(entry.note)   html += '<div style="font-size:11px;color:var(--black-glaze-l);margin-top:4px;line-height:1.55;padding:6px 8px;background:var(--ivory-d);border-left:2px solid var(--clay);border-radius:0"><b>주:</b> ' + _esc(entry.note) + '</div>';
   if(entry.source) html += '<div style="font-size:11px;color:var(--clay-d);margin-top:4px">출처: ' + _esc(entry.source) + '</div>';
   return html;
 }
@@ -8922,10 +8986,10 @@ function _renderCuratedTable(key, entry){
 function _renderAGDTAttestations(key, entry){
   const forms = _collectAGDTFormsForLemma(key);
   if(!forms){
-    return '<div style="font-size:12px;color:var(--clay-d);padding:8px;background:var(--ivory-d);border-radius:6px">AGDT 형태분석 인덱스에서 표제어 매칭 없음 (인덱스 미구축이거나 본 자료군 외 표제어).</div>';
+    return '<div style="font-size:12px;color:var(--clay-d);padding:8px;background:var(--ivory-d);border-radius:0">AGDT 형태분석 인덱스에서 표제어 매칭 없음 (인덱스 미구축이거나 본 자료군 외 표제어).</div>';
   }
   if(!forms.length){
-    return '<div style="font-size:12px;color:var(--clay-d);padding:8px;background:var(--ivory-d);border-radius:6px">표제어 등록은 됐으나 본문 출현 0회 (AGDT 어휘목록만 보유).</div>';
+    return '<div style="font-size:12px;color:var(--clay-d);padding:8px;background:var(--ivory-d);border-radius:0">표제어 등록은 됐으나 본문 출현 0회 (AGDT 어휘목록만 보유).</div>';
   }
   const paradigmSet = _collectParadigmFormSet(entry);
   const inParadigm = [];
@@ -8940,7 +9004,7 @@ function _renderAGDTAttestations(key, entry){
     html += '<div style="font-size:12px;color:var(--terracotta-d);font-weight:600;margin:8px 0 4px 0">표준 패러다임 attested (' + inParadigm.length + '/' + paradigmSet.size + ' 매칭)</div>';
     html += '<div style="display:flex;flex-wrap:wrap;gap:4px">';
     for(const f of inParadigm){
-      html += '<span style="font-family:var(--font-grk);font-size:14px;background:var(--ivory-d);border:1px solid var(--terracotta);padding:3px 8px;border-radius:6px;color:var(--terracotta-d);font-weight:600">' +
+      html += '<span style="font-family:var(--font-grk);font-size:14px;background:var(--ivory-d);border:1px solid var(--terracotta);padding:3px 8px;border-radius:0;color:var(--terracotta-d);font-weight:600">' +
         _esc(f.surface) + ' <span style="font-size:10px;color:var(--clay-d);font-weight:400">×' + f.count + '</span></span>';
     }
     html += '</div>';
@@ -8951,7 +9015,7 @@ function _renderAGDTAttestations(key, entry){
     html += '<div style="display:flex;flex-wrap:wrap;gap:4px">';
     const top = extra.slice(0, 40);
     for(const f of top){
-      html += '<span style="font-family:var(--font-grk);font-size:13px;background:var(--ivory-d);border:1px dashed var(--clay);padding:2px 7px;border-radius:6px;color:var(--black-glaze-l)">' +
+      html += '<span style="font-family:var(--font-grk);font-size:13px;background:var(--ivory-d);border:1px dashed var(--clay);padding:2px 7px;border-radius:0;color:var(--black-glaze-l)">' +
         _esc(f.surface) + ' <span style="font-size:10px;color:var(--clay-d)">×' + f.count + '</span></span>';
     }
     if(extra.length > 40){
@@ -8966,7 +9030,7 @@ function _renderAGDTAttestations(key, entry){
 // 아니면 MORPH_LOOKUP 으로 어형→표제어 후보 제시.
 function _renderAGDTOnlyFallback(query){
   if(!_searchIdx || !_searchIdx.lemmaForms){
-    return '<div style="padding:12px;background:var(--ivory-d);border-radius:8px;font-size:13px">' +
+    return '<div style="padding:12px;background:var(--ivory-d);border-radius:0;font-size:13px">' +
       '<div style="margin-bottom:8px">AGDT 인덱스 미구축 — 구축 후 다시 시도하세요.</div>' +
       '<button class="btn btn-sm" id="paradigm-build-idx">인덱스 구축 (~1-2초)</button>' +
       '<div id="paradigm-build-progress" style="font-size:11px;color:var(--clay-d);margin-top:6px"></div></div>';
@@ -8977,14 +9041,14 @@ function _renderAGDTOnlyFallback(query){
     const surface = (_searchIdx.lemmaSurface && _searchIdx.lemmaSurface.get(norm)) || query;
     const forms = _collectAGDTFormsForLemma(query) || [];
     const total = forms.reduce((a,f)=>a+f.count, 0);
-    let html = '<div style="padding:10px 12px;background:var(--ivory-d);border-radius:8px;margin-bottom:10px">' +
+    let html = '<div style="padding:10px 12px;background:var(--ivory-d);border-radius:0;margin-bottom:10px">' +
       '<div style="font-size:12px;color:var(--clay-d)">큐레이션 패러다임은 없습니다 — AGDT 형태분석만 표시</div>' +
       '<div style="font-family:var(--font-grk);font-size:22px;color:var(--terracotta-d);font-weight:600;margin-top:4px">' +
       _esc(surface) + '</div></div>';
     html += '<div style="font-size:12px;color:var(--clay-d);margin-bottom:6px">총 ' + total + '회 출현 · ' + forms.length + ' 어형</div>';
     html += '<div style="display:flex;flex-wrap:wrap;gap:4px">';
     for(const f of forms.slice(0, 80)){
-      html += '<span style="font-family:var(--font-grk);font-size:14px;background:var(--ivory-d);border:1px solid var(--clay);padding:3px 8px;border-radius:6px;color:var(--terracotta-d);font-weight:600">' +
+      html += '<span style="font-family:var(--font-grk);font-size:14px;background:var(--ivory-d);border:1px solid var(--clay);padding:3px 8px;border-radius:0;color:var(--terracotta-d);font-weight:600">' +
         _esc(f.surface) + ' <span style="font-size:10px;color:var(--clay-d);font-weight:400">×' + f.count + '</span></span>';
     }
     if(forms.length > 80){
@@ -8996,7 +9060,7 @@ function _renderAGDTOnlyFallback(query){
   if(typeof MORPH_LOOKUP !== 'undefined'){
     const ml = MORPH_LOOKUP[query] || MORPH_LOOKUP[query.replace(/σ$/, 'ς')];
     if(ml && ml.length){
-      let html = '<div style="padding:12px;background:var(--ivory-d);border-radius:8px"><div style="font-size:13px;color:var(--black-glaze)">"' +
+      let html = '<div style="padding:12px;background:var(--ivory-d);border-radius:0"><div style="font-size:13px;color:var(--black-glaze)">"' +
         _esc(query) + '"는 어형으로 보입니다. 가능한 표제어:</div><div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">';
       const seen = new Set();
       for(const an of ml){
@@ -9008,7 +9072,7 @@ function _renderAGDTOnlyFallback(query){
       return html;
     }
   }
-  return '<div style="padding:12px;background:var(--ivory-d);border-radius:8px;font-size:13px;color:var(--clay-d)">' +
+  return '<div style="padding:12px;background:var(--ivory-d);border-radius:0;font-size:13px;color:var(--clay-d)">' +
     '매칭 없음 — 표제어로 입력했는지 확인하세요. 예시: ' +
     '<button class="btn btn-sm" data-paradigm-lemma="ἄνθρωπος" style="font-family:var(--font-grk);margin:2px">ἄνθρωπος</button>' +
     '<button class="btn btn-sm" data-paradigm-lemma="πατήρ" style="font-family:var(--font-grk);margin:2px">πατήρ</button>' +
@@ -9057,7 +9121,7 @@ function renderParadigmBuilder(){
     <div class="card" style="margin-top:14px">
       <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
         <input type="text" id="paradigm-input" placeholder="표제어 입력 (예: ἄνθρωπος, πατήρ, αὐτός)" value="${_esc(_paradigmQuery)}"
-               style="flex:1;padding:8px 10px;border:1px solid var(--clay);border-radius:6px;font-family:var(--font-grk);font-size:16px;background:var(--ivory-w);min-width:0">
+               style="flex:1;padding:8px 10px;border:1px solid var(--clay);border-radius:0;font-family:var(--font-grk);font-size:16px;background:var(--ivory-w);min-width:0">
         <button class="btn btn-sm" id="paradigm-go">조회</button>
       </div>
       <div style="font-size:11px;color:var(--clay-d);line-height:1.5">
@@ -9247,7 +9311,7 @@ function _renderQuizFlat(key, entry, blanks){
         const id = _quizInputId(num, c, undefined);
         html += '<td><input type="text" id="' + id +
           '" class="pq-blank" data-num="' + num + '" data-case="' + c +
-          '" style="width:100%;font-family:var(--font-grk);font-size:15px;padding:4px 6px;border:1px dashed var(--terracotta);border-radius:4px;background:var(--ivory-w);box-sizing:border-box"></td>';
+          '" style="width:100%;font-family:var(--font-grk);font-size:15px;padding:4px 6px;border:1px dashed var(--terracotta);border-radius:0;background:var(--ivory-w);box-sizing:border-box"></td>';
       } else {
         html += '<td class="grk">' + _esc(val) + '</td>';
       }
@@ -9283,7 +9347,7 @@ function _renderQuizThreeGender(key, entry, blanks){
           const id = _quizInputId(num, c, g);
           html += '<td><input type="text" id="' + id +
             '" class="pq-blank" data-num="' + num + '" data-case="' + c + '" data-gender="' + g +
-            '" style="width:100%;font-family:var(--font-grk);font-size:14px;padding:4px 5px;border:1px dashed var(--terracotta);border-radius:4px;background:var(--ivory-w);box-sizing:border-box"></td>';
+            '" style="width:100%;font-family:var(--font-grk);font-size:14px;padding:4px 5px;border:1px dashed var(--terracotta);border-radius:0;background:var(--ivory-w);box-sizing:border-box"></td>';
         } else {
           html += '<td class="grk">' + _esc(val) + '</td>';
         }
@@ -9322,7 +9386,7 @@ function startParadigmQuiz(key){
   const cands = _paradigmQuizCandidates(cells, entry);
   const blanks = _paradigmQuizPickBlanks(cands);
 
-  let html = '<div class="card" style="border-left:3px solid var(--terracotta)">';
+  let html = '<div class="card" style="border-left:1px solid var(--veil-edge)">';
   html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px">' +
     '<div style="font-size:12px;color:var(--clay-d)">🎯 시험 모드 · 빈칸 ' + blanks.length + '개 · 정답 입력 후 채점</div>' +
     '<div style="display:flex;gap:6px">' +
@@ -9372,15 +9436,15 @@ function startParadigmQuiz(key){
         const exactMatch = userRaw === b.expected || userRaw.normalize('NFC') === b.expected.normalize('NFC');
         if(exactMatch){
           correctExact++;
-          td.innerHTML = '<span class="grk" style="color:#2d5016;font-weight:600">' + _esc(b.expected) + ' ★</span>';
+          td.innerHTML = '<span class="grk" style="color:#1F5A4A;font-weight:600">' + _esc(b.expected) + ' ★</span>';
         } else {
           correctIgnoreDiac++;
-          td.innerHTML = '<span class="grk" style="color:#2d5016">' + _esc(b.expected) +
+          td.innerHTML = '<span class="grk" style="color:#1F5A4A">' + _esc(b.expected) +
             ' <span style="font-size:10px;color:var(--clay-d)">(액센트 ≠)</span></span>';
         }
       } else {
         const userDisp = userRaw ? '<span style="text-decoration:line-through;color:var(--clay-d)">' + _esc(userRaw) + '</span> ' : '';
-        td.innerHTML = '<span class="grk" style="color:#7a1a1a">' + userDisp + _esc(b.expected) + '</span>';
+        td.innerHTML = '<span class="grk" style="color:#A03A30">' + userDisp + _esc(b.expected) + '</span>';
       }
     }
     const correct = correctExact + correctIgnoreDiac;
@@ -9392,7 +9456,7 @@ function startParadigmQuiz(key){
       if(correctIgnoreDiac > 0) msg += ' · 액센트 무시하면 정답 ' + correctIgnoreDiac;
       const wrong = total - correct;
       if(wrong > 0) msg += ' · 오답 ' + wrong;
-      sum.innerHTML = '<div style="padding:8px;background:var(--ivory-d);border-radius:6px">' + msg + '</div>';
+      sum.innerHTML = '<div style="padding:8px;background:var(--ivory-d);border-radius:0">' + msg + '</div>';
     }
     // grade 버튼 비활성화
     const gradeBtn = document.getElementById('pq-grade');
@@ -9408,7 +9472,7 @@ function startParadigmQuiz(key){
       td.innerHTML = '<span class="grk" style="color:var(--terracotta-d)">' + _esc(b.expected) + '</span>';
     }
     const sum = document.getElementById('pq-result-summary');
-    if(sum) sum.innerHTML = '<div style="padding:8px;background:var(--ivory-d);border-radius:6px;font-size:12px;color:var(--clay-d)">정답 노출 — 다음 라운드를 시도하세요</div>';
+    if(sum) sum.innerHTML = '<div style="padding:8px;background:var(--ivory-d);border-radius:0;font-size:12px;color:var(--clay-d)">정답 노출 — 다음 라운드를 시도하세요</div>';
     const gradeBtn = document.getElementById('pq-grade');
     if(gradeBtn){ gradeBtn.disabled = true; gradeBtn.style.opacity = 0.5; }
   }
@@ -9546,7 +9610,7 @@ function renderClozeQuiz(questions, idx, score){
   }
   const display = Q.tokens.map((tok, i) => {
     if(i === Q.blankIdx){
-      return '<span style="background:var(--terracotta-d);color:#fff;padding:1px 14px;border-radius:4px;letter-spacing:.1em">_____</span>';
+      return '<span style="background:var(--terracotta-d);color:#fff;padding:1px 14px;border-radius:0;letter-spacing:.1em">_____</span>';
     }
     return tok;
   }).join(' ');
@@ -9817,8 +9881,8 @@ function renderDialogueScene(id){
   const palette = ['var(--terracotta-d)', 'var(--clay-d)', 'var(--black-glaze-l)'];
   const speakerColor = {};
   d.characters.forEach((c, i) => { speakerColor[c.tag] = palette[i % palette.length]; });
-  speakerColor['파이스'] = '#7a8a55';   // 노예 등 보조 캐릭터의 한국어 태그
-  speakerColor['παῖς']  = '#7a8a55';
+  speakerColor['파이스'] = '#5E8A7A';   // 노예 등 보조 캐릭터의 한국어 태그
+  speakerColor['παῖς']  = '#5E8A7A';
 
   view.innerHTML = `
     <button class="btn btn-sm btn-o" data-render="renderDialogues">← 시나리오 목록</button>
@@ -9870,7 +9934,7 @@ function renderDialogueScene(id){
     <div class="card" style="margin-top:10px">
       <div style="font-size:12px;color:var(--clay-d);letter-spacing:.04em;text-transform:uppercase;font-weight:600;margin-bottom:8px">문법 노트</div>
       ${d.grammar.map(g => `
-        <div style="padding:8px 10px;background:var(--ivory-d);border-radius:6px;margin-bottom:6px">
+        <div style="padding:8px 10px;background:var(--ivory-d);border-radius:0;margin-bottom:6px">
           <div style="font-size:13px;color:var(--terracotta-d);font-weight:600;margin-bottom:4px">📐 ${g.label}</div>
           <div style="font-size:12.5px;color:var(--black-glaze-l);line-height:1.6">${g.body}</div>
         </div>`).join('')}
@@ -10619,7 +10683,7 @@ function _renderSearchResults(query){
   // (lemma block) — 형태분석 + 어형 변이
   let lemmaHtml = '';
   if(lemmaSet.size > 0){
-    lemmaHtml = `<div class="card" style="border-left:3px solid var(--terracotta)">
+    lemmaHtml = `<div class="card" style="border-left:1px solid var(--veil-edge)">
       <div style="font-size:11px;color:var(--clay-d);letter-spacing:.04em;text-transform:uppercase;font-weight:600;margin-bottom:8px">표제어 (Lemma)</div>
       ${[...lemmaSet].map(lN => {
         const lSurf = lemmaSurface.get(lN) || lN;
@@ -10629,7 +10693,7 @@ function _renderSearchResults(query){
         if(ML){
           const ana = ML[lSurf];
           if(ana && ana.length){
-            anaHTML = ana.map(a => `<span style="display:inline-block;background:var(--ivory-d);padding:2px 7px;border-radius:4px;margin:2px 2px 0 0;font-size:11px;color:var(--clay-d)">${a.p}</span>`).join('');
+            anaHTML = ana.map(a => `<span style="display:inline-block;background:var(--ivory-d);padding:2px 7px;border-radius:0;margin:2px 2px 0 0;font-size:11px;color:var(--clay-d)">${a.p}</span>`).join('');
           }
         }
         const otherForms = fs.filter(f => _searchNormalize(f) !== lN).slice(0, 24);
@@ -10740,7 +10804,7 @@ function _extractContext(text, matchedForms){
         let html = '';
         for(let j = start; j <= end; j++){
           if(words[j].isMatch){
-            html += `<mark style="background:var(--terracotta);color:var(--ivory-w);padding:0 3px;border-radius:3px">${words[j].tok}</mark>`;
+            html += `<mark style="background:var(--terracotta);color:var(--ivory-w);padding:0 3px;border-radius:0">${words[j].tok}</mark>`;
           } else {
             html += words[j].tok;
           }
@@ -10825,8 +10889,8 @@ function renderWordOfDay(){
       <div style="font-size:18px;color:var(--black-glaze);font-weight:500;margin-top:14px">${word.ko}</div>
       ${word.en?`<div style="font-size:13px;color:var(--clay-d);margin-top:4px;font-style:italic">${word.en}</div>`:''}
       <div style="margin-top:12px;display:flex;gap:6px;justify-content:center;font-size:11px;color:var(--clay-d)">
-        <span style="background:var(--ivory-d);padding:3px 8px;border-radius:8px">${({N:'명사',V:'동사',A:'형용사',D:'부사',C:'접속사',P:'전치사',PR:'대명사'})[word.pos]||word.pos}</span>
-        ${word.l?`<span style="background:var(--ivory-d);padding:3px 8px;border-radius:8px">${word.l<500?`교재 ${word.l}과`:'DCC 빈도'}</span>`:''}
+        <span style="background:var(--ivory-d);padding:3px 8px;border-radius:0">${({N:'명사',V:'동사',A:'형용사',D:'부사',C:'접속사',P:'전치사',PR:'대명사'})[word.pos]||word.pos}</span>
+        ${word.l?`<span style="background:var(--ivory-d);padding:3px 8px;border-radius:0">${word.l<500?`교재 ${word.l}과`:'DCC 빈도'}</span>`:''}
       </div>
     </div>
 
@@ -10980,7 +11044,7 @@ function renderSearch(initialQuery){
 
     <div class="card">
       <input id="search-input" type="text" aria-label="그리스어 단어 또는 구절..." placeholder="그리스어 단어 또는 구절..."
-        style="width:100%;padding:10px 12px;font-family:var(--font-grk);font-size:18px;border:1px solid var(--clay);border-radius:8px;background:var(--ivory)"
+        style="width:100%;padding:10px 12px;font-family:var(--font-grk);font-size:18px;border:1px solid var(--clay);border-radius:0;background:var(--ivory)"
         value="${initialQuery||''}">
       <div style="font-size:11px;color:var(--clay-d);margin-top:6px">예: λόγος · θεός · ἐν ἀρχῇ · 단어 일부도 가능</div>
     </div>
@@ -11209,7 +11273,7 @@ function renderRead(){
     <h2 class="view-title fade-in"><span class="grk">Ἀνάγνωσις</span>원문</h2>
     <div class="view-sub">${WORKS.length}개 전집(Perseus DL) · ${READINGS.length}개 짧은 발췌</div>
 
-    <button class="card" type="button" data-render="renderCloze" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
+    <button class="card" type="button" data-render="renderCloze" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:1px solid var(--veil-edge);background:var(--marble-hi);margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Ἔλλειψις</div>
@@ -11220,7 +11284,7 @@ function renderRead(){
       </div>
     </button>
 
-    <button class="card" type="button" data-render="renderSearch" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
+    <button class="card" type="button" data-render="renderSearch" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:1px solid var(--veil-edge);background:var(--marble-hi);margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Ζήτησις</div>
@@ -11231,7 +11295,7 @@ function renderRead(){
       </div>
     </button>
 
-    <button class="card" type="button" data-render="renderBookmarks" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:8px">
+    <button class="card" type="button" data-render="renderBookmarks" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:1px solid var(--veil-edge);background:var(--marble-hi);margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Σημαντικά</div>
@@ -11242,7 +11306,7 @@ function renderRead(){
       </div>
     </button>
 
-    <button class="card" type="button" data-render="renderCrossRefs" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-bottom:10px">
+    <button class="card" type="button" data-render="renderCrossRefs" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:1px solid var(--veil-edge);background:var(--marble-hi);margin-bottom:10px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Παράλληλα</div>
@@ -11347,12 +11411,12 @@ function renderWorksList(){
     const visual = `<div style="width:100%;aspect-ratio:16/9;background:var(--black-glaze);overflow:hidden;position:relative">
         <div style="position:absolute;inset:0">${fallback}</div>
         ${imgURL?`<img src="${imgURL}" alt="${(IMAGES[img]?.caption||'').slice(0,80)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block" loading="lazy" onerror="this.remove()">`:''}
-        <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(26,22,18,.85));padding:24px 14px 10px;color:var(--ivory);z-index:2">
+        <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(22,40,58,.85));padding:24px 14px 10px;color:var(--ivory);z-index:2">
           <div style="font-family:var(--font-grk);font-size:22px;font-weight:600;line-height:1.1">${g.groupGrk}</div>
           <div style="font-family:var(--font-display);font-size:16px;font-weight:600;margin-top:2px">${g.authorKo} — ${g.groupKo}</div>
           <div style="font-family:var(--font-display);font-style:italic;font-size:11px;color:var(--clay);margin-top:2px">${g.era}${workCount>1?` · ${workCount}편`:''}</div>
         </div>
-        ${anyAGDT?'<div style="position:absolute;top:8px;right:8px;background:var(--terracotta);color:var(--ivory-w);font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;letter-spacing:.04em;z-index:2">AGDT 분석</div>':''}
+        ${anyAGDT?'<div style="position:absolute;top:8px;right:8px;background:var(--terracotta);color:var(--ivory-w);font-size:10px;font-weight:700;padding:3px 8px;border-radius:0;letter-spacing:.04em;z-index:2">AGDT 분석</div>':''}
       </div>`;
     return `<button class="card" style="width:100%;text-align:left;cursor:pointer;border:1.5px solid ${prog.allDone?'var(--terracotta)':'var(--clay)'};padding:0;overflow:hidden" data-gid="${g.id}">
       ${visual}
@@ -11402,7 +11466,7 @@ function renderGroup(gid){
             <span style="color:var(--terracotta-d);font-weight:600">${progress}/${total}</span>
             <span class="progress" style="flex:1;max-width:100px;min-width:60px"><span class="fill" style="width:${pct}%"></span></span>
             ${mins?`<span style="color:var(--clay-d);font-size:10px">⏱ ${mins}분</span>`:''}
-            ${agdt?'<span style="background:var(--terracotta);color:var(--ivory-w);font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px">분석</span>':''}
+            ${agdt?'<span style="background:var(--terracotta);color:var(--ivory-w);font-size:9px;font-weight:700;padding:2px 6px;border-radius:0">분석</span>':''}
             ${done?'<span style="color:var(--terracotta-d)">✓</span>':''}
           </div>
         </div>
@@ -11758,7 +11822,7 @@ function renderWorkSection(workId, secIdx){
 
     <div class="card">
       <div class="passage" style="font-size:17px;line-height:2.1">${lines}</div>
-      <div class="hint">📌 단어를 누르면 Perseus Morpheus + Logeion 사전이 새 창에서 열립니다.${showTrans?(hasCurated?' · <b style="color:var(--terracotta-d)">📖 해석</b> 표시 중 (큐레이션 정역)':' · <b style="color:var(--terracotta-d)">📖 해석</b> 표시 중 (단어 풀이)'):''}</div>
+      <div class="hint">📌 단어를 누르면 그 행 아래에 여백 주석이 펼쳐집니다. 다시 누르면 접힙니다.${showTrans?(hasCurated?' · <b style="color:var(--terracotta-d)">📖 해석</b> 표시 중 (큐레이션 정역)':' · <b style="color:var(--terracotta-d)">📖 해석</b> 표시 중 (단어 풀이)'):''}</div>
     </div>
 
     <div class="memo-block">
@@ -11782,7 +11846,7 @@ function renderWorkSection(workId, secIdx){
       </div>
     </div>
   `;
-  view.querySelectorAll('.w').forEach(el=> el.addEventListener('click', ()=> openLookup(el.dataset.w)));
+  view.querySelectorAll('.w').forEach(el=> el.addEventListener('click', ()=> openScholion(el)));
   // v52: 해석 토글
   const transBtn = document.getElementById('toggle-trans');
   if(transBtn) transBtn.addEventListener('click', () => {
@@ -11810,7 +11874,7 @@ function renderWorkSection(workId, secIdx){
     // hint 텍스트도 갱신
     const passageHint = view.querySelector('.passage + .hint');
     if(passageHint){
-      const baseHint = '📌 단어를 누르면 Perseus Morpheus + Logeion 사전이 새 창에서 열립니다.';
+      const baseHint = '📌 단어를 누르면 그 행 아래에 여백 주석이 펼쳐집니다. 다시 누르면 접힙니다.';
       if(S.showTranslation){
         passageHint.innerHTML = baseHint + (hasCurated ? ' · <b style="color:var(--terracotta-d)">📖 해석</b> 표시 중 (큐레이션 정역)' : ' · <b style="color:var(--terracotta-d)">📖 해석</b> 표시 중 (단어 풀이)');
       } else {
@@ -11872,6 +11936,79 @@ function renderWorkSection(workId, secIdx){
 }
 window._renderWork = renderWork;
 window._renderWorkSection = renderWorkSection;
+// v71 · 여백 주석 — 본문 읽기 화면에서 모달을 대신한다.
+// openLookup(모달) 은 검색·통계 화면에서 계속 쓰이므로 그대로 둔다.
+function _scholionHTML(word, encWord){
+  const analyses = (typeof MORPH_LOOKUP !== 'undefined') ? MORPH_LOOKUP[word] : null;
+  const perseusURL = `https://www.perseus.tufts.edu/hopper/morph?l=${encWord}&la=greek`;
+  const logeionURL = `https://logeion.uchicago.edu/${encWord}`;
+  let meta, body;
+  if(analyses && analyses.length){
+    const allAuto = analyses.every(a => a.auto);
+    const hasAuto = analyses.some(a => a.auto);
+    const srcNames = [...new Set(analyses.map(a => a.src).filter(Boolean))];
+    const corpusName = srcNames.length ? srcNames.join(' + ') : 'AGDT';
+    meta = allAuto ? 'CLTK 자동 lemmatize · 표제어만 (격·시제 미식별)'
+         : (hasAuto ? '혼합 분석 (수동 + 자동)'
+                    : corpusName + ' 수동 분석 · ' + analyses.length + '가지 가능성');
+    body = analyses.map(a => `
+      <div class="an"${a.auto?' style="opacity:.9"':''}>
+        <div class="lem">${a.l}</div>
+        <div class="prs">${a.p}</div>
+        ${a.k ? `<div class="glo">${a.k}</div>`
+              : `<div class="prs" style="font-style:italic">한국어 풀이 미수록 — 외부 사전 참조</div>`}
+      </div>`).join('');
+  } else {
+    meta = '등록된 형태분석 없음';
+    body = `<div class="an"><div class="prs">이 어형은 검증 분석이 등록되지 않았습니다. 외부 사전에서 확인하세요.</div></div>`;
+  }
+  const lemma = (analyses && analyses[0] && analyses[0].l) ? encodeURIComponent(analyses[0].l) : '';
+  return `<div class="hw">${word}</div><div class="meta">${meta}</div>${body}
+    <div class="lnk">
+      <button onclick="_lookupToSearch('${encWord}','${lemma}')">본문 검색</button>
+      <a href="${perseusURL}" target="_blank" rel="noopener">Perseus ↗</a>
+      <a href="${logeionURL}" target="_blank" rel="noopener">Logeion ↗</a>
+      <button onclick="_closeScholion()">닫기</button>
+    </div>`;
+}
+
+function _closeScholion(){
+  document.querySelectorAll('.scholion').forEach(n => n.remove());
+  document.querySelectorAll('.passage .w.on').forEach(n => n.classList.remove('on'));
+}
+
+function openScholion(el){
+  const encWord = el.dataset.w;
+  const word = decodeURIComponent(encWord || '');
+  if(!word) return;
+  const wasOpen = el.classList.contains('on');
+  _closeScholion();
+  if(wasOpen) return;                    // 같은 낱말을 다시 누르면 접힌다
+  el.classList.add('on');
+  const host = el.closest('[data-line-idx]') || el.parentElement;
+  const box = document.createElement('div');
+  box.className = 'scholion';
+  if(typeof MORPH_LOOKUP === 'undefined'){
+    box.innerHTML = `<div class="hw">${word}</div>
+      <div class="meta">형태분석 데이터 받는 중… · AGDT 37,154 키 · 한 번만 받습니다</div>`;
+    host.after(box);
+    ensureMorph()
+      .then(() => { if(box.isConnected) box.innerHTML = _scholionHTML(word, encWord); })
+      .catch(err => { if(box.isConnected) box.innerHTML =
+        `<div class="hw">${word}</div><div class="meta">${err.message}</div>
+         <div class="lnk">
+           <a href="https://www.perseus.tufts.edu/hopper/morph?l=${encWord}&la=greek" target="_blank" rel="noopener">Perseus ↗</a>
+           <button onclick="_closeScholion()">닫기</button>
+         </div>`; });
+  } else {
+    box.innerHTML = _scholionHTML(word, encWord);
+    host.after(box);
+  }
+  box.scrollIntoView({block:'nearest', behavior:'smooth'});
+}
+window._closeScholion = _closeScholion;
+window._openScholion  = openScholion;
+
 
 function renderExcerptsList(){
   const passages = readFilter.era==='all' ? READINGS : READINGS.filter(r=>r.era===readFilter.era);
@@ -11942,7 +12079,7 @@ function renderPassage(id){
       <button class="btn btn-sm btn-o" id="save-memo">메모 저장</button>
     </div>
   `;
-  view.querySelectorAll('.w').forEach(el=> el.addEventListener('click', ()=> openLookup(el.dataset.w)));
+  view.querySelectorAll('.w').forEach(el=> el.addEventListener('click', ()=> openScholion(el)));
   document.getElementById('mark-done').addEventListener('click', ()=>{
     if(!S.readDone.includes(id)){
       S.readDone.push(id);
@@ -12062,9 +12199,9 @@ function accentInfoBlock(w){
   const posKor = {ultima:'마지막', penult:'끝에서 둘째', antepenult:'끝에서 셋째'}[a.position] || '';
   const markKor = {acute:'예각 ´', circumflex:'곡절 ῀', grave:'둔각 `'}[a.mark] || '';
   return `
-    <div style="background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);
-                border-left:3px solid var(--terracotta);
-                padding:8px 12px;margin-bottom:10px;border-radius:6px;font-size:12px">
+    <div style="background:var(--marble-hi);
+                border-left:1px solid var(--veil-edge);
+                padding:8px 12px;margin-bottom:10px;border-radius:0;font-size:12px">
       <div style="color:var(--terracotta-d);font-weight:600">악센트 ·
         ${a.greek ? `<span style="font-family:var(--font-grk)">${a.greek}</span> · ` : ''}${a.korean}
       </div>
@@ -12111,7 +12248,7 @@ function syntaxHintBlock(analyses){
   }
   if(!items.length) return '';
   return `
-    <div style="background:#f4ebe2;border-left:3px solid var(--clay-d);padding:8px 12px;margin-bottom:10px;border-radius:6px;font-size:12px">
+    <div style="background:#EFF5FB;border-left:3px solid var(--clay-d);padding:8px 12px;margin-bottom:10px;border-radius:0;font-size:12px">
       <div style="color:var(--clay-d);font-weight:700;margin-bottom:3px;letter-spacing:.04em;text-transform:uppercase">📐 구문 역할</div>
       <div style="color:var(--black-glaze-l);line-height:1.6">${items.join(' · ')}</div>
     </div>`;
@@ -12225,7 +12362,7 @@ function openLookup(encWord){
       ${syntaxBlock}
       <div style="font-size:11px;color:var(--clay-d);margin-bottom:10px">${sourceLabel}</div>
       ${analyses.map((a,i)=>`
-        <div style="background:var(--ivory-d);border:1px solid var(--clay);border-radius:8px;padding:11px 13px;margin-bottom:8px${a.auto?';opacity:.92':''}">
+        <div style="background:var(--ivory-d);border:1px solid var(--clay);border-radius:0;padding:11px 13px;margin-bottom:8px${a.auto?';opacity:.92':''}">
           ${analyses.length>1?`<div style="font-size:10px;color:var(--clay-d);margin-bottom:4px">분석 ${i+1}${a.auto?' (자동)':''}</div>`:''}
           <div style="font-family:var(--font-grk);font-size:18px;color:var(--black-glaze);font-weight:600">표제어 → <span style="color:var(--terracotta-d)">${a.l}</span></div>
           <div style="font-size:13px;color:var(--black-glaze-l);margin-top:4px">${a.p}</div>
@@ -12328,7 +12465,7 @@ window._appDiagnose = async function(){
 
   const modal = document.getElementById('modal');
   const modalBg = document.getElementById('modal-bg');
-  const warnColor = '#c44536';
+  const warnColor = '#14508F';
   modal.innerHTML = `
     <div style="font-size:18px;font-weight:600;color:var(--terracotta-d);margin-bottom:6px">앱 진단 · 문제 해결</div>
     <div style="font-size:11px;color:var(--clay-d);margin-bottom:14px">eSpeak 로드 실패, 화면 갱신 안 됨 등 동기화 문제 회복용</div>
@@ -12352,9 +12489,9 @@ window._appDiagnose = async function(){
 
     ${(mismatch || hasWaiting) ? `<div class="hint" style="margin-bottom:12px;color:${warnColor};border-left-color:${warnColor}">새 버전이 대기 중입니다. <b>강제 새로고침</b>으로 즉시 적용하세요.</div>` : ''}
 
-    <div id="diag-firebase-result" style="display:none;font-size:11.5px;line-height:1.6;margin-bottom:12px;padding:10px 12px;border-radius:6px;background:var(--ivory-d);font-family:monospace"></div>
+    <div id="diag-firebase-result" style="display:none;font-size:11.5px;line-height:1.6;margin-bottom:12px;padding:10px 12px;border-radius:0;background:var(--ivory-d);font-family:monospace"></div>
 
-    <div style="font-size:12px;color:var(--clay-d);line-height:1.65;margin-bottom:14px;background:var(--ivory-d);padding:10px 12px;border-radius:6px">
+    <div style="font-size:12px;color:var(--clay-d);line-height:1.65;margin-bottom:14px;background:var(--ivory-d);padding:10px 12px;border-radius:0">
       <b>Firebase 자가진단</b>: 멀티 배틀·큐 입장이 작동 안 할 때. battles·lobby·feedback·presence 경로의 read/write 를 실제로 시도.<br>
       <b>강제 새로고침</b>: 대기 중인 새 SW 활성화 후 페이지 재로드. 학습 진도는 유지됩니다.<br>
       <b style="color:${warnColor}">전체 초기화</b>: SW · 캐시 · 학습 진도 모두 폐기. 다른 방법이 안 될 때만.
@@ -12378,7 +12515,7 @@ window._appDiagnose = async function(){
     res.innerHTML = '<div style="color:var(--clay-d)">Firebase 백엔드 확인 중...</div>';
 
     const lines = [];
-    const ok = (s) => `<span style="color:#2d7a44">✓</span> ${s}`;
+    const ok = (s) => `<span style="color:#2C6E63">✓</span> ${s}`;
     const bad = (s) => `<span style="color:${warnColor}">✗</span> ${s}`;
 
     // 0) BACKEND 존재?
@@ -12441,14 +12578,14 @@ window._appDiagnose = async function(){
     } else if(allDenied){
       lines.push(bad('<b>전체 차단</b> — Firebase 보안 규칙 점검 필요'));
       lines.push('<br><span style="color:var(--clay-d);font-size:10.5px">권장 규칙 (Firebase Console → Realtime Database → Rules):</span>');
-      lines.push('<pre style="background:#fff;padding:8px;border-radius:4px;font-size:10px;line-height:1.4;white-space:pre-wrap;margin:4px 0 0 0;color:#333">{\n  "rules": {\n    ".read": true,\n    ".write": true\n  }\n}</pre>');
+      lines.push('<pre style="background:#fff;padding:8px;border-radius:0;font-size:10px;line-height:1.4;white-space:pre-wrap;margin:4px 0 0 0;color:#333">{\n  "rules": {\n    ".read": true,\n    ".write": true\n  }\n}</pre>');
       lines.push('<span style="color:var(--clay-d);font-size:10px;font-style:italic">⚠ 위 규칙은 누구나 읽기·쓰기 가능 — 연구실 내부용. 외부 공개라면 Firebase Auth 추가 권장.</span>');
     } else if(partialDenied){
       const denied = paths.filter(p => !verdict.write.includes(p.label)).map(p=>p.label).join(', ');
       lines.push(bad(`<b>부분 차단</b> — 일부 경로만 허용됨`));
       lines.push(`<span style="color:var(--clay-d);font-size:11px">차단된 경로: ${denied}</span>`);
       lines.push('<br><span style="color:var(--clay-d);font-size:10.5px">권장 규칙 — 모든 경로 허용 (가장 간단):</span>');
-      lines.push('<pre style="background:#fff;padding:8px;border-radius:4px;font-size:10px;line-height:1.4;white-space:pre-wrap;margin:4px 0 0 0;color:#333">{\n  "rules": {\n    ".read": true,\n    ".write": true\n  }\n}</pre>');
+      lines.push('<pre style="background:#fff;padding:8px;border-radius:0;font-size:10px;line-height:1.4;white-space:pre-wrap;margin:4px 0 0 0;color:#333">{\n  "rules": {\n    ".read": true,\n    ".write": true\n  }\n}</pre>');
     }
 
     res.innerHTML = lines.join('<br>');
@@ -12490,7 +12627,7 @@ function renderHall(){
     <div class="view-sub">총 XP <b>${S.xp}</b> · 등급 <b>${LEVELS[curLvl].grk} (${LEVELS[curLvl].ko})</b></div>
 
     ${curChar ? `
-    <button class="card" type="button" id="hall-char-change" style="cursor:pointer;width:100%;text-align:left;border-left:3px solid var(--terracotta);background:var(--ivory-d);padding:14px;margin-bottom:10px">
+    <button class="card" type="button" id="hall-char-change" style="cursor:pointer;width:100%;text-align:left;border-left:1px solid var(--veil-edge);background:var(--ivory-d);padding:14px;margin-bottom:10px">
       <div style="display:flex;align-items:center;gap:14px">
         <div style="flex-shrink:0">${(typeof _charPhotoMedallion==='function')? _charPhotoMedallion(curChar, 88) : _charMedallion(curChar, 88)}</div>
         <div style="flex:1;min-width:0">
@@ -12505,7 +12642,7 @@ function renderHall(){
 
     <div id="leaderboard-slot"><div class="card"><div style="text-align:center;color:var(--clay-d);font-size:13px">라이브 순위 불러오는 중…</div></div></div>
 
-    <button class="card" type="button" data-render="renderBattle" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%)">
+    <button class="card" type="button" data-render="renderBattle" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:1px solid var(--veil-edge);background:var(--marble-hi)">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Ἀγών</div>
@@ -13165,14 +13302,14 @@ function _openScholarAudio(recs, syncContext){
           <source src="${safeUrl}" type="audio/mpeg">
           오디오 요소 미지원 브라우저
         </audio>
-        <div id="scholar-audio-err-${i}" style="display:none;margin-top:8px;padding:8px 10px;background:#fbf0ee;border-left:3px solid #c44536;border-radius:4px;font-size:12px;color:#5c4e3e">
+        <div id="scholar-audio-err-${i}" style="display:none;margin-top:8px;padding:8px 10px;background:#EFF5FB;border-left:3px solid #14508F;border-radius:0;font-size:12px;color:#3A526B">
           재생 실패 — 호스트에서 직접 들으세요: <a href="${r.sourceUrl}" target="_blank" rel="noopener">출처 페이지 ↗</a>
         </div>`;
     } else if(r.type === 'soundcloud'){
       const embedUrl = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(r.url) +
                       '&color=%239C3F2D&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=false';
       playerHTML = `
-        <iframe width="100%" height="120" frameborder="no" scrolling="no" allow="autoplay" title="SoundCloud 학자 낭독 스트림" src="${embedUrl}" style="margin-top:8px;border-radius:6px"></iframe>
+        <iframe width="100%" height="120" frameborder="no" scrolling="no" allow="autoplay" title="SoundCloud 학자 낭독 스트림" src="${embedUrl}" style="margin-top:8px;border-radius:0"></iframe>
         <div style="font-size:11px;color:var(--clay-d);margin-top:4px">
           ↑ SoundCloud · 재생되지 않으면 <a href="${r.url}" target="_blank" rel="noopener">SoundCloud 페이지 ↗</a>
         </div>`;
@@ -13182,7 +13319,7 @@ function _openScholarAudio(recs, syncContext){
       const safeUrl = r.url.replace(/"/g,'&quot;');
       playerHTML = `
         <iframe width="100%" height="200" frameborder="0" allow="encrypted-media; picture-in-picture" title="YouTube 학자 낭독 영상"
-                src="${safeUrl}" allowfullscreen style="margin-top:8px;border-radius:6px;background:#000"></iframe>
+                src="${safeUrl}" allowfullscreen style="margin-top:8px;border-radius:0;background:#000"></iframe>
         <div style="font-size:11px;color:var(--clay-d);margin-top:4px">
           ↑ YouTube · 재생되지 않으면 <a href="${r.sourceUrl}" target="_blank" rel="noopener">출처 페이지 ↗</a>
         </div>`;
@@ -13205,19 +13342,19 @@ function _openScholarAudio(recs, syncContext){
             오디오 요소 미지원 브라우저
           </audio>
           ${extra2}
-          <div id="scholar-audio-err-${i}" style="display:none;margin-top:8px;padding:8px 10px;background:#fbf0ee;border-left:3px solid #c44536;border-radius:4px;font-size:12px;color:#5c4e3e">
+          <div id="scholar-audio-err-${i}" style="display:none;margin-top:8px;padding:8px 10px;background:#EFF5FB;border-left:3px solid #14508F;border-radius:0;font-size:12px;color:#3A526B">
             재생 실패 — Internet Archive 페이지에서 직접 들으세요: <a href="${r.sourceUrl}" target="_blank" rel="noopener">출처 페이지 ↗</a>
           </div>`;
       } else {
         playerHTML = `
-          <div style="margin-top:8px;padding:10px;background:var(--ivory-w);border:1px dashed var(--clay);border-radius:6px;text-align:center">
+          <div style="margin-top:8px;padding:10px;background:var(--ivory-w);border:1px dashed var(--clay);border-radius:0;text-align:center">
             <a href="${r.url}" target="_blank" rel="noopener" class="btn btn-sm" style="display:inline-block">▶ Internet Archive 에서 듣기 ↗</a>
             <div style="font-size:10px;color:var(--clay-d);margin-top:6px">외부 페이지 새 탭으로 열림</div>
           </div>`;
       }
     }
     return `
-      <div style="background:var(--ivory-d);border:1px solid var(--clay);border-radius:8px;padding:12px 14px;margin-bottom:10px">
+      <div style="background:var(--ivory-d);border:1px solid var(--clay);border-radius:0;padding:12px 14px;margin-bottom:10px">
         <div style="font-size:13px;color:var(--terracotta-d);font-weight:600">${r.performer}</div>
         <div style="font-size:11px;color:var(--clay-d);margin-top:2px">${r.system}</div>
         <div style="font-size:12px;color:var(--black-glaze-l);margin-top:6px"><b>구간</b>: ${r.span}</div>
@@ -13238,11 +13375,11 @@ function _openScholarAudio(recs, syncContext){
     });
     const onlyIframe = recs.every(r => r.type === 'soundcloud' || r.type === 'youtube');
     if(anyCues){
-      syncBadge = `<div style="font-size:11px;color:var(--terracotta-d);background:rgba(176,80,48,0.08);border:1px solid rgba(176,80,48,0.2);border-radius:5px;padding:5px 8px;margin-bottom:8px;line-height:1.5">
+      syncBadge = `<div style="font-size:11px;color:var(--terracotta-d);background:rgba(20,80,143,0.08);border:1px solid rgba(20,80,143,0.2);border-radius:0;padding:5px 8px;margin-bottom:8px;line-height:1.5">
         🎯 <b>본문 동기 활성</b> — 재생 중 본문의 현재 발화 문장·행·단락이 강조됩니다. 비례 추정이라 정확도 <b>±3-8초</b>.
       </div>`;
     } else if(onlyIframe){
-      syncBadge = `<div style="font-size:11px;color:var(--clay-d);background:var(--ivory-d);border:1px dashed var(--clay);border-radius:5px;padding:5px 8px;margin-bottom:8px;line-height:1.5">
+      syncBadge = `<div style="font-size:11px;color:var(--clay-d);background:var(--ivory-d);border:1px dashed var(--clay);border-radius:0;padding:5px 8px;margin-bottom:8px;line-height:1.5">
         ⓘ 본문 동기 미지원 — SoundCloud / YouTube 임베드는 부모 페이지에서 시간 정보를 받을 수 없습니다.
       </div>`;
     }
@@ -14152,7 +14289,7 @@ function renderSpeechSettings(){
     </div>` : `
 
     ${sys !== 'espeak_grc' ? `
-    <div class="card" style="background:linear-gradient(135deg, #fdf4ef 0%, #fbeae0 100%);border-left:3px solid var(--terracotta);padding:12px 14px">
+    <div class="card" style="background:var(--marble-hi);border-left:1px solid var(--veil-edge);padding:12px 14px">
       <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px">
         <span style="font-size:16px">💡</span>
         <b style="color:var(--terracotta-d);font-size:13px">발음 문제 발생 시 — eSpeak NG 권장</b>
@@ -14176,7 +14313,7 @@ function renderSpeechSettings(){
         }).join('')}
       </div>
       ${needsItalian && !italianAvailable ? `
-        <div style="font-size:11px;color:var(--bad);margin-top:10px;line-height:1.6;background:#fbf0ee;padding:8px 10px;border-radius:5px;border-left:3px solid var(--bad)">
+        <div style="font-size:11px;color:var(--bad);margin-top:10px;line-height:1.6;background:#EFF5FB;padding:8px 10px;border-radius:0;border-left:3px solid var(--bad)">
           ⚠ 이탈리아어·스페인어 음성이 기기에 없습니다. Erasmian·Restored는 이탈리아어 음성으로 우회 발화하는데,
           음성이 없으면 그리스어 음성으로 폴백됩니다 (음역 효과 감소).<br>
           <b>iOS</b>: 설정 → 손쉬운 사용 → 음성 듣기 → 음성 → Italiano 추가. <b>macOS</b>: 시스템 설정 → 손쉬운 사용 → 음성 콘텐츠 → 시스템 음성.
@@ -14185,7 +14322,7 @@ function renderSpeechSettings(){
 
     <div class="card">
       <div style="font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">방언 음운 (Erasmian·Restored에서만 적용)</div>
-      <select id="dialect-select" style="width:100%;padding:8px 10px;border:1px solid var(--clay);border-radius:6px;background:var(--ivory);font-size:14px;color:var(--black-glaze)">
+      <select id="dialect-select" style="width:100%;padding:8px 10px;border:1px solid var(--clay);border-radius:0;background:var(--ivory);font-size:14px;color:var(--black-glaze)">
         ${Object.entries(PRON_DIALECTS).map(([k, d]) =>
           `<option value="${k}"${S.speech.dialect===k?' selected':''}>${d.label}${d.psilosis?' · psilosis (rough breathing 무음)':''}</option>`
         ).join('')}
@@ -14218,7 +14355,7 @@ function renderSpeechSettings(){
 
     <div class="card">
       <label style="display:block;font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">음성 선택 (${_availableVoices.length}개 사용 가능)</label>
-      <select id="voice-select" style="width:100%;padding:8px 10px;border:1px solid var(--clay);border-radius:6px;background:var(--ivory);font-family:var(--font-grk);font-size:14px;color:var(--black-glaze)">
+      <select id="voice-select" style="width:100%;padding:8px 10px;border:1px solid var(--clay);border-radius:0;background:var(--ivory);font-family:var(--font-grk);font-size:14px;color:var(--black-glaze)">
         <option value=""${S.speech.voiceName===''?' selected':''}>자동 (현 시스템에 적합한 음성)</option>
         ${optGrp('🇬🇷 그리스어 (현대 발음)', greekVoices)}
         ${optGrp('🇮🇹 이탈리아어 (Erasmian·Restored)', italianVoices)}
@@ -14229,7 +14366,7 @@ function renderSpeechSettings(){
 
     <div class="card">
       <div style="font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">미리듣기 — 세 시스템 비교</div>
-      <div lang="grc" style="font-family:var(--font-grk);font-size:15px;line-height:1.7;color:var(--black-glaze);background:var(--ivory-d);padding:10px 12px;border-radius:6px;margin-bottom:10px">
+      <div lang="grc" style="font-family:var(--font-grk);font-size:15px;line-height:1.7;color:var(--black-glaze);background:var(--ivory-d);padding:10px 12px;border-radius:0;margin-bottom:10px">
         ${_SPEECH_DEMO_TEXT}
         <div style="font-size:11px;color:var(--clay-d);margin-top:4px;font-style:italic">— John 1:1 (Koine)</div>
       </div>
@@ -14637,7 +14774,7 @@ function renderBattle(){
     </div>
     ` : `
 
-    <div class="card" style="background:var(--ivory-d);border-left:3px solid var(--terracotta)">
+    <div class="card" style="background:var(--ivory-d);border-left:1px solid var(--veil-edge)">
       <div style="font-size:13px;line-height:1.7;color:var(--black-glaze-l)">
         🎮 같은 10문제를 동시에 풀고 정답·속도·강탈로 순위를 가립니다.<br>
         <span style="font-size:11.5px;color:var(--clay-d)">v58: 공개 lobby (호스트 없이 자동 매치) + 4종 게임 모드</span>
@@ -14659,12 +14796,12 @@ function renderBattle(){
         <div style="font-family:var(--font-display);font-size:18px;color:var(--terracotta-d);font-weight:600;margin-top:2px">${myName}</div>
       </div>
 
-      <button class="card" id="battle-public" style="width:100%;text-align:left;cursor:pointer;border:1px solid var(--clay);border-left:3px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);margin-top:14px">
+      <button class="card" id="battle-public" style="width:100%;text-align:left;cursor:pointer;border:1px solid var(--clay);border-left:1px solid var(--veil-edge);background:var(--marble-hi);margin-top:14px">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div style="flex:1;min-width:0">
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
               <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Ἀγορά</div>
-              <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:2px 7px;border-radius:8px;letter-spacing:.04em">NEW v58</span>
+              <span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:2px 7px;border-radius:0;letter-spacing:.04em">NEW v58</span>
             </div>
             <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">⚔ 공개 lobby — 누구나 참가</div>
             <div style="font-size:11.5px;color:var(--clay-d);margin-top:3px;line-height:1.5">호스트 없이 대기 → 2명 이상 모이면 자동 매치 시작 · 4종 게임 모드 선택</div>
@@ -14674,7 +14811,7 @@ function renderBattle(){
       </button>
 
       <details style="margin-top:10px">
-        <summary style="cursor:pointer;font-size:13px;color:var(--clay-d);padding:8px 10px;background:var(--ivory-d);border-radius:6px;list-style:none">
+        <summary style="cursor:pointer;font-size:13px;color:var(--clay-d);padding:8px 10px;background:var(--ivory-d);border-radius:0;list-style:none">
           <span style="margin-right:6px">▸</span>비공개 코드방 (친구끼리 · 기존 방식)
         </summary>
         <div style="margin-top:8px">
@@ -15190,7 +15327,7 @@ function _lobbyDraw(){
       background:${chosen===m.id?'var(--terracotta)':'var(--ivory)'};
       color:${chosen===m.id?'var(--ivory-w)':'var(--black-glaze)'};
       border:1px solid ${chosen===m.id?'var(--terracotta-d)':'var(--clay)'};
-      border-radius:6px;cursor:pointer;font-family:inherit;font-size:12.5px;line-height:1.45;
+      border-radius:0;cursor:pointer;font-family:inherit;font-size:12.5px;line-height:1.45;
     ">
       <div style="display:flex;align-items:baseline;gap:6px">
         <span class="grk" style="font-size:14px;font-weight:600">${m.grk}</span>
@@ -15210,12 +15347,12 @@ function _lobbyDraw(){
     const med = (charId && typeof _charMedallion === 'function') ? _charMedallion(charId, 36) : '';
     const waitSec = Math.floor((Date.now() - (w.joinedAt || Date.now())) / 1000);
     const mine = (w.uid === myId);
-    return `<div style="display:flex;align-items:center;gap:9px;padding:7px 9px;border-bottom:${i<waiters.length-1?'1px dashed var(--clay)':'none'};background:${mine?'var(--ivory-d)':'transparent'};border-radius:4px">
+    return `<div style="display:flex;align-items:center;gap:9px;padding:7px 9px;border-bottom:${i<waiters.length-1?'1px dashed var(--clay)':'none'};background:${mine?'var(--ivory-d)':'transparent'};border-radius:0">
       <div style="font-size:11px;color:var(--clay-d);font-weight:600;min-width:18px">${i+1}</div>
       <div style="flex-shrink:0">${med}</div>
       <div style="flex:1;min-width:0">
         <div style="font-family:var(--font-display);font-size:14px;font-weight:600;color:var(--black-glaze)">
-          ${(w.name || '익명').replace(/</g,'&lt;')}${mine?' <span style="font-size:10px;color:var(--terracotta-d);font-weight:400">(나)</span>':''}${i===0?' <span style="font-size:9.5px;background:var(--clay);color:var(--ivory-w);padding:1px 5px;border-radius:5px;letter-spacing:.04em">선임</span>':''}
+          ${(w.name || '익명').replace(/</g,'&lt;')}${mine?' <span style="font-size:10px;color:var(--terracotta-d);font-weight:400">(나)</span>':''}${i===0?' <span style="font-size:9.5px;background:var(--clay);color:var(--ivory-w);padding:1px 5px;border-radius:0;letter-spacing:.04em">선임</span>':''}
         </div>
         <div style="font-size:10.5px;color:var(--clay-d);margin-top:1px">대기 ${waitSec}초</div>
       </div>
@@ -15252,7 +15389,7 @@ function _lobbyDraw(){
 
     ${activeHtml}
 
-    <div class="card" style="background:linear-gradient(135deg, var(--ivory) 0%, var(--ivory-d) 100%);border-left:3px solid var(--terracotta)">
+    <div class="card" style="background:var(--marble-hi);border-left:1px solid var(--veil-edge)">
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
         <div style="font-family:var(--font-display);font-size:13px;color:var(--terracotta-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em">
           📍 대기열 (${waiters.length}/6${waiters.length>=2?' · 시작 가능':''})
@@ -15284,7 +15421,7 @@ function _lobbyDraw(){
             시작하면 모든 대기자에게 즉시 인트로 컷이 표시됩니다.
           </div>
         ` : iAmOldest ? `
-          <div style="font-size:11.5px;color:var(--clay-d);text-align:center;margin-top:10px;padding:8px;background:var(--ivory-d);border-radius:6px">
+          <div style="font-size:11.5px;color:var(--clay-d);text-align:center;margin-top:10px;padding:8px;background:var(--ivory-d);border-radius:0">
             대기자가 2명 이상이어야 시작할 수 있습니다.
           </div>
         ` : ''}
@@ -15491,12 +15628,12 @@ async function renderBattleLobby(){
             ? _charMedallion(charId, 44)
             : '<div style="width:44px;height:44px;border-radius:50%;background:var(--clay);color:var(--ivory-w);display:inline-flex;align-items:center;justify-content:center;font-size:18px">👤</div>';
           const charLabel = charId ? `${CHARACTERS_BY_ID[charId].ko} · ${CHARACTERS_BY_ID[charId].ep}` : '';
-          return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px dashed var(--clay);border-radius:4px;background:${uid===myId?'var(--ivory-d)':'transparent'}">
+          return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px dashed var(--clay);border-radius:0;background:${uid===myId?'var(--ivory-d)':'transparent'}">
             <div style="flex-shrink:0">${charSvg}</div>
             <div style="flex:1;min-width:0">
               <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
                 <span style="font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--black-glaze)">${(p.name || '익명').replace(/</g,'&lt;')}</span>
-                ${uid === room.meta.hostId ? '<span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:2px 6px;border-radius:8px">호스트</span>' : ''}
+                ${uid === room.meta.hostId ? '<span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:2px 6px;border-radius:0">호스트</span>' : ''}
                 ${uid === myId ? '<span style="font-size:10px;color:var(--terracotta-d)">(나)</span>' : ''}
               </div>
               ${charLabel ? `<div style="font-size:10.5px;color:var(--clay-d);font-style:italic;margin-top:2px">${charLabel}</div>` : ''}
@@ -15958,11 +16095,11 @@ function _renderBattleIntro(code, room, onContinue){
       .intro-stage{padding:8px 0;text-align:center;animation:introFade .45s ease-out}
       .intro-side{display:flex;flex-direction:column;align-items:center;gap:4px;margin:6px 0}
       .intro-charwrap{position:relative;display:inline-flex;flex-direction:column;align-items:center}
-      .intro-medallion{position:relative;z-index:1;filter:drop-shadow(0 4px 12px rgba(176,80,48,.35))}
+      .intro-medallion{position:relative;z-index:1;filter:drop-shadow(0 4px 12px rgba(20,80,143,.35))}
       .intro-bubble{
         position:relative;max-width:340px;background:var(--ivory-w);border:1.5px solid var(--terracotta);
-        border-radius:14px;padding:10px 14px;margin:8px 8px 0 8px;text-align:center;
-        box-shadow:0 3px 10px rgba(60,40,30,.12);
+        border-radius:0;padding:10px 14px;margin:8px 8px 0 8px;text-align:center;
+        box-shadow:0 3px 10px rgba(22,40,58,.12);
       }
       .intro-bubble.bubble-top{margin-bottom:14px;margin-top:0}
       .intro-bubble.bubble-bottom{margin-top:14px}
@@ -16001,7 +16138,7 @@ function _renderBattleIntro(code, room, onContinue){
         color:var(--terracotta-d);letter-spacing:.05em;
         background:linear-gradient(180deg, var(--ivory-w) 0%, var(--ivory-d) 100%);
         border:2.5px solid var(--terracotta);border-radius:50%;width:88px;height:88px;
-        line-height:80px;box-shadow:0 6px 18px rgba(176,80,48,.4);
+        line-height:80px;box-shadow:0 6px 18px rgba(20,80,143,.4);
       }
       .intro-vs-line{position:absolute;top:50%;left:0;right:0;height:2px;
         background:linear-gradient(90deg, transparent 0%, var(--terracotta) 30%, var(--terracotta) 70%, transparent 100%);
@@ -16144,7 +16281,7 @@ async function renderBattleGame(code, room){
   // v58: 모드별 프롬프트 헤더·본체 렌더링 분기
   const mode = q.mode || 'vocab';
   const modeMeta = BATTLE_MODES[mode] || BATTLE_MODES.vocab;
-  const modeBadge = mode === 'vocab' ? '' : `<span style="margin-left:8px;font-size:10px;background:var(--clay);color:var(--ivory-w);padding:2px 7px;border-radius:8px;letter-spacing:.04em">${modeMeta.grk}</span>`;
+  const modeBadge = mode === 'vocab' ? '' : `<span style="margin-left:8px;font-size:10px;background:var(--clay);color:var(--ivory-w);padding:2px 7px;border-radius:0;letter-spacing:.04em">${modeMeta.grk}</span>`;
   // 프롬프트 패널 (모드별 다른 글자 크기·보조 설명)
   let promptBlock;
   if(mode === 'quote'){
@@ -16183,12 +16320,12 @@ async function renderBattleGame(code, room){
       ${_battleScoreboardHTML(players)}
     </div>
 
-    <div class="card" style="${isStealQ ? 'border:2px solid var(--terracotta);background:linear-gradient(135deg, var(--ivory) 0%, #fff3e8 100%)' : ''}">
+    <div class="card" style="${isStealQ ? 'border:2px solid var(--terracotta);background:var(--veil)' : ''}">
       ${isStealQ ? `
-        <div style="text-align:center;margin:-4px -4px 6px;padding:6px 10px;background:var(--terracotta);color:var(--ivory-w);border-radius:6px;font-family:var(--font-display);font-size:12px;font-weight:600;letter-spacing:.08em;animation:stealPulse 1.4s ease-in-out infinite">
+        <div style="text-align:center;margin:-4px -4px 6px;padding:6px 10px;background:var(--terracotta);color:var(--ivory-w);border-radius:0;font-family:var(--font-display);font-size:12px;font-weight:600;letter-spacing:.08em;animation:stealPulse 1.4s ease-in-out infinite">
           ⚡ 점수 강탈 문제 — 정답 시 모든 상대로부터 ${BATTLE_STEAL_AMOUNT}점씩 빼앗습니다 ⚡
         </div>
-        <style>@keyframes stealPulse{0%,100%{box-shadow:0 0 0 0 rgba(176,80,48,.5)}50%{box-shadow:0 0 0 4px rgba(176,80,48,.1)}}</style>
+        <style>@keyframes stealPulse{0%,100%{box-shadow:0 0 0 0 rgba(20,80,143,.5)}50%{box-shadow:0 0 0 4px rgba(20,80,143,.1)}}</style>
       ` : ''}
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
         <div style="font-size:11px;color:var(--clay-d);font-weight:600;text-transform:uppercase;letter-spacing:.06em">문제 ${local.idx+1}/${BATTLE_N_Q}${isStealQ ? ' · ⚡ 강탈' : ''}</div>
@@ -16233,7 +16370,7 @@ function _battleScoreboardHTML(players){
         for(const s of arr){ if(s && s.victim === uid) lostToOthers += (s.points|0); }
       }
       const effScore = eff[uid] || 0;
-      return `<div style="text-align:center;padding:6px;background:${mine?'var(--terracotta)':'var(--black-glaze)'};color:var(--ivory-w);border-radius:8px">
+      return `<div style="text-align:center;padding:6px;background:${mine?'var(--terracotta)':'var(--black-glaze)'};color:var(--ivory-w);border-radius:0">
         ${charSvg}
         <div style="font-size:10px;opacity:.85;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(p.name||'').slice(0,12)}${mine?' (나)':''}</div>
         <div style="font-family:var(--font-display);font-size:20px;font-weight:600;margin-top:2px">${effScore}</div>
@@ -16426,7 +16563,7 @@ function _renderBattleWaitOthers(code, room, local){
           : '모두 끝났습니다 — 결과 집계 중...'}
       </div>
       ${showStaleHint ? `
-        <div style="font-size:11.5px;color:var(--clay-d);margin-top:14px;padding:8px 10px;background:var(--ivory-d);border-left:3px solid var(--clay-d);text-align:left;line-height:1.5;border-radius:4px">
+        <div style="font-size:11.5px;color:var(--clay-d);margin-top:14px;padding:8px 10px;background:var(--ivory-d);border-left:3px solid var(--clay-d);text-align:left;line-height:1.5;border-radius:0">
           ⓘ 응답이 늦어지는 참가자가 있습니다. 매치 5분 한도가 지나면 자동 종료되며, 그 전에 결과를 보고 싶다면 아래 버튼으로 매치를 수동 종료할 수 있습니다 (미완료 참가자는 현재 점수로 집계).
         </div>` : `<div style="font-size:11px;color:var(--clay-d);margin-top:12px;font-style:italic">매치 5분 한도 초과 시 자동 종료</div>`}
       ${showForceEnd ? `
@@ -16572,7 +16709,7 @@ function renderBattleResult(code, room){
           ? _charMedallion(charId, 40)
           : '<div style="width:40px;height:40px;border-radius:50%;background:var(--clay);color:var(--ivory-w);display:inline-flex;align-items:center;justify-content:center;font-size:18px">👤</div>';
         const charLabel = charId ? `${CHARACTERS_BY_ID[charId].ko} · ${CHARACTERS_BY_ID[charId].ep}` : '';
-        return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:${i<players.length-1?'1px solid var(--clay)':'none'};background:${p.uid===S.userId?'var(--ivory-d)':'transparent'};border-radius:4px">
+        return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:${i<players.length-1?'1px solid var(--clay)':'none'};background:${p.uid===S.userId?'var(--ivory-d)':'transparent'};border-radius:0">
           <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
             <div style="font-family:var(--font-display);font-size:18px;color:${i===0?'var(--terracotta-d)':'var(--clay-d)'};font-weight:600;min-width:24px">${i+1}</div>
             <div style="flex-shrink:0">${charSvg}</div>
@@ -16600,8 +16737,8 @@ function renderBattleResult(code, room){
           const ansLang = optsAreGreek ? ' lang="grc"' : '';
           // 모드 라벨 (vocab 만 표기 안 함)
           const modeLabel = (aMode !== 'vocab' && BATTLE_MODES[aMode])
-            ? `<span style="font-size:10px;background:var(--clay);color:var(--ivory-w);padding:1px 6px;border-radius:6px;margin-left:6px">${BATTLE_MODES[aMode].grk}</span>` : '';
-          return `<div style="padding:10px 12px;border:1px solid var(--clay);border-radius:6px;background:var(--ivory-d);margin-bottom:8px">
+            ? `<span style="font-size:10px;background:var(--clay);color:var(--ivory-w);padding:1px 6px;border-radius:0;margin-left:6px">${BATTLE_MODES[aMode].grk}</span>` : '';
+          return `<div style="padding:10px 12px;border:1px solid var(--clay);border-radius:0;background:var(--ivory-d);margin-bottom:8px">
             <div${promptLang} style="${promptCls}font-size:${promptIsGreek?22:18}px;color:var(--terracotta-d);font-weight:600;letter-spacing:.02em">${(a.q || '').replace(/</g,'&lt;')}${modeLabel}</div>
             ${a.src ? `<div style="font-size:10px;color:var(--clay-d);font-style:italic;margin-top:3px">— ${(a.src||'').replace(/</g,'&lt;')}</div>` : ''}
             <div style="display:flex;align-items:baseline;gap:8px;margin-top:6px">
@@ -16678,9 +16815,9 @@ function _renderEraStats(){
         <span style="font-family:var(--font-display);font-weight:600;color:var(--terracotta-d)">${era}</span>
         <span style="font-size:11px;color:var(--clay-d)">완독 ${s.done}/${s.total} · 섹션 ${s.sectionsDone}/${s.sectionsTotal}</span>
       </div>
-      <div style="height:8px;background:var(--ivory-d);border-radius:3px;overflow:hidden;position:relative">
-        <div style="height:100%;width:${secPct}%;background:linear-gradient(90deg,var(--clay) 0%,var(--terracotta) 100%);transition:width .6s;border-radius:3px"></div>
-        ${pct > 0 ? `<div style="position:absolute;top:0;left:0;height:100%;width:${pct}%;background:var(--terracotta-d);transition:width .6s;border-radius:3px;opacity:.85" title="완독 ${pct}%"></div>` : ''}
+      <div style="height:8px;background:var(--ivory-d);border-radius:0;overflow:hidden;position:relative">
+        <div style="height:100%;width:${secPct}%;background:linear-gradient(90deg,var(--clay) 0%,var(--terracotta) 100%);transition:width .6s;border-radius:0"></div>
+        ${pct > 0 ? `<div style="position:absolute;top:0;left:0;height:100%;width:${pct}%;background:var(--terracotta-d);transition:width .6s;border-radius:0;opacity:.85" title="완독 ${pct}%"></div>` : ''}
       </div>
       <div style="font-size:10px;color:var(--clay-d);margin-top:3px;font-style:italic">진한 막대 = 완독 · 흐린 막대 = 섹션 진행</div>
     </div>`;
@@ -16877,14 +17014,14 @@ function renderBookmarks(){
           const date = new Date(b.ts).toLocaleDateString('ko-KR');
           const tags = (b.tags && b.tags.length) ? b.tags : [b.tag || '중요'];
           const k = bookmarkKey(b.workId, b.secN);
-          return `<div class="card" style="border-left:3px solid var(--terracotta);cursor:pointer;padding:12px 14px" data-wid="${b.workId}" data-sec="${secIdx}">
+          return `<div class="card" style="border-left:1px solid var(--veil-edge);cursor:pointer;padding:12px 14px" data-wid="${b.workId}" data-sec="${secIdx}">
             <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
               <div style="flex:1;min-width:0">
                 <div style="font-size:11px;color:var(--clay-d)">${w.authorKo} · ${w.workKo} · ${sec.label}</div>
                 <div style="font-family:var(--font-grk);font-size:14px;color:var(--black-glaze);margin-top:6px;line-height:1.5">${preview}…</div>
-                ${b.note ? `<div style="font-size:12.5px;color:var(--terracotta-d);margin-top:8px;padding:6px 8px;background:var(--ivory-d);border-radius:4px;border-left:2px solid var(--terracotta);line-height:1.5">📝 ${b.note.replace(/</g,'&lt;')}</div>` : ''}
+                ${b.note ? `<div style="font-size:12.5px;color:var(--terracotta-d);margin-top:8px;padding:6px 8px;background:var(--ivory-d);border-radius:0;border-left:2px solid var(--terracotta);line-height:1.5">📝 ${b.note.replace(/</g,'&lt;')}</div>` : ''}
                 <div style="display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap">
-                  ${tags.map(t => `<span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:2px 7px;border-radius:9px;letter-spacing:.02em">${t}</span>`).join('')}
+                  ${tags.map(t => `<span style="font-size:10px;background:var(--terracotta);color:var(--ivory-w);padding:2px 7px;border-radius:0;letter-spacing:.02em">${t}</span>`).join('')}
                   <span style="font-size:10px;color:var(--clay-d);margin-left:auto">📅 ${date}</span>
                 </div>
               </div>
@@ -17186,11 +17323,11 @@ function renderSRSStats(){
     else efBuckets.easy2++;
   }
   const efData = [
-    {label:'1.3–1.7 매우 어려움', value: efBuckets.hard,  color:'#7a2920'},
-    {label:'1.7–2.0 어려움',      value: efBuckets.med1,  color:'#9C3F2D'},
-    {label:'2.0–2.3 보통',        value: efBuckets.med2,  color:'#C44536'},
-    {label:'2.3–2.5 쉬움',        value: efBuckets.easy1, color:'#b59070'},
-    {label:'2.5+ 매우 쉬움',      value: efBuckets.easy2, color:'#8a7a6a'},
+    {label:'1.3–1.7 매우 어려움', value: efBuckets.hard,  color:'#0A2C52'},
+    {label:'1.7–2.0 어려움',      value: efBuckets.med1,  color:'#0E3A6B'},
+    {label:'2.0–2.3 보통',        value: efBuckets.med2,  color:'#14508F'},
+    {label:'2.3–2.5 쉬움',        value: efBuckets.easy1, color:'#A8C3DC'},
+    {label:'2.5+ 매우 쉬움',      value: efBuckets.easy2, color:'#7B92A8'},
   ];
 
   // 4) 반복 횟수 분포
@@ -17208,7 +17345,7 @@ function renderSRSStats(){
     {label:'1회',          value: repsBuckets.r1},
     {label:'2회',          value: repsBuckets.r2},
     {label:'3회',          value: repsBuckets.r3},
-    {label:'4회+ 숙달',    value: repsBuckets.r4plus, color:'#5a9c5a'},
+    {label:'4회+ 숙달',    value: repsBuckets.r4plus, color:'#4E9C84'},
   ];
 
   // 누적 통계
@@ -17250,7 +17387,7 @@ function renderSRSStats(){
 
     <h3 style="font-family:var(--font-display);font-size:14px;color:var(--terracotta-d);margin:18px 0 6px;text-transform:uppercase;letter-spacing:.08em">최근 7일 학습량</h3>
     <div class="card">
-      ${_svgBars(reviewData, {height: 22, color:'#9C3F2D'})}
+      ${_svgBars(reviewData, {height: 22, color:'#0E3A6B'})}
       <div style="font-size:11px;color:var(--clay-d);margin-top:8px;font-style:italic;line-height:1.5">
         각 날짜에 복습한 카드 수 (마지막 평가 기준). 매일 일정량씩 꾸준히 보는 것이 SRS의 정수입니다.
       </div>
@@ -17326,7 +17463,7 @@ function renderSRSCard(){
           ${w.en?`<div style="font-size:12px;color:var(--clay-d);margin-top:3px;font-style:italic">${w.en}</div>`:''}
           ${a && a.greek ? `<div style="font-size:11px;color:var(--clay-d);margin-top:8px">${a.greek} · ${a.korean}</div>` : ''}
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:14px">
-            <button class="btn btn-sm" data-q="0" style="background:#c84a3a;color:#fff;font-size:11px;padding:8px 4px">다시</button>
+            <button class="btn btn-sm" data-q="0" style="background:#C0453A;color:#fff;font-size:11px;padding:8px 4px">다시</button>
             <button class="btn btn-sm btn-o" data-q="3" style="font-size:11px;padding:8px 4px">어려움</button>
             <button class="btn btn-sm" data-q="4" style="font-size:11px;padding:8px 4px">보통</button>
             <button class="btn btn-sm btn-g" data-q="5" style="font-size:11px;padding:8px 4px">쉬움</button>
