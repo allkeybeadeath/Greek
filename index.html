@@ -68,7 +68,7 @@ window.addEventListener('unhandledrejection', e => {
 :root{
   /* v71 · 펜텔리콘 — 흰 대리석과 에게해 파랑.
      새 이름이 기준이고, 옛 이름은 별칭으로 남겨 기존 1,287곳의 참조를 그대로 살린다. */
-  --marble:#F2F6FA;
+  --marble:#FFFFFF;
   --marble-hi:#FFFFFF;
   --marble-lo:#E4EBF3;
   --flute:#E4EBF3;
@@ -131,11 +131,7 @@ body::before{
 }
 
 /* Meander border (Greek key) — used as decorative divider */
-.meander{
-  height:18px;background-repeat:repeat-x;background-position:center;
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='18' viewBox='0 0 40 18'><path d='M0 14h6V4h14v6h-6v4h12V4h6v10h6' fill='none' stroke='%231a1612' stroke-width='1.2'/></svg>");
-  opacity:.55;
-}
+.meander{height:18px}   /* v71.2: 열쇠무늬 띠 제거 — 여백만 */
 
 #app{min-height:100vh;display:flex;flex-direction:column;max-width:520px;margin:0 auto;background:var(--ivory);position:relative;box-shadow:0 0 40px rgba(0,0,0,.05)}
 
@@ -162,7 +158,7 @@ body::before{
    ============================================================================ */
 .bottom-nav{
   display:grid;grid-template-columns:repeat(5,1fr);
-  background:linear-gradient(180deg,var(--ivory) 0%,var(--ivory-d) 100%);
+  background:var(--marble-hi);
   border-top:1px solid var(--clay-d);position:sticky;bottom:0;z-index:50;
   box-shadow:0 -2px 12px var(--shadow-s);
 }
@@ -460,11 +456,7 @@ textarea.input{font-family:var(--font-ko);font-size:14px;line-height:1.5;min-hei
   letter-spacing:.01em;margin-bottom:18px;
   animation: splash-fade 1.4s ease-in-out infinite alternate;
 }
-.splash-meander{
-  width:200px;height:18px;margin-bottom:24px;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='18' viewBox='0 0 40 18'><path d='M0 14h6V4h14v6h-6v4h12V4h6v10h6' fill='none' stroke='%23C44536' stroke-width='1.2'/></svg>");
-  background-repeat:repeat-x;opacity:.7;
-}
+.splash-meander{height:0;margin-bottom:14px}   /* v71.2: 열쇠무늬 제거 */
 .splash-stage{font-size:14px;color:#26405A;margin-bottom:6px}
 .splash-hint{font-size:11px;color:#7B92A8;font-style:italic}
 @keyframes splash-fade { from{opacity:.55} to{opacity:1} }
