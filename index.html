@@ -127,8 +127,7 @@ body::before{
   content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;
   background:
     radial-gradient(ellipse 60% 80% at 20% 20%,rgba(111,168,214,.10),transparent 60%),
-    radial-gradient(ellipse 70% 90% at 80% 90%,rgba(20,80,143,.08),transparent 60%),
-    repeating-linear-gradient(90deg,transparent 0 43px,rgba(85,112,138,.018) 43px 44px);
+    radial-gradient(ellipse 70% 90% at 80% 90%,rgba(20,80,143,.08),transparent 60%);
 }
 
 /* Meander border (Greek key) — used as decorative divider */
@@ -193,7 +192,6 @@ main#view{flex:1;padding:16px 16px 24px;overflow-y:auto;-webkit-overflow-scrolli
 /* 카드 — 도기 패널 */
 .card{
   background:var(--marble-hi);
-  background-image:repeating-linear-gradient(90deg,transparent 0 43px,var(--flute) 43px 44px);
   border:0;border-top:2px solid var(--aegean);border-radius:0;
   padding:16px 18px;margin-bottom:14px;box-shadow:none;
   position:relative;overflow:hidden;
@@ -220,7 +218,6 @@ main#view{flex:1;padding:16px 16px 24px;overflow-y:auto;-webkit-overflow-scrolli
 @media (max-width:480px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .tile{
   background:var(--marble-hi);
-  background-image:repeating-linear-gradient(90deg,transparent 0 11px,var(--flute) 11px 12px);
   border:0;border-top:2px solid var(--aegean);border-radius:0;
   padding:18px 10px 16px;text-align:center;cursor:pointer;
   transition:background-color var(--t);
@@ -450,8 +447,7 @@ textarea.input{font-family:var(--font-ko);font-size:14px;line-height:1.5;min-hei
   body{background:var(--marble-lo)}
   body::before{background:
     radial-gradient(ellipse 60% 80% at 20% 20%,rgba(111,168,214,.20),transparent 60%),
-    radial-gradient(ellipse 70% 90% at 80% 90%,rgba(20,80,143,.18),transparent 60%),
-    repeating-linear-gradient(90deg,transparent 0 43px,rgba(0,0,0,.025) 43px 44px)}
+    radial-gradient(ellipse 70% 90% at 80% 90%,rgba(20,80,143,.18),transparent 60%)}
 }
 /* ─── 로딩 스플래시 (데이터 동기 로드 중 표시) ─── */
 .splash-init{
