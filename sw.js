@@ -18,7 +18,7 @@
    
    새 버전 배포 시 CACHE_VERSION만 올리면 됩니다.
    ============================================================================ */
-const CACHE_VERSION = 'v74';
+const CACHE_VERSION = 'v75';
 const CACHE_NAME    = `paideia-${CACHE_VERSION}`;
 const IMG_CACHE     = `paideia-img-${CACHE_VERSION}`;
 
