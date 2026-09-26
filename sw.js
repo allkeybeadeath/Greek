@@ -18,7 +18,7 @@
    
    새 버전 배포 시 CACHE_VERSION만 올리면 됩니다.
    ============================================================================ */
-const CACHE_VERSION = 'v75';
+const CACHE_VERSION = 'v76';
 const CACHE_NAME    = `paideia-${CACHE_VERSION}`;
 const IMG_CACHE     = `paideia-img-${CACHE_VERSION}`;
 
@@ -40,6 +40,7 @@ const DATA_BUNDLE = [
   './data-dialogues.js',
   './data-translations.js',   // v52: 원문 한국어 정역
   './data-characters.js',     // v53: 캐릭터 사진 URL 메타데이터
+  './data-units.js',          // v72: 문법 유닛 (Chase & Phillips 1~40과 진도)
 ];
 
 self.addEventListener('install', (event) => {
