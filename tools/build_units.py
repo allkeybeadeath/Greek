@@ -176,6 +176,8 @@ def code_label(code):
 def feats_match(code_f, an_f):
     for k, v in code_f.items():
         w = an_f.get(k)
+        if w is None and k in ('gend', 'deg'):
+            continue   # Morpheus 가 비교급의 성·급을 생략하는 경우가 있다
         if k == 'voice':
             if v == 'mp' and w in ('mp', 'mid', 'pass'):
                 continue
@@ -205,7 +207,7 @@ process.stdout.write(JSON.stringify({tw:grab('TEXTBOOK_W'), topics:grab('TOPICS'
 def norm_lemma(s):
     s = G.nfc(re.sub(r'[#0-9]+.*$', '', s or '')).strip()
     s = s.replace('σσ', 'ττ')
-    s = {'γίνομαι': 'γίγνομαι', 'γινώσκω': 'γιγνώσκω', 'σαυτοῦ': 'σεαυτοῦ',
+    s = {'γίνομαι': 'γίγνομαι', 'γινώσκω': 'γιγνώσκω', 'σαυτοῦ': 'σεαυτοῦ', 'νεανίης': 'νεανίας', 'νόος': 'νοῦς', 'δέω': 'δεῖ',
          'οἴομαι': 'οἴομαι', 'οἶμαι': 'οἴομαι'}.get(s, s)
     return s
 
@@ -223,6 +225,8 @@ GRAMMAR_WORDS = {
     'εἷς': (37, '하나'), 'τρεῖς': (37, '셋'), 'τέτταρες': (37, '넷'), 'μηδείς': (37, '아무도 (~않다)'),
     'ὅταν': (22, '~할 때마다 (+접속법)'), 'ἐπειδάν': (22, '~한 뒤에 (+접속법)'),
     'βαίνω': (38, '가다, 걷다'), 'δύω': (38, '들어가다, 잠기다'),
+    # 교재 13과가 활용과 함께 도입하지만 앱 어휘 목록(TEXTBOOK_W)에는 빠진 동사
+    'δίδωμι': (13, '주다'),
 }
 
 # 고유명사 — 해당 곡용을 배운 뒤부터
@@ -277,6 +281,16 @@ class Vocab:
 
 
 # ── 게이트 ──────────────────────────────────────────────────────────────────
+# 불규칙 비교급·최상급 — Morpheus 는 따로 표제어를 세운다
+SUPPLETIVE_COMP = {
+    'ἀμείνων': 'ἀγαθός', 'βελτίων': 'ἀγαθός', 'βέλτιστος': 'ἀγαθός', 'κρείττων': 'ἀγαθός',
+    'κράτιστος': 'ἀγαθός', 'χείρων': 'κακός', 'χείριστος': 'κακός', 'κακίων': 'κακός',
+    'κάκιστος': 'κακός', 'ἥττων': 'κακός', 'ἐλάττων': 'μικρός', 'ἐλάχιστος': 'μικρός',
+    'μείζων': 'μέγας', 'μέγιστος': 'μέγας', 'πλείων': 'πολύς', 'πλεῖστος': 'πολύς',
+    'καλλίων': 'καλός', 'κάλλιστος': 'καλός', 'ἡδίων': 'ἡδύς', 'ἥδιστος': 'ἡδύς',
+    'ῥᾴων': 'ῥᾴδιος', 'ῥᾷστος': 'ῥᾴδιος',
+}
+
 MI_LEMMAS = {'ἵστημι', 'δίδωμι', 'τίθημι', 'ἵημι', 'δείκνυμι', 'προδίδωμι', 'κατατίθημι',
              'ἐπιδείκνυμι', 'ἀποδίδωμι', 'παραδίδωμι', 'διατίθημι', 'ἐπιτίθημι', 'ἀφίημι',
              'διαδίδωμι', 'ἀνίστημι', 'ἀπόλλυμι', 'ἀνοίγνυμι', 'σκεδάννυμι', 'δύναμαι',
@@ -304,6 +318,12 @@ def lemma_unit(a, voc):
         return voc.unit.get('εἶδον', 12)
     if hd == 'εἶπον':
         return voc.unit.get('λέγω')
+    if hd in SUPPLETIVE_COMP:
+        base = voc.unit.get(SUPPLETIVE_COMP[hd])
+        return None if base is None else max(base, 9)
+    if hd == 'οὐδείς' and a.get('gend') == 'neuter' and a.get('num') == 'singular' \
+            and a.get('case') in ('nominative', 'accusative'):
+        return voc.unit.get('οὐδέν', voc.unit.get('οὐδείς'))
     if hd in ('φέρω',) and t in ('future', 'aorist'):
         return 99  # οἴσω / ἤνεγκα — 교재 범위에서 피한다
     if hd in voc.unit:
@@ -317,8 +337,8 @@ def feature_unit(a):
     f = feats(a)
     st = a.get('stemtype') or ''
     hd = norm_lemma(a.get('hdwd'))
-    if f.get('num') == 'du':
-        return 99
+    if f.get('num') == 'du' and hd != 'δύο':
+        return 99   # 쌍수는 다루지 않는다 (δύο 는 형태상 쌍수라 예외)
     u = 1
     if pofs == 'noun':
         u = {'2nd': 3, '1st': 3, '3rd': 6}.get(a.get('decl'), 3)  # 1변화 -η 는 3과(3.13), 나머지 유형은 어휘가 4과
@@ -400,11 +420,11 @@ def feature_unit(a):
 
 
 def attic_ok(a):
-    d = a.get('dial') or ''
+    """호메로스식(무증음·시어) 분석만 뺀다.
+    Morpheus 의 dial 태그는 아티카 표준형에도 'Ionic'·'epic' 을 붙이는 일이 잦아
+    (ἡμέραι, ποιητοῦ, φύλαξι) 판정 근거로 쓰지 않는다 — 방언은 사람이 쓰는 단계에서 관리."""
     morph = a.get('morph') or ''
-    if 'unaugmented' in morph or 'poetic' in morph:
-        return False
-    return (not d) or ('Attic' in d)
+    return not ('unaugmented' in morph or 'poetic' in morph)
 
 
 class Manual:
@@ -712,16 +732,17 @@ def build(args):
                         if t.get('nocheck'):
                             continue
                         for w in G.greek_words(c):
-                            if len(G.strip_all(w)) < 2:
-                                continue   # 낱글자 (ψ, ξ …)
+                            if len(G.strip_all(w)) < 2 or (len(w) <= 3 and G.strip_all(w) == w):
+                                continue   # 낱글자 (ψ, ξ …) · 부호 없는 모음 묶음 (ηυ, αι …)
                             if not ck.analyses(w):
                                 err(where, f'표 형태 분석 없음: {w}')
                         # 여러 낱말로 된 구(句)는 문맥 악센트까지 본다 — '/' '·' 는 대안 구분
-                        for seg in re.split(r'\s+[/·]\s+|;', c):
+                        for seg in re.split(r'\s+[/·→]\s+|;', c):
                             if len(G.greek_words(seg)) >= 2 and not re.search('[가-힣A-Za-z]', seg):
                                 for e in G.check_sentence_accents(seg):
                                     err(where, f'표 구 악센트: {e}  «{seg}»')
-                            elif len(G.greek_words(seg)) == 1 and len(G.strip_all(G.greek_words(seg)[0])) > 1:
+                            elif len(G.greek_words(seg)) == 1 and len(G.strip_all(G.greek_words(seg)[0])) > 1 \
+                                    and G.greek_words(seg)[0] != G.strip_all(G.greek_words(seg)[0]):
                                 w = G.greek_words(seg)[0]
                                 if len(G.accent_marks(w)) != 1 and not G.is_enclitic_form(w) \
                                         and G.nfc(w) not in G.PROCLITICS and w[-1] not in G.ELISION_MARKS:
@@ -734,18 +755,18 @@ def build(args):
                 items.append({'form': form, 'info': info})
                 continue
             form, code = [x.strip() for x in line.split('=', 1)]
+            codes = [c.strip() for c in code.split(';') if c.strip()]
             try:
-                lemma, combos, kind, _ = parse_code(code)
+                parsed = [parse_code(c) for c in codes]
             except ValueError as e:
                 err(f"{t['file']}:{ln}", str(e))
                 continue
-            an = ck.analyses(form)
-            ok = any(feats_match(c, feats(a)) and (not lemma or norm_lemma(a.get('hdwd')) == norm_lemma(lemma)
-                     or True) for c in combos for a in an if attic_ok(a) or a.get('manual'))
-            if not ok:
-                err(f"{t['file']}:{ln}", f'항목 분석 불일치: {form} = {code}  (Morpheus: '
-                    + '; '.join(sorted({label_of(feats(a), "verb" if is_verbal(a) else "adj") for a in an}))[:200] + ')')
-            items.append({'form': form, 'info': code_label(code)})
+            an = [a for a in ck.analyses(form) if attic_ok(a) or a.get('manual')]
+            for c, (lemma, combos, kind, _) in zip(codes, parsed):
+                if not any(feats_match(cb, feats(a)) for cb in combos for a in an):
+                    err(f"{t['file']}:{ln}", f'항목 분석 불일치: {form} = {c}  (Morpheus: '
+                        + '; '.join(sorted({label_of(feats(a), "verb" if is_verbal(a) else "adj") for a in an}))[:200] + ')')
+            items.append({'form': form, 'info': ' · '.join(code_label(c) for c in codes)})
         obj = {'id': t['id'], 'lesson': int(t['lesson']), 'cat': t['cat'], 'title': t['title'],
                'desc': t['desc'], 'expl': md_expl(t['expl'])}
         if t.get('ref'):
@@ -881,7 +902,11 @@ def build(args):
                 err(w, '작문 문항 필드 부족 (한국어 | 조각 / 조각 | 오답조각 / … [| 주석])')
                 continue
             ko = parts[0]
-            chunks = [c.strip() for c in parts[1].split(' / ') if c.strip()]
+            raw_chunks = [c.strip() for c in parts[1].split(' / ') if c.strip()]
+            # ^조각 = 맨 앞 고정, $조각 = 맨 뒤 고정
+            first_fixed = [i for i, c in enumerate(raw_chunks) if c.startswith('^')]
+            last_fixed = [i for i, c in enumerate(raw_chunks) if c.startswith('$')]
+            chunks = [c.lstrip('^$').strip() for c in raw_chunks]
             dis = [c.strip() for c in parts[2].split(' / ') if c.strip()]
             note = parts[3] if len(parts) > 3 else ''
             end = ';' if ko.rstrip().endswith('?') else '.'
@@ -913,10 +938,15 @@ def build(args):
             # 어순: 후치사(δέ, γάρ …)를 품은 조각은 맨 앞. 둘 이상이면 모범 어순 그대로
             post = [i for i, c in enumerate(chunks) if any(G.is_postpositive(x) for x in c.split()[1:])]
             item = {'k': ko, 'c': chunks, 'x': dis, 'e': end, 'n': note, 'gl': gl}
-            if len(post) > 1 or '순서' in note:
+            firsts = sorted(set(post) | set(first_fixed))
+            if len(firsts) > 1 or '순서' in note:
                 item['seq'] = 1
-            elif post:
-                item['fx'] = post[0]
+            elif firsts:
+                item['fx'] = firsts[0]
+            if last_fixed and not item.get('seq'):
+                item['lx'] = last_fixed[0]
+            if len(last_fixed) > 1:
+                err(w, '$ 조각은 하나만')
             comps.append(item)
 
         for k, v in saved.items():
