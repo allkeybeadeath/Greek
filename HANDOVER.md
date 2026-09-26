@@ -1,10 +1,46 @@
 # Ἑλληνικὴ Παιδεία — 개발 인수인계
 
-본 문서는 개인 프로젝트로 운영되는 고전 그리스어 학습 Progressive Web App (PWA) 의 기술적 인수인계를 위한 자료다. 신규 합류 구성원이 별도 컨텍스트 없이도 코드베이스를 이해하고 유지·확장할 수 있도록 작성했다. 최종 갱신 **v56 (2026년 5월)**.
+본 문서는 개인 프로젝트로 운영되는 고전 그리스어 학습 Progressive Web App (PWA) 의 기술적 인수인계를 위한 자료다. 신규 합류 구성원이 별도 컨텍스트 없이도 코드베이스를 이해하고 유지·확장할 수 있도록 작성했다. 최종 갱신 **v72 (2026년 9월)**.
 
-> **다음 작업자에게**: §7 라운드별 changelog 의 *맨 마지막 항목 (v62)* 이 현재 상태다. 그 위 라운드들은 어떻게 여기까지 왔는지의 기록. 새 작업을 시작하기 전에 `CHANGELOG_v62.md` 와 §0 의 현재 스냅샷을 먼저 읽기.
+> **다음 작업자에게**: 현재 상태는 §0 의 **v72 스냅샷**과 `CHANGELOG_v72.md` 다. v63~v71 의 변경은 각 `CHANGELOG_v6N.md` / `CHANGELOG_v7N.md` 에 있다. 이 문서 끝의 라운드별 기록은 어떻게 여기까지 왔는지의 기록이며, 맨 끝 항목이 v72 다.
 
-## 0. 현재 상태 스냅샷 (v62, 2026-05)
+## 0. 현재 상태 스냅샷 (v72, 2026-09)
+
+**v72 = 교재 유닛 문법.** 문법 탭이 Chase & Phillips, *A New Introduction to Greek* 의 과 순서(1~40과)를 따르는 유닛으로 바뀌었다.
+사용자 요청은 "이 책을 기반으로 유닛 구성, 문제도 전부 그대로 출제" — 첨부 파일이 없어 앱의 교재(TEXTBOOK_W 의 책)를 기준으로 했고,
+교재가 저작권 보호 중(3판 1961, 1989-08-24 갱신 RE440155, 2056년까지)이며 저장소가 공개 · Pages 배포라 **교재 문장은 싣지 않고 모든 문제를 새로 지었다.**
+이 원칙은 앞으로도 유지할 것 — 교재 예문 · 연습문제를 옮겨 넣지 말 것.
+
+**산출물 추가**: `data-units.js` (~835 KB, 생성물) · `units-src/u01.txt ~ u40.txt` (원본) · `tools/` (`build_units.py` · `greek_util.py` · `morpheus.py` · `morpheus_cache.json` · `manual_forms.tsv`) · `test-v72.js`.
+
+**데이터 모델**
+- `GRAMMAR_UNITS` — 40개 `{n, grk, title, summary, refs, topics[], more[], forms[], tr[], comp[]}`
+  - `forms`: `{f, a, o[3], q?}` — 제시형 · 정답 라벨 · 오답 3 · (자유 라벨 질문)
+  - `tr`: `{g, k, w[2], n, gl[[형태, 표제, 뜻, 분석]...]}` — 앱이 같은 유닛의 다른 해석 하나를 넷째 보기로 섞는다
+  - `comp`: `{k, c[], x[], e, n, gl, seq?, fx?, lx?}` — 정답 조각 · 오답 조각 · 끝 부호 · 어순 제약(전체 고정 / 맨 앞 / 맨 뒤)
+- `UNIT_TOPICS` — 신규 토픽 98개. data-units.js 끝의 IIFE 가 `TOPICS` 에 없는 id 만 push (그래서 data-units.js 는 TOPICS 정의 뒤에 싣는다).
+- 기존 `TOPICS` 41개는 index.html 에 그대로 있고, v72 에서 과 번호를 교재 순서로 고치고 `ref`(교재 절)를 붙였다. 합계 139.
+- 상태: `S.unitProgress[n] = {forms|tr|comp: {best, tries, last, at}, done?}` · 통과 `UNIT_PASS = 70` (세 묶음 모두 최고 점수 기준).
+
+**화면 (index.html, 문법 탭 블록 — `// ─── 문법 탭 (v72 · 교재 유닛)` 주석부터)**
+- `renderGrammar` (유닛 목록 / 주제 색인 세그먼트) · `renderUnit(n)` · `startUnitSet(n, key|'all')` · `startUnitReview(from, to)` · `_unitQ` → `_unitQForms` / `_unitQTr` / `_unitQComp` · `_unitAnswer` · `_unitFinish`
+- 토픽 화면: `topicBodyHtml` · `renderTopic` (뒤로 가기는 `window._topicReturn` 이 있으면 유닛으로) · `_renderParadigm` (6열 이상은 `.ptbl-scroll` 가로 스크롤)
+- 작문의 둔음 변환 `_grkToGrave` / `_joinChunks` 는 `tools/greek_util.join_chunks` 와 같은 규칙.
+- 진단 창 `window.__paideiaUnits = {run, progress, renderGrammar, openTask}` (브라우저 스모크용, 읽기 · 열기만).
+
+**초보자 60일 과정**: 과제 유형 `unit` 추가 — `{type:"unit", title, unit:N, note}` → `renderCurriculumUnitTask` 가 `window._unitCurriculumCtx = {day, idx, n}` 를 두고 `renderUnit` 을 연다. `renderUnit` 끝의 `_unitCurriculumBar(n)` 가 "← Day N · 학습 완료" 막대를 붙인다 (연습 뒤 유닛으로 돌아와도 유지). `renderGrammar` · `renderCurriculumDay` 진입 시 맥락 해제. 1~39과 유닛 과제가 각 과의 마지막 일차에 있다. `renderCurriculum` · `renderCurriculumDay` 를 v72 에서 window 로 내보냈다 (인라인 onclick 이 멈추던 버그).
+
+**유닛 고치는 법**: `units-src/uNN.txt` 수정 → `python3 tools/build_units.py` (검증 + 생성). 문법은 `tools/build_units.py` 머리말.
+검증 항목: Morpheus(Perseids API) 형태 분석(악센트 포함) · 문맥 악센트(둔음 · 전접어 · 후접어 · 절 끝 οὔ) · 과별 어휘 게이트(TEXTBOOK_W 과 번호 + `GRAMMAR_WORDS` + `NAMES`) · 과별 문법 게이트(`feature_unit` — 예: 미완료 8과, 중·수동 25과, 수동 부정과거 30과, 명령법 34과) · 분석 코드 ↔ 실제 분석 일치 · 오답이 실제 분석과 겹치지 않음.
+필요: `pip install greek-accentuation`. Morpheus 결과는 `tools/morpheus_cache.json` 에 캐시(`--offline` 로 네트워크 없이 재검증). Morpheus 가 모르는 아티카 형태는 `tools/manual_forms.tsv` 에 Smyth 절과 함께 등록. Morpheus 의 dial/poetic 태그는 믿을 수 없어 `unaugmented` 만 거른다.
+
+**v72 이후 미결**
+- 60일 과정은 레슨 39에서 끝난다 — 40과 유닛 · 레슨 40 어휘는 과정 밖 (Day 61 추가 시 `BEGINNER_CURRICULUM_TOTAL_DAYS` 도 함께).
+- 앱 어휘 목록과 UDallas 어휘표의 과 번호가 다른 3개(ἐκλέγομαι 32/38, ἀπορέω 33/34, φέρω 5/22) — 책 확인 필요. 유닛 게이트는 앱 목록을 따른다.
+- 1~2과 유닛은 글자 · 악센트 식별 문항만.
+- 커리큘럼 과제 진행 영구화 (`_curriculumTaskState` 는 여전히 세션 휘발성).
+
+## 0-a. 이전 스냅샷 (v62, 2026-05) — 기록용
 
 **배포 산출물**: `index.html` (~975 KB, IIFE ~440K chars, ~16.4K lines — v59 의 silent failure 차단 + 진단 modal ~270 lines + **v60 의 종료 흐름 fix 4 갈래 ~110 lines**) · `sw.js` · `data-works.js` (3 MB, 45 작품 545 섹션) · `data-morph.js` (4 MB, AGDT v2.1 37K 어형 11.8K lemma) · `data-dialogues.js` (45 KB, 10 콩트 시나리오) · `data-translations.js` (~55 KB, v53 확장 — 19 발췌 정역 ~330 문장 + 34 짧은 발췌 정역) · `data-characters.js` (~22 KB, v56 — 50 캐릭터 사진 + 50 명언 인용) · `espeakng.worker.js` (760 KB) · `manifest.json` · `reset.html`.
 
@@ -100,6 +136,9 @@ paideia/
 ├── reset.html                        상태 초기화 페이지
 ├── data-works.js           ~3 MB     전집 텍스트 (Perseus 기반)
 ├── data-morph.js           ~4 MB     AGDT 형태소 데이터 19,875 lemma
+├── data-units.js           ~835 KB   v72 문법 유닛 40 (생성물 — units-src/ 를 고치고 다시 빌드)
+├── units-src/                        v72 유닛 원본 u01.txt ~ u40.txt
+├── tools/                            v72 빌드·검증 도구 (build_units.py · greek_util.py · morpheus.py · 캐시)
 ├── espeakng.min.js         ~2 KB     eSpeak NG 로더 (Pettarin port)
 ├── espeakng.worker.js      ~776 KB   eSpeak NG Web Worker
 ├── espeakng.worker.data    ~2.4 MB   eSpeak NG 언어 데이터 (다국어 포함, grc 포함)
@@ -1378,6 +1417,8 @@ elision 매핑 확장 시 `_ELISION_RESTORE` 객체에 항목 추가. Smyth, *Gr
 
 데이터 갱신 (전집·형태소·DCC vocabulary) 은 `data-works.js`, `data-morph.js` 의 자료 갱신과 동시에 SW 의 `DATA_BUNDLE` 리스트 확인. 새 파일 추가 시 그 경로를 `DATA_BUNDLE` 에 명시해야 백그라운드 캐시 대상이 된다.
 
+문법 유닛(v72)은 `units-src/uNN.txt` 를 고친 뒤 `python3 tools/build_units.py` 로 다시 만든다. `data-units.js` 를 손으로 고치지 않는다. 검증을 통과하지 못하면 파일을 쓰지 않는다. 교재(Chase & Phillips) 문장은 저작권 보호 중이므로 예문 · 연습문제는 계속 새로 짓는다.
+
 테스트는 Node.js 스크립트로 작성한다 (`/home/claude/test-*.js` 패턴). 브라우저 환경 의존성이 없는 순수 로직은 모두 Node 에서 검증 가능하다. JSDOM 을 통한 DOM 시뮬레이션도 일부 사용 (`_setupGreekLang` 검증). 회귀 케이스가 누적되면서 v38 의 23 음역 케이스, v37 의 10 monotonic 케이스 등이 코드 변경의 안전망이 된다.
 
 ## 11. 외부 의존성 및 라이선스
@@ -1844,5 +1885,25 @@ defer (다음 라운드 후보, v61+):
 
 영구 제외 (사용자 정책):
   · 다국어 UI (i18n)
+
+---
+
+**v72**: 교재 유닛 문법 — 사용자 요청 *"문법 업데이트 → 이 책을 기반으로 유닛 구성. 문제도 전부 그대로 출제"*.
+
+- 책: 첨부 없음 → 앱의 교재 Chase & Phillips, *A New Introduction to Greek*. 과별 문법은 UDallas 공개 색인의 장 · 절, 과별 어휘는 UDallas 공개 어휘표와 대조.
+- "그대로 출제"는 하지 않음: 3판(1961) 저작권이 1989 갱신(RE440155)되어 2056년까지 보호, 공개 저장소 · Pages 배포. 문제 형식(형태 분석 · 해석 · 작문)만 살리고 문장은 모두 새로 지음 — 1,214문항. 고대 본문(주기도문, 델포이 격언, 속담)은 출처와 함께 인용.
+- 문법 탭: 40유닛 · 8부 · 다음 유닛 카드 · 부별 복습 · 주제 색인(139). 유닛마다 문법 · 새 낱말 · 연습문제 3묶음(70% 통과, +10 XP/문항, 완료 +50).
+- 신규 토픽 98, 기존 토픽 과 번호 교정 19 + 교재 절 ref, 용어 통일(부정과거 · 미완료 · 접속법 · 기원법), 악센트 · 설명 오류 교정, 1변화 여성 네 부류, 이중모음 팁.
+- 교재 어휘 보충 11, 표제어 오타 ἀμαρτάνω → ἁμαρτάνω (SRS 키 이전).
+- 60일 과정: 문법 유닛 과제(1~39과, 각 과 마지막 일차), 앞당겨져 있던 토픽 과제 정리, 인라인 버튼 전역 노출 버그 수정.
+- 검증: build_units.py --check 40유닛 통과 · test-v72.js 54/54 · Playwright 스모크 22/22 (페이지 오류 0) · test-v54~v60 실패 수 v71 과 동일.
+- 버전: APP_VERSION v72 · CACHE_VERSION v76 · DATA_BUNDLE 에 data-units.js.
+
+defer (v73 후보):
+- Day 61 (레슨 40 어휘 + 40과 유닛) — 과정 총일수 상수와 함께
+- 어휘 과 번호 불일치 3개 책으로 확인 (ἐκλέγομαι · ἀπορέω · φέρω)
+- 커리큘럼 과제 진행 영구화 · 시험 점수 표시
+- 유닛 연습문제의 오답 기록을 오답함(SRS)과 연결
+- 작문 문항의 그리스어 입력(자판) 모드 — 지금은 조각 배열만
 
 — *finis*

@@ -5,11 +5,20 @@
 ## 파일 목록
 
 ```
-index.html               # 본체 (~3.4 MB) — 어휘 1011 + 문법 34 + 전집 13 + 발췌 34 + AGDT 19,875항목
+index.html               # 본체 — 어휘 · 문법 토픽 139 · 초보자 60일 과정 · 원문 읽기 · 배틀 …
+data-units.js            # v72 문법 유닛 40 (Chase & Phillips 1~40과 진도, 새로 지은 연습문제 1,214문항)
+units-src/ · tools/      # 유닛 원본과 빌드·검증 도구 (python3 tools/build_units.py)
 manifest.json            # PWA 메타데이터
-sw.js                    # 서비스 워커 (오프라인 캐싱, CACHE_VERSION='v2')
+sw.js                    # 서비스 워커 (오프라인 캐싱, CACHE_VERSION='v76')
 icon.svg / icon-192.png / icon-512.png / apple-touch-icon.png
 ```
+
+## v72 — 교재 유닛 문법
+
+문법 탭이 교재(Chase & Phillips, *A New Introduction to Greek*)의 과 순서를 따르는 **40개 유닛**이 되었습니다.
+유닛마다 문법 설명 · 새 낱말 · 연습문제(형태 분석 · 해석 · 작문)가 있고, 세 묶음 모두 70% 이상이면 유닛 완료입니다.
+연습문제는 교재 문장을 옮기지 않고 **그 과까지의 어휘 · 문법만으로 새로 지었습니다** (교재는 저작권 보호 중 — 1989 갱신 RE440155).
+자세한 내용은 `CHANGELOG_v72.md`.
 
 ## v2 신규 사항
 

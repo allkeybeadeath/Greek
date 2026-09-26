@@ -15,6 +15,28 @@ Chase & Phillips, *A New Introduction to Greek* 의 1~40과 진도를 따라 문
   python3 tools/build_units.py --check    # 검증만
   python3 tools/build_units.py --only 5   # 특정 유닛만 검증 (빌드 안 함)
   python3 tools/build_units.py --offline  # 캐시에 없는 낱말은 조회하지 않고 실패 처리
+
+원본 문법 (units-src/uNN.txt)
+  // 주석
+  === topic <id>            신규 문법 토픽 — data-units.js 가 앱의 TOPICS 에 합친다
+  lesson: N                 cat: decl | verb | syntax | prep | phon | particle
+  ref: 교재 절              title: …   desc: …   note: …
+  expl:                     여러 줄. **굵게**, 빈 줄은 단락
+  table: 캡션 | 라벨열 | 열 | 열 …   다음 줄부터 '라벨 | 칸 | 칸', '# 구역 이름' (table 은 여러 개 가능)
+  items:                    형태 = 분석 코드   (형태 식별 드릴)
+  ===
+  === unit <N>
+  grk: 그리스어 제목        title: …   summary: …   refs: 교재 절
+  topics: id id …           more: id …   (더 읽기)
+  allow:                    낱말 = 뜻   (그 유닛에서만 어휘 범위 밖 낱말 허용 — 인용 본문 등)
+  forms:                    형태 = 분석 코드 [; 다른 분석]
+                            제시 == 정답 || 오답1 ; 오답2 ; 오답3 [|| 질문]   (자유 라벨)
+  tr:                       그리스어 | 정답 해석 | 오답1 | 오답2 [| 주석]
+  comp:                     한국어 | 조각 / 조각 … | 오답 조각 / … [| 주석]
+                            ^조각 = 맨 앞 고정, $조각 = 맨 뒤 고정. 조각 끝 낱말은 인용형(예음)으로 적는다.
+  ===
+  분석 코드 예: 'fut ind act 1 pl' · 'm/n gen sg' · 'aor ptcp act m nom sg' · 'pres mp inf' · 'perf imp mp 3 sg'
+  어휘 범위: TEXTBOOK_W 의 과 번호 + GRAMMAR_WORDS(문법이 도입하는 기능어 · 수사) + NAMES(고유명사).
 """
 import argparse
 import glob
