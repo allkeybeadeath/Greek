@@ -932,7 +932,7 @@ const TEXTBOOK_W = [
 {g:"τοσοῦτος",r:"-αύτη, -οῦτο",pos:"PR",l:25,ko:"이렇게 큰, 이만큼의",en:"so great, so much",note:""},
 {g:"φοβέομαι",r:"+대격/μή절",pos:"V",l:25,ko:"두려워하다",en:"to fear, be afraid",pp:"φοβέομαι · φοβήσομαι · ἐφοβήθην",note:"탈형 동사"},
 {g:"φόβος",r:"-ου, ὁ",pos:"N",l:25,ko:"두려움",en:"fear",note:""},
-{g:"ἀμαρτάνω",r:"+속격",pos:"V",l:26,ko:"실수하다, 죄를 짓다",en:"to err, miss, sin",pp:"ἀμαρτάνω · ἁμαρτήσομαι · ἥμαρτον · ἡμάρτηκα",note:"2단 과거 ἥμαρτον"},
+{g:"ἁμαρτάνω",r:"+속격",pos:"V",l:26,ko:"실수하다, 죄를 짓다",en:"to err, miss, sin",pp:"ἁμαρτάνω · ἁμαρτήσομαι · ἥμαρτον · ἡμάρτηκα",note:"2단 과거 ἥμαρτον"},
 {g:"βούλομαι",r:"+부정사",pos:"V",l:26,ko:"원하다, 바라다",en:"to want, wish",pp:"βούλομαι · βουλήσομαι · ἐβουλήθην · βεβούλημαι",note:"탈형 동사"},
 {g:"εὐεργετέω",r:"",pos:"V",l:26,ko:"은혜를 베풀다",en:"to do good to, benefit",pp:"εὐεργετέω · εὐεργετήσω",note:""},
 {g:"ἔστε",r:"",pos:"C",l:26,ko:"~하는 동안, ~할 때까지",en:"until, while",note:"시간절; = ἕως"},
@@ -6225,8 +6225,8 @@ const BEGINNER_CURRICULUM = [
     desc:"레슨 26 어휘 10개.",
     estMin:14,
     tasks:[
-      {type:"vocab", title:"단어 학습 (10)", words:["ἀμαρτάνω", "βούλομαι", "εὐεργετέω", "ἔστε", "ἵππος", "ἴδιος", "μάχομαι", "μακάριος", "μέχρι", "ὁπότε"]},
-      {type:"quiz", kind:"vocab", title:"단어 시험 (6)", items:["ἀμαρτάνω", "βούλομαι", "εὐεργετέω", "ἔστε", "ἵππος", "ἴδιος"]}
+      {type:"vocab", title:"단어 학습 (10)", words:["ἁμαρτάνω", "βούλομαι", "εὐεργετέω", "ἔστε", "ἵππος", "ἴδιος", "μάχομαι", "μακάριος", "μέχρι", "ὁπότε"]},
+      {type:"quiz", kind:"vocab", title:"단어 시험 (6)", items:["ἁμαρτάνω", "βούλομαι", "εὐεργετέω", "ἔστε", "ἵππος", "ἴδιος"]}
     ]
   },
   {
@@ -8784,7 +8784,8 @@ function _compCorrect(d, got){
   const a = got.slice().sort(), b = d.c.slice().sort();
   if(a.some((x, i) => x !== b[i])) return false;
   if(d.seq) return got.every((x, i) => x === d.c[i]);
-  if(typeof d.fx === 'number') return got[0] === d.c[d.fx];
+  if(typeof d.fx === 'number' && got[0] !== d.c[d.fx]) return false;
+  if(typeof d.lx === 'number' && got[got.length - 1] !== d.c[d.lx]) return false;
   return true;
 }
 function _compHint(d, got){
@@ -8792,7 +8793,8 @@ function _compHint(d, got){
   if(extra.length) return `<div class="u-hint">틀린 형태: <span class="grk">${extra.map(escapeHtml).join(', ')}</span></div>`;
   const miss = d.c.filter(c => !got.includes(c));
   if(miss.length) return `<div class="u-hint">빠진 조각: <span class="grk">${miss.map(escapeHtml).join(', ')}</span></div>`;
-  if(d.seq || typeof d.fx === 'number') return `<div class="u-hint">조각은 맞지만 순서가 틀렸습니다 — δέ · γάρ 같은 후치사는 문장(절)의 둘째 자리에 온다.</div>`;
+  if(d.seq || typeof d.fx === 'number' || typeof d.lx === 'number')
+    return `<div class="u-hint">조각은 맞지만 순서가 틀렸습니다 — δέ · γάρ 같은 후치사를 품은 조각은 맨 앞에, ὥστε · ἀλλά 로 이어지는 절은 뒤에 온다.</div>`;
   return '';
 }
 
@@ -18125,7 +18127,14 @@ function editBookmark(key){
 window.editBookmark = editBookmark;
 
 // ===== SRS — 간격 반복 학습 (SM-2) =====
-function _ensureSRS(){ if(!S.srs) S.srs = {}; }
+function _ensureSRS(){
+  if(!S.srs) S.srs = {};
+  // v72: 교재 어휘 표제어 오타 수정(ἀμαρτάνω → ἁμαρτάνω) — 기존 복습 기록을 새 키로 옮긴다.
+  if(S.srs['ἀμαρτάνω']){
+    if(!S.srs['ἁμαρτάνω']) S.srs['ἁμαρτάνω'] = S.srs['ἀμαρτάνω'];
+    delete S.srs['ἀμαρτάνω'];
+  }
+}
 function _srsKey(word){ return word.g; }
 function _srsToday(){
   const d = new Date();

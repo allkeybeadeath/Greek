@@ -330,6 +330,9 @@ def lemma_unit(a, voc):
         return 99  # οἴσω / ἤνεγκα — 교재 범위에서 피한다
     if hd in voc.unit:
         return voc.unit[hd]
+    # 탈형 동사: Morpheus 는 φοβέομαι 를 능동형 표제어 φοβέω 로 세운다
+    if hd.endswith('ω') and (hd[:-1] + 'ομαι') in voc.unit:
+        return voc.unit[hd[:-1] + 'ομαι']
     return None
 
 
@@ -527,6 +530,12 @@ class Checker:
                 labels.append(lab)
         # 성별만 다른 분석(남/중성 속격 등)은 합친다
         labels = merge_labels(labels)
+        if lemma not in self.voc.disp and lemma and lemma.endswith('ω') and (lemma[:-1] + 'ομαι') in self.voc.disp:
+            lemma = lemma[:-1] + 'ομαι'   # 탈형 동사는 -ομαι 표제어로 보인다
+        for a in good:
+            hd = norm_lemma(a.get('hdwd'))
+            if hd in SUPPLETIVE_COMP and lemma == hd:
+                lemma = SUPPLETIVE_COMP[hd]   # ἀμείνων → ἀγαθός
         disp = self.voc.disp.get(lemma, lemma)
         ko = self.voc.ko.get(lemma, '')
         if lemma == 'ἔρχομαι':
