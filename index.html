@@ -419,6 +419,82 @@ textarea.input{font-family:var(--font-ko);font-size:14px;line-height:1.5;min-hei
 .pulse{animation:pulse .5s}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
 
+/* ============================================================================
+   v72 · 문법 유닛 (Chase & Phillips 40과) — 목록 · 유닛 · 연습문제
+   ============================================================================ */
+.seg{display:flex;border:1px solid var(--rule);margin:0 0 18px}
+.seg-b{flex:1;border:0;background:transparent;padding:9px 6px;font:inherit;font-size:13px;color:var(--ink-soft);cursor:pointer;letter-spacing:.04em}
+.seg-b.on{background:var(--aegean);color:var(--marble-hi)}
+.seg-b:disabled{opacity:.4;cursor:not-allowed}
+.u-next{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;border:1px solid var(--veil-edge);background:var(--veil);padding:14px 16px;margin:0 0 8px;font:inherit;color:inherit;cursor:pointer}
+.u-next .k{font-size:11px;letter-spacing:.08em;color:var(--aegean)}
+.u-next .grk{font-size:13px;color:var(--ink-soft)}
+.u-next .t{font-size:16px;font-weight:600;color:var(--ink)}
+.u-part{display:flex;align-items:baseline;gap:10px;margin:26px 0 2px;padding-bottom:6px;border-bottom:1px solid var(--rule);font-size:12px;color:var(--ink-soft);letter-spacing:.04em}
+.u-part .grk{font-size:15px;color:var(--aegean);letter-spacing:.02em}
+.u-part .c{margin-left:auto;font-variant-numeric:tabular-nums}
+.u-row,.u-set{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;border-bottom:1px solid var(--rule);background:transparent;padding:12px 2px;font:inherit;color:inherit;cursor:pointer}
+.u-row:hover,.u-set:hover{background:var(--veil)}
+.u-num{font-family:var(--font-display);font-size:22px;color:var(--aegean);min-width:32px;text-align:center;font-variant-numeric:tabular-nums}
+.u-row.done .u-num{color:var(--ok)}
+.u-body{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
+.u-grk{font-family:var(--font-grk);font-size:12px;color:var(--ink-soft)}
+.u-title{font-size:15px;font-weight:600;color:var(--ink)}
+.u-meta{font-size:11px;color:var(--ink-soft)}
+.u-state{color:var(--ok);font-size:15px;min-width:16px;text-align:right}
+.u-review{display:block;width:100%;text-align:right;border:0;background:transparent;color:var(--aegean);font:inherit;font-size:12px;padding:10px 2px 4px;cursor:pointer}
+.u-review:hover{text-decoration:underline}
+.u-tool{display:grid;grid-template-columns:auto 1fr;column-gap:12px;width:100%;text-align:left;border:0;border-bottom:1px solid var(--rule);background:transparent;padding:12px 2px;font:inherit;color:inherit;cursor:pointer}
+.u-tool:hover{background:var(--veil)}
+.u-tool .grk{grid-row:span 2;font-size:19px;color:var(--aegean);align-self:center;min-width:92px}
+.u-tool .t{font-size:14px;font-weight:600}
+.u-tool .d{font-size:11px;color:var(--ink-soft)}
+.u-sec{display:flex;align-items:baseline;gap:8px;font-family:var(--font-display);font-size:19px;color:var(--aegean);margin:28px 0 4px;padding-bottom:6px;border-bottom:1px solid var(--rule)}
+.u-sec .c{font-family:var(--font-ko);font-size:12px;color:var(--ink-soft)}
+.u-nav{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.u-head .grk{font-size:14px;color:var(--ink-soft)}
+.u-sum{font-size:14px;line-height:1.7;color:var(--ink-mid);margin:0 0 6px}
+.u-ref{font-size:11px;color:var(--ink-soft);letter-spacing:.03em;margin-bottom:16px}
+.u-topic{border-bottom:1px solid var(--rule)}
+.u-topic>summary{list-style:none;cursor:pointer;padding:12px 2px;display:flex;flex-direction:column;gap:2px}
+.u-topic>summary::-webkit-details-marker{display:none}
+.u-topic>summary .t{font-size:15px;font-weight:600;color:var(--ink)}
+.u-topic>summary .t::before{content:'+';display:inline-block;width:16px;color:var(--aegean);font-weight:400}
+.u-topic[open]>summary .t::before{content:'−'}
+.u-topic>summary .d{font-size:12px;color:var(--ink-soft);padding-left:16px}
+.u-topic-body{padding:0 2px 14px}
+.u-expl{font-size:14.5px;line-height:1.8;color:var(--ink)}
+.u-tbl{margin:4px 0 8px;overflow-x:auto}
+.u-more{font-size:12px;color:var(--ink-soft);margin:10px 0}
+.u-more .lnk{border:0;border-bottom:1px solid var(--rule);background:none;font:inherit;color:var(--aegean);cursor:pointer;padding:0;margin:0 8px 4px 0}
+.u-words td{font-size:13px}
+.u-words .r{font-size:11px;color:var(--ink-soft);font-weight:400}
+.u-best{font-size:12px;color:var(--aegean);white-space:nowrap}
+.u-set .grk{font-size:22px;color:var(--aegean);min-width:32px;text-align:center}
+.u-count{font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.u-prog{height:1px;background:var(--rule);margin:0 0 14px}
+.u-prog i{display:block;height:1px;background:var(--aegean);transition:width .3s}
+.u-qtag{font-size:11px;letter-spacing:.06em;color:var(--ink-soft);margin:0 0 8px}
+.u-sent{font-size:23px;line-height:1.6;color:var(--ink);margin:4px 0 10px}
+.u-say{padding:2px 8px;font-size:13px;vertical-align:middle}
+.u-line{min-height:54px;border-bottom:1px solid var(--aegean);padding:8px 0;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;margin:6px 0 14px}
+.u-line .ph{font-family:var(--font-ko);font-size:12px;color:var(--ink-soft)}
+.u-bank{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.u-chunk{border:1px solid var(--rule);background:var(--marble-hi);color:var(--ink);font-family:var(--font-grk);font-size:18px;padding:7px 11px;cursor:pointer;line-height:1.3}
+.u-chunk:hover{border-color:var(--aegean)}
+.u-chunk.on{border-color:var(--aegean);background:var(--veil)}
+.u-chunk:disabled{opacity:.25;cursor:default}
+.u-chunk.on:disabled{opacity:1}
+.u-model{font-size:19px;margin:6px 0 2px;color:var(--ink);font-weight:400}
+.u-alt{font-size:12px;color:var(--ink-soft);margin-top:4px}
+.u-alt .grk{font-size:15px}
+.u-hint{margin-top:4px}
+.u-note{font-size:13px;line-height:1.65;color:var(--ink-mid);background:var(--veil);padding:10px 12px;margin:10px 0}
+.u-gloss{margin:6px 0}
+.u-gloss>summary{cursor:pointer;font-size:12px;color:var(--aegean);padding:6px 0}
+.u-gloss td{font-size:13px;vertical-align:top}
+.u-gloss .p{font-size:11px;color:var(--ink-soft);margin-top:2px}
+
 /* 미니 링크 */
 .minlink{color:var(--terracotta-d);text-decoration:none;font-size:12px;border-bottom:1px dotted var(--terracotta-d);font-weight:500}
 .minlink:hover{color:var(--terracotta)}
@@ -4423,6 +4499,7 @@ const READINGS = [
 <script src="data-dialogues.js"></script>
 <script src="data-translations.js"></script>
 <script src="data-characters.js"></script>
+<script src="data-units.js"></script>
 <script>
 /* data_images.js */
 /* ============================================================================
@@ -6337,6 +6414,7 @@ let S = {
   showTranslation: false,                        // 원문 해석 표시 (v52) — 본문 각 문장 아래 한국어 해석 노출
   curriculumDay: 1,                              // 초보자 커리큘럼 (v62) — 현재 진행 중인 일차 (1부터)
   curriculumDone: {},                            // {[day]: {completedAt:ms, score?:0~100}} — 완료한 일차들
+  unitProgress: {},                              // v72: 문법 유닛 {[n]: {forms|tr|comp:{best,tries,last,at}, done?:ms}}
 };
 
 function todayStr(){ const d=new Date(); return d.toISOString().slice(0,10); }
@@ -8279,68 +8357,536 @@ function finishQuiz(){
 }
 window.setTab = setTab;
 
-// ─── 문법 탭 ─────────────────────────────────────────────────────────────────
-let grammarFilter = { cat:'all' };
+// ─── 문법 탭 (v72 · 교재 유닛) ───────────────────────────────────────────────
+// Chase & Phillips, *A New Introduction to Greek* 1~40과의 진도를 따라 문법을 유닛으로 묶는다.
+// 데이터: data-units.js 의 GRAMMAR_UNITS · UNIT_TOPICS (tools/build_units.py 가 units-src/*.txt 로부터 생성).
+// 연습문제는 모두 새로 지은 것이다 — 교재 문장은 옮기지 않았다 (저작권 갱신 RE440155).
+let grammarFilter = { cat:'all', view:'units' };
+const UNIT_PARTS = [
+  {from:1,  to:2,  grk:'Γράμματα',              ko:'문자와 악센트'},
+  {from:3,  to:7,  grk:'Ὀνόματα',               ko:'명사 · 형용사 · 동사 입문'},
+  {from:8,  to:12, grk:'Χρόνοι',                ko:'과거 시제 · 대명사'},
+  {from:13, to:18, grk:'Ῥήματα',                ko:'μι-동사 · 축약동사 · 3변화 형용사'},
+  {from:19, to:24, grk:'Μετοχαὶ καὶ ἐγκλίσεις', ko:'분사 · 접속법 · 기원법'},
+  {from:25, to:30, grk:'Διαθέσεις',             ko:'중간태 · 수동태'},
+  {from:31, to:36, grk:'Παρακείμενος',          ko:'완료 · 명령법 · 주요형'},
+  {from:37, to:40, grk:'Τέλος',                 ko:'수사 · 불규칙 동사'},
+];
+const UNIT_SETS = [
+  {key:'forms', grk:'Α', ko:'형태 분석', desc:'낱말 하나의 격·수·성, 시제·법·태·인칭을 고른다'},
+  {key:'tr',    grk:'Β', ko:'해석',      desc:'그리스어 문장의 알맞은 한국어 뜻을 고른다'},
+  {key:'comp',  grk:'Γ', ko:'작문',      desc:'조각을 골라 한국어 문장을 그리스어로 옮긴다'},
+];
+const UNIT_PASS = 70;   // 세 묶음 모두 최고 점수 70% 이상이면 유닛 완료
+
+function _unitsReady(){ return typeof GRAMMAR_UNITS !== 'undefined' && Array.isArray(GRAMMAR_UNITS) && GRAMMAR_UNITS.length > 0; }
+function _unitByN(n){ return _unitsReady() ? GRAMMAR_UNITS.find(u => u.n === n) : null; }
+function _ensureUnitState(){
+  if(!S.unitProgress || typeof S.unitProgress !== 'object') S.unitProgress = {};
+  return S.unitProgress;
+}
+function _unitSetItems(u, key){ return (u && Array.isArray(u[key])) ? u[key] : []; }
+function unitProgressOf(n){
+  const u = _unitByN(n);
+  const p = _ensureUnitState()[n] || {};
+  const sets = UNIT_SETS.map(s => {
+    const total = _unitSetItems(u, s.key).length;
+    const rec = p[s.key] || {};
+    return {key:s.key, total, best: rec.best || 0, tries: rec.tries || 0};
+  }).filter(s => s.total > 0);
+  const passed = sets.length > 0 && sets.every(s => s.best >= UNIT_PASS);
+  const tried = sets.filter(s => s.tries > 0).length;
+  return {sets, passed: passed || !!p.done, done: !!p.done, tried, total: sets.reduce((a,s)=>a+s.total,0)};
+}
+function _grkNumeral(n){
+  // 밀레토스식 숫자 (1~99)
+  const ones = ['','Α','Β','Γ','Δ','Ε','Ϛ','Ζ','Η','Θ'];
+  const tens = ['','Ι','Κ','Λ','Μ','Ν','Ξ','Ο','Π','Ϙ'];
+  const t = Math.floor(n/10), o = n % 10;
+  let s = tens[t] + ones[o];
+  return s.charAt(0) + s.slice(1).toLowerCase() + 'ʹ';
+}
+function _escAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+// 조각 끝 oxytone 을 둔음으로 — tools/greek_util.join_chunks 와 같은 규칙
+function _grkOxytone(word){
+  const d = word.normalize('NFD');
+  const units = [];
+  for(const ch of d){
+    if(/[̀-ͯ]/.test(ch)){ if(units.length) units[units.length-1].marks += ch; }
+    else units.push({base: ch, marks: ''});
+  }
+  const acc = units.reduce((n,u) => n + (u.marks.match(/[́̀͂]/g) || []).length, 0);
+  if(acc !== 1) return false;
+  const isV = b => 'αεηιουωΑΕΗΙΟΥΩ'.includes(b);
+  let i = units.length - 1;
+  while(i >= 0 && !isV(units[i].base)) i--;
+  if(i < 0) return false;
+  const syl = [units[i]];
+  if(i > 0 && isV(units[i-1].base)){
+    const pair = (units[i-1].base + units[i].base).toLowerCase();
+    if(['αι','ει','οι','υι','αυ','ευ','ου','ηυ'].includes(pair) && !units[i].marks.includes('̈')) syl.unshift(units[i-1]);
+  }
+  return syl.some(u => u.marks.includes('́'));
+}
+function _grkToGrave(word){
+  const w = word.normalize('NFC');
+  if(w === 'τίς' || w === 'τί' || /[.,;·:!?;·]$/.test(w) || !_grkOxytone(w)) return word;
+  const d = w.normalize('NFD');
+  const i = d.lastIndexOf('́');
+  return (d.slice(0, i) + '̀' + d.slice(i + 1)).normalize('NFC');
+}
+function _joinChunks(chunks){
+  return chunks.map((c, i) => {
+    if(i === chunks.length - 1) return c;
+    const ws = c.split(' ');
+    ws[ws.length - 1] = _grkToGrave(ws[ws.length - 1]);
+    return ws.join(' ');
+  }).join(' ');
+}
+
+// ── 문법 탭 첫 화면 ──
 function renderGrammar(){
-  const topics = grammarFilter.cat==='all' ? TOPICS : TOPICS.filter(t=>t.cat===grammarFilter.cat);
+  if(!_unitsReady()) grammarFilter.view = 'topics';
+  const isUnits = grammarFilter.view === 'units';
+  const doneN = _unitsReady() ? GRAMMAR_UNITS.filter(u => unitProgressOf(u.n).passed).length : 0;
+  const totalQ = _unitsReady() ? GRAMMAR_UNITS.reduce((a,u)=> a + UNIT_SETS.reduce((b,s)=> b + _unitSetItems(u, s.key).length, 0), 0) : 0;
   view.innerHTML = `
     <h2 class="view-title fade-in"><span class="grk">Γραμματική</span>문법</h2>
-    <div class="view-sub">${TOPICS.length}개 주제 · 학습 완료 <b>${S.topicsStudied.length}</b></div>
+    <div class="view-sub">${isUnits
+      ? `Chase &amp; Phillips 40과 진도 · 유닛 완료 <b>${doneN}</b>/${_unitsReady()?GRAMMAR_UNITS.length:0} · 연습문제 ${totalQ}개`
+      : `${TOPICS.length}개 주제 · 학습 완료 <b>${S.topicsStudied.length}</b>`}</div>
 
-    <button class="card" type="button" data-render="renderAccent" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:1px solid var(--veil-edge);background:var(--marble-hi)">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div>
-          <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Τόνοι</div>
-          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">악센트 학습</div>
-          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">5종 분류 · 전집 본문 자동 분석 · 유형 퀴즈 · Smyth §156-181</div>
-        </div>
-        <div style="font-size:22px;color:var(--terracotta)">→</div>
-      </div>
-    </button>
+    <div class="seg" role="tablist" aria-label="문법 보기 방식">
+      <button class="seg-b ${isUnits?'on':''}" data-gv="units" role="tab" aria-selected="${isUnits}" ${_unitsReady()?'':'disabled'}>교재 유닛</button>
+      <button class="seg-b ${isUnits?'':'on'}" data-gv="topics" role="tab" aria-selected="${!isUnits}">주제 색인</button>
+    </div>
 
-    <button class="card" type="button" data-render="renderInflection" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:1px solid var(--veil-edge);background:var(--marble-hi)">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div>
-          <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Κλίσις</div>
-          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">변형 드릴 (Inflection)</div>
-          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">명사·동사 변화형 ↔ 형태분석 라벨 4지선다 · TOPICS 검증 데이터</div>
-        </div>
-        <div style="font-size:22px;color:var(--terracotta)">→</div>
-      </div>
-    </button>
+    <div id="grammar-body" class="fade-in">${isUnits ? _unitsListHtml() : _topicIndexHtml()}</div>
 
-    <button class="card" type="button" data-render="renderDialects" style="cursor:pointer;width:100%;text-align:left;border:1px solid var(--clay);border-left:1px solid var(--veil-edge);background:var(--marble-hi)">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div>
-          <div style="font-family:var(--font-grk);font-size:20px;color:var(--terracotta-d);font-weight:600">Διάλεκτοι</div>
-          <div style="font-size:14px;font-weight:600;color:var(--black-glaze);margin-top:2px">방언 비교 (Dialects)</div>
-          <div style="font-size:11px;color:var(--clay-d);margin-top:3px">Attic · Ionic · Homeric · Doric/Aeolic · Koine 음운·형태 변이 · Smyth §214-275, Buck (1955)</div>
-        </div>
-        <div style="font-size:22px;color:var(--terracotta)">→</div>
-      </div>
-    </button>
+    <div class="u-sec">도구</div>
+    ${[
+      ['renderAccent','Τόνοι','악센트 학습','5종 분류 · 전집 본문 자동 분석 · 유형 퀴즈 · Smyth §156-181'],
+      ['renderInflection','Κλίσις','변형 드릴 (Inflection)','명사·동사 변화형 ↔ 형태분석 라벨 4지선다 · 문법 토픽 검증 데이터'],
+      ['renderDialects','Διάλεκτοι','방언 비교 (Dialects)','Attic · Ionic · Homeric · Doric/Aeolic · Koine 음운·형태 변이 · Smyth §214-275, Buck (1955)'],
+    ].map(([fn, grk, ko, d]) => `
+      <button class="u-tool" type="button" data-render="${fn}">
+        <span class="grk">${grk}</span><span class="t">${ko}</span><span class="d">${d}</span>
+      </button>`).join('')}
+  `;
+  view.querySelectorAll('[data-gv]').forEach(b => b.addEventListener('click', () => {
+    grammarFilter.view = b.dataset.gv; renderGrammar();
+  }));
+  view.querySelectorAll('[data-unit]').forEach(b => b.addEventListener('click', () => renderUnit(+b.dataset.unit)));
+  view.querySelectorAll('[data-review]').forEach(b => b.addEventListener('click', () => {
+    const [a, z] = b.dataset.review.split('-').map(Number);
+    startUnitReview(a, z);
+  }));
+  view.querySelectorAll('#cat-chips .chip').forEach(c => c.addEventListener('click', () => { grammarFilter.cat = c.dataset.v; renderGrammar(); }));
+  view.querySelectorAll('#topic-list [data-id]').forEach(b => b.addEventListener('click', () => { window._topicReturn = null; renderTopic(b.dataset.id); }));
+}
 
+function _unitsListHtml(){
+  // 이어서 할 유닛: 아직 통과 못 한 가장 앞 유닛
+  const next = GRAMMAR_UNITS.find(u => !unitProgressOf(u.n).passed);
+  let html = '';
+  if(next){
+    const pr = unitProgressOf(next.n);
+    html += `
+      <button class="u-next" data-unit="${next.n}">
+        <span class="k">${pr.tried ? '이어서' : '다음 유닛'}</span>
+        <span class="grk">Μάθημα ${_grkNumeral(next.n)}</span>
+        <span class="t">${next.n}과 · ${escapeHtml(next.title)}</span>
+      </button>`;
+  }
+  for(const part of UNIT_PARTS){
+    const us = GRAMMAR_UNITS.filter(u => u.n >= part.from && u.n <= part.to);
+    if(!us.length) continue;
+    const partDone = us.filter(u => unitProgressOf(u.n).passed).length;
+    html += `<div class="u-part"><span class="grk">${part.grk}</span><span>${part.ko}</span><span class="c">${partDone}/${us.length}</span></div>`;
+    for(const u of us){
+      const pr = unitProgressOf(u.n);
+      const best = pr.sets.length ? Math.round(pr.sets.reduce((a,s)=>a+s.best,0) / pr.sets.length) : 0;
+      html += `
+        <button class="u-row ${pr.passed?'done':''}" data-unit="${u.n}">
+          <span class="u-num">${u.n}</span>
+          <span class="u-body">
+            <span class="u-grk">Μάθημα ${_grkNumeral(u.n)}</span>
+            <span class="u-title">${escapeHtml(u.title)}</span>
+            <span class="u-meta">문법 ${u.topics.length} · 연습 ${pr.total}${pr.tried ? ` · 평균 최고 ${best}%` : ''}</span>
+          </span>
+          <span class="u-state" aria-label="${pr.passed?'완료':''}">${pr.passed ? '✓' : ''}</span>
+        </button>`;
+    }
+    const hasQ = us.some(u => UNIT_SETS.some(s => _unitSetItems(u, s.key).length));
+    if(hasQ && part.from >= 3){
+      html += `<button class="u-review" data-review="${part.from}-${part.to}">복습 시험 — ${part.from}~${part.to}과 섞어서 15문항 →</button>`;
+    }
+  }
+  return html;
+}
+
+function _topicIndexHtml(){
+  const topics = grammarFilter.cat === 'all' ? TOPICS.slice() : TOPICS.filter(t => t.cat === grammarFilter.cat);
+  return `
     <div class="chips" id="cat-chips">
-      ${[['all','전체'],['decl','격변화 (명사·형용사·대명사)'],['verb','동사 시제·법·분사'],['particle','입자·담화 표지'],['prep','전치사']].map(([v,l])=>
+      ${[['all','전체'],['decl','격변화'],['verb','동사'],['syntax','구문'],['phon','문자·악센트'],['particle','입자'],['prep','전치사']].map(([v,l]) =>
         `<button class="chip ${grammarFilter.cat===v?'active':''}" data-v="${v}">${l}</button>`).join('')}
     </div>
+    <div id="topic-list">
+      ${topics.sort((a,b) => a.lesson - b.lesson).map(t => `
+        <button class="u-row" data-id="${t.id}">
+          <span class="u-num" style="font-size:15px">${t.lesson < 99 ? t.lesson : '심화'}</span>
+          <span class="u-body">
+            <span class="u-title">${t.title}</span>
+            <span class="u-meta">${t.desc}</span>
+          </span>
+          <span class="u-state">${S.topicsStudied.includes(t.id) ? '✓' : ''}</span>
+        </button>`).join('')}
+    </div>`;
+}
 
-    <div id="topic-list" class="fade-in">
-      ${topics.sort((a,b)=>a.lesson-b.lesson).map(t=>`
-        <button class="card" style="width:100%;text-align:left;cursor:pointer;border:1px solid ${S.topicsStudied.includes(t.id)?'var(--terracotta)':'var(--clay)'}" data-id="${t.id}">
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <div>
-              <div style="font-family:var(--font-display);font-size:17px;font-weight:600;color:var(--black-glaze)">${t.title}</div>
-              <div style="font-size:12px;color:var(--clay-d);margin-top:2px">${t.lesson===99?'심화':(t.lesson<500?`교재 ${t.lesson}과`:'고급')} · ${t.desc}</div>
-            </div>
-            <div style="font-size:12px;color:${S.topicsStudied.includes(t.id)?'var(--terracotta-d)':'var(--clay-d)'}">${S.topicsStudied.includes(t.id)?'✓':''}</div>
-          </div>
-        </button>
-      `).join('')}
+// ── 유닛 화면 ──
+function renderUnit(n){
+  const u = _unitByN(n);
+  if(!u){ renderGrammar(); return; }
+  _ensureUnitState();
+  window._topicReturn = () => renderUnit(n);
+  const pr = unitProgressOf(n);
+  const words = (typeof TEXTBOOK_W !== 'undefined') ? TEXTBOOK_W.filter(w => w.l === n) : [];
+  const idx = GRAMMAR_UNITS.findIndex(x => x.n === n);
+  const prev = GRAMMAR_UNITS[idx - 1], next = GRAMMAR_UNITS[idx + 1];
+  const topics = u.topics.map(id => TOPICS.find(t => t.id === id)).filter(Boolean);
+  const more = (u.more || []).map(id => TOPICS.find(t => t.id === id)).filter(Boolean);
+
+  view.innerHTML = `
+    <div class="u-nav">
+      <button class="btn btn-sm btn-o" onclick="setTab('grammar')">← 유닛 목록</button>
+      <span style="flex:1"></span>
+      ${prev ? `<button class="btn btn-sm btn-o" onclick="renderUnit(${prev.n})" aria-label="이전 유닛">‹ ${prev.n}과</button>` : ''}
+      ${next ? `<button class="btn btn-sm btn-o" onclick="renderUnit(${next.n})" aria-label="다음 유닛">${next.n}과 ›</button>` : ''}
     </div>
+    <div class="u-head fade-in">
+      <div class="grk">Μάθημα ${_grkNumeral(n)} · ${escapeHtml(u.grk || '')}</div>
+      <h2 class="view-title" style="margin:4px 0 8px">${n}과 · ${escapeHtml(u.title)}</h2>
+      <p class="u-sum">${escapeHtml(u.summary)}</p>
+      ${u.refs ? `<div class="u-ref">교재 대조 · Chase &amp; Phillips §${escapeHtml(u.refs)}</div>` : ''}
+    </div>
+
+    ${pr.sets.length ? `<div class="stat-strip">
+      ${pr.sets.map(s => { const d = UNIT_SETS.find(x => x.key === s.key); return `
+        <div class="stat-cell"><div class="v">${s.tries ? s.best + '%' : '—'}</div><div class="l">${d.grk} ${d.ko} · ${s.total}</div></div>`; }).join('')}
+      <div class="stat-cell"><div class="v">${pr.passed ? '✓' : '·'}</div><div class="l">${pr.passed ? '유닛 완료' : `통과 ${UNIT_PASS}%`}</div></div>
+    </div>` : ''}
+
+    <div class="u-sec">문법 <span class="c">${topics.length}</span></div>
+    ${topics.map((t, i) => `
+      <details class="u-topic" ${i === 0 && !pr.tried ? 'open' : ''} data-tid="${t.id}">
+        <summary><span class="t">${t.title}</span><span class="d">${t.desc}</span></summary>
+        <div class="u-topic-body">${topicBodyHtml(t)}
+          <div class="btn-row" style="margin:6px 0 4px">
+            ${t.items && t.items.length >= 2 ? `<button class="btn btn-sm" onclick="window._topicReturn=()=>renderUnit(${n});startGrammarDrill('${t.id}')">형태 식별 드릴 →</button>` : ''}
+            <button class="btn btn-sm btn-o" onclick="window._topicReturn=()=>renderUnit(${n});renderTopic('${t.id}')">따로 보기</button>
+          </div>
+        </div>
+      </details>`).join('')}
+    ${more.length ? `<div class="u-more">더 읽기 · ${more.map(t => `<button class="lnk" onclick="window._topicReturn=()=>renderUnit(${n});renderTopic('${t.id}')">${t.title}</button>`).join(' ')}</div>` : ''}
+
+    ${words.length ? `
+      <div class="u-sec">어휘 <span class="c">${words.length}</span></div>
+      <details class="u-topic">
+        <summary><span class="t">${n}과 새 낱말</span><span class="d">${words.slice(0, 6).map(w => w.g).join(' · ')}${words.length > 6 ? ' …' : ''}</span></summary>
+        <table class="paradigm u-words"><tbody>
+          ${words.map(w => `<tr><td class="grk">${escapeHtml(w.g)}${w.r ? ` <span class="r">${escapeHtml(w.r)}</span>` : ''}</td><td>${escapeHtml(w.ko || '')}</td></tr>`).join('')}
+        </tbody></table>
+      </details>
+      <div class="btn-row" style="margin:-8px 0 8px"><button class="btn btn-sm btn-o" onclick="startUnitVocab(${n})">${n}과 어휘 퀴즈 →</button></div>
+    ` : ''}
+
+    ${pr.sets.length ? `
+      <div class="u-sec">연습문제 <span class="c">${pr.total}</span></div>
+      ${pr.sets.map(s => { const d = UNIT_SETS.find(x => x.key === s.key); return `
+        <button class="u-set" onclick="startUnitSet(${n},'${s.key}')">
+          <span class="grk">${d.grk}</span>
+          <span class="u-body"><span class="u-title">${d.ko} · ${s.total}문항</span><span class="u-meta">${d.desc}</span></span>
+          <span class="u-best">${s.tries ? `최고 ${s.best}%` : '풀기 →'}</span>
+        </button>`; }).join('')}
+      <div class="btn-row" style="margin:12px 0 4px"><button class="btn btn-g" onclick="startUnitSet(${n},'all')">전체 풀기 (${pr.total}문항) →</button></div>
+      <div class="hint">문제는 교재 문장을 옮긴 것이 아니라 ${n}과까지 나온 어휘·문법만으로 새로 지은 것입니다. 교재의 연습문제는 책에서 함께 풀어 보세요.</div>
+    ` : `<div class="hint">이 유닛은 도구(악센트 학습)와 초보자 과정의 알파벳 과제로 연습합니다.</div>`}
   `;
-  document.querySelectorAll('#cat-chips .chip').forEach(c=> c.addEventListener('click',()=>{ grammarFilter.cat=c.dataset.v; renderGrammar(); }));
-  document.querySelectorAll('#topic-list [data-id]').forEach(b=> b.addEventListener('click',()=> renderTopic(b.dataset.id)));
+  view.scrollTop = 0;
+}
+window.renderUnit = renderUnit;
+
+function startUnitVocab(n){
+  VOCAB_FILTERS.source = 'textbook';
+  VOCAB_FILTERS.pos = 'all';
+  VOCAB_FILTERS.lessonGroups = ['tb-' + n];
+  setTab('vocab');
+  if(document.getElementById('quiz-area')) startQuiz('mc', 'g2k', buildVocabPool());
+}
+window.startUnitVocab = startUnitVocab;
+
+// ── 연습문제 실행 ──
+let unitRun = null;
+function _shuf(a){ const r = a.slice(); for(let i = r.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; }
+function _unitItems(u, key){ return _unitSetItems(u, key).map((d, i) => ({type:key, d, i, n:u.n})); }
+
+function startUnitSet(n, key){
+  const u = _unitByN(n);
+  if(!u) return;
+  let items = key === 'all'
+    ? [].concat(_unitItems(u, 'forms'), _unitItems(u, 'tr'), _unitItems(u, 'comp'))
+    : _shuf(_unitItems(u, key));
+  if(!items.length){ toast('이 묶음에는 문제가 없습니다.'); return; }
+  unitRun = {n, key, items, idx:0, right:0, wrong:[], review:false, answered:false};
+  _unitQ();
+}
+window.startUnitSet = startUnitSet;
+
+function startUnitReview(from, to){
+  const us = GRAMMAR_UNITS.filter(u => u.n >= from && u.n <= to);
+  const pool = {forms:[], tr:[], comp:[]};
+  us.forEach(u => ['forms','tr','comp'].forEach(k => pool[k].push(..._unitItems(u, k))));
+  const items = [].concat(_shuf(pool.forms).slice(0, 5), _shuf(pool.tr).slice(0, 6), _shuf(pool.comp).slice(0, 4));
+  if(!items.length){ toast('복습할 문제가 없습니다.'); return; }
+  unitRun = {n:null, key:'review', range:[from, to], items:_shuf(items), idx:0, right:0, wrong:[], review:true, answered:false};
+  _unitQ();
+}
+window.startUnitReview = startUnitReview;
+
+function _unitRunTitle(){
+  const r = unitRun;
+  if(r.review) return `복습 · ${r.range[0]}~${r.range[1]}과`;
+  const d = UNIT_SETS.find(s => s.key === r.key);
+  return `${r.n}과 · ${d ? d.grk + ' ' + d.ko : '전체'}`;
+}
+
+function _unitQ(){
+  const r = unitRun;
+  if(r.idx >= r.items.length){ _unitFinish(); return; }
+  const it = r.items[r.idx];
+  r.answered = false;
+  const back = r.review ? `setTab('grammar')` : `renderUnit(${r.n})`;
+  const setName = UNIT_SETS.find(s => s.key === it.type);
+  view.innerHTML = `
+    <div class="u-nav">
+      <button class="btn btn-sm btn-o" onclick="${back}">← 그만두기</button>
+      <span style="flex:1"></span>
+      <span class="u-count">${r.idx + 1} / ${r.items.length}</span>
+    </div>
+    <div class="u-prog" aria-hidden="true"><i style="width:${Math.round(r.idx / r.items.length * 100)}%"></i></div>
+    <div class="u-qtag">${_unitRunTitle()}${r.key === 'all' || r.review ? ` · ${setName.grk} ${setName.ko}` : ''}${r.review ? ` · ${it.n}과` : ''}</div>
+    <div class="quiz-card fade-in" id="uq"></div>
+    <div id="uq-after"></div>
+  `;
+  view.scrollTop = 0;
+  if(it.type === 'forms') _unitQForms(it);
+  else if(it.type === 'tr') _unitQTr(it);
+  else _unitQComp(it);
+}
+
+function _unitSpeakBtn(text){
+  return `<button class="btn btn-sm btn-o u-say" data-say="${_escAttr(text)}" aria-label="발음 듣기" title="발음 듣기">🔊</button>`;
+}
+function _bindSay(root){
+  root.querySelectorAll('[data-say]').forEach(b => b.addEventListener('click', () => {
+    if(typeof speakGreek === 'function') speakGreek(b.dataset.say);
+  }));
+}
+
+function _unitQForms(it){
+  const d = it.d;
+  const opts = _shuf([d.a].concat(d.o));
+  const box = document.getElementById('uq');
+  const isGrk = /[\u0370-\u03FF\u1F00-\u1FFF]/.test(d.f) && !/[가-힣]/.test(d.f);
+  box.innerHTML = `
+    <div class="quiz-prompt ${isGrk ? 'grk' : 'ko'}">${escapeHtml(d.f)}</div>
+    <div class="quiz-sub">${escapeHtml(d.q || '이 형태의 분석은?')}</div>
+    <div class="options">${opts.map(o => `<button class="opt" data-v="${_escAttr(o)}">${escapeHtml(o)}</button>`).join('')}</div>`;
+  box.querySelectorAll('.opt').forEach(b => b.addEventListener('click', () => {
+    if(unitRun.answered) return;
+    const ok = b.dataset.v === d.a;
+    _markOpts(box, b, d.a);
+    _unitAnswer(ok, `${ok ? '✓ 정답' : '✗ 정답: ' + escapeHtml(d.a)}`, '');
+  }));
+}
+
+function _unitQTr(it){
+  const d = it.d;
+  // 셋째 오답: 같은 유닛의 다른 문장 해석
+  const u = _unitByN(it.n);
+  const others = _unitSetItems(u, 'tr').filter((x, i) => i !== it.i).map(x => x.k).filter(k => k !== d.k && !d.w.includes(k));
+  const opts = _shuf([d.k].concat(d.w, others.length ? [others[Math.floor(Math.random() * others.length)]] : []));
+  const box = document.getElementById('uq');
+  box.innerHTML = `
+    <div class="u-sent grk">${escapeHtml(d.g)} ${_unitSpeakBtn(d.g)}</div>
+    <div class="quiz-sub">알맞은 해석은?</div>
+    <div class="options">${opts.map(o => `<button class="opt" data-v="${_escAttr(o)}">${escapeHtml(o)}</button>`).join('')}</div>`;
+  _bindSay(box);
+  box.querySelectorAll('.opt').forEach(b => b.addEventListener('click', () => {
+    if(unitRun.answered) return;
+    const ok = b.dataset.v === d.k;
+    _markOpts(box, b, d.k);
+    _unitAnswer(ok, ok ? '✓ 정답' : `✗ 정답: ${escapeHtml(d.k)}`, _unitExplain(d.n, d.gl));
+  }));
+}
+
+function _unitQComp(it){
+  const d = it.d;
+  const bank = _shuf(d.c.map((t, i) => ({t, id:'c' + i})).concat(d.x.map((t, i) => ({t, id:'x' + i}))));
+  const placed = [];
+  const box = document.getElementById('uq');
+  const draw = () => {
+    const used = new Set(placed.map(p => p.id));
+    box.innerHTML = `
+      <div class="quiz-prompt ko">${escapeHtml(d.k)}</div>
+      <div class="quiz-sub">조각을 눌러 그리스어 문장을 만드세요 · 필요 없는 조각도 섞여 있습니다</div>
+      <div class="u-line grk" aria-live="polite">${placed.length
+        ? placed.map((p, i) => `<button class="u-chunk on" data-pi="${i}">${escapeHtml(p.t)}</button>`).join('')
+        : '<span class="ph">여기에 문장이 놓입니다</span>'}</div>
+      <div class="u-bank grk">${bank.map(b => `<button class="u-chunk" data-bid="${b.id}" ${used.has(b.id) ? 'disabled' : ''}>${escapeHtml(b.t)}</button>`).join('')}</div>
+      <div class="btn-row" style="justify-content:center;margin-top:14px">
+        <button class="btn btn-sm btn-o" id="uc-clear" ${placed.length ? '' : 'disabled'}>지우기</button>
+        <button class="btn btn-sm btn-g" id="uc-check" ${placed.length ? '' : 'disabled'}>확인</button>
+      </div>`;
+    if(unitRun.answered){
+      box.querySelectorAll('button').forEach(b => b.disabled = true);
+      return;
+    }
+    box.querySelectorAll('[data-bid]').forEach(b => b.addEventListener('click', () => {
+      placed.push(bank.find(x => x.id === b.dataset.bid)); draw();
+    }));
+    box.querySelectorAll('[data-pi]').forEach(b => b.addEventListener('click', () => {
+      placed.splice(+b.dataset.pi, 1); draw();
+    }));
+    box.querySelector('#uc-clear').addEventListener('click', () => { placed.length = 0; draw(); });
+    box.querySelector('#uc-check').addEventListener('click', () => {
+      const got = placed.map(p => p.t);
+      const ok = _compCorrect(d, got);
+      unitRun.answered = true;
+      draw();
+      const model = _joinChunks(d.c) + d.e;
+      const mine = _joinChunks(got) + d.e;
+      const head = ok
+        ? `✓ 정답 <div class="grk u-model">${escapeHtml(mine)} ${_unitSpeakBtn(mine)}</div>${mine !== model ? `<div class="u-alt">모범 어순: <span class="grk">${escapeHtml(model)}</span></div>` : ''}`
+        : `✗ 모범 답안 <div class="grk u-model">${escapeHtml(model)} ${_unitSpeakBtn(model)}</div><div class="u-alt">내 답: <span class="grk">${escapeHtml(mine)}</span>${_compHint(d, got)}</div>`;
+      unitRun.answered = false;   // _unitAnswer 가 다시 세운다
+      _unitAnswer(ok, head, _unitExplain(d.n, d.gl));
+    });
+  };
+  draw();
+}
+
+function _compCorrect(d, got){
+  if(got.length !== d.c.length) return false;
+  const a = got.slice().sort(), b = d.c.slice().sort();
+  if(a.some((x, i) => x !== b[i])) return false;
+  if(d.seq) return got.every((x, i) => x === d.c[i]);
+  if(typeof d.fx === 'number') return got[0] === d.c[d.fx];
+  return true;
+}
+function _compHint(d, got){
+  const extra = got.filter(g => d.x.includes(g));
+  if(extra.length) return `<div class="u-hint">틀린 형태: <span class="grk">${extra.map(escapeHtml).join(', ')}</span></div>`;
+  const miss = d.c.filter(c => !got.includes(c));
+  if(miss.length) return `<div class="u-hint">빠진 조각: <span class="grk">${miss.map(escapeHtml).join(', ')}</span></div>`;
+  if(d.seq || typeof d.fx === 'number') return `<div class="u-hint">조각은 맞지만 순서가 틀렸습니다 — δέ · γάρ 같은 후치사는 문장(절)의 둘째 자리에 온다.</div>`;
+  return '';
+}
+
+function _unitExplain(note, gl){
+  const g = Array.isArray(gl) && gl.length ? `
+    <details class="u-gloss"><summary>낱말 풀이</summary>
+      <table class="paradigm"><tbody>${gl.map(r => `<tr><td class="grk">${escapeHtml(r[0])}</td><td><span class="grk">${escapeHtml(r[1])}</span>${r[2] ? ` · ${escapeHtml(r[2])}` : ''}${r[3] ? `<div class="p">${escapeHtml(r[3])}</div>` : ''}</td></tr>`).join('')}</tbody></table>
+    </details>` : '';
+  return (note ? `<div class="u-note">📜 ${escapeHtml(note)}</div>` : '') + g;
+}
+
+function _markOpts(box, btn, answer){
+  box.querySelectorAll('.opt').forEach(o => {
+    o.disabled = true;
+    if(o.dataset.v === answer) o.classList.add('right');
+    else if(o === btn) o.classList.add('wrong');
+    else o.classList.add('dim');
+  });
+}
+
+function _unitAnswer(ok, headHtml, extraHtml){
+  const r = unitRun;
+  if(r.answered) return;
+  r.answered = true;
+  const it = r.items[r.idx];
+  if(ok){ r.right += 1; S.grammarCorrectCount = (S.grammarCorrectCount || 0) + 1; }
+  else r.wrong.push(it);
+  const after = document.getElementById('uq-after');
+  after.innerHTML = `
+    <div class="feedback ${ok ? 'ok' : 'bad'}">${headHtml}</div>
+    ${extraHtml || ''}
+    <div class="btn-row" style="justify-content:flex-end;margin:10px 0 24px">
+      <button class="btn btn-g" id="uq-next">${r.idx + 1 < r.items.length ? '다음 →' : '결과 보기 →'}</button>
+    </div>`;
+  _bindSay(after);
+  _bindSay(document.getElementById('uq'));
+  document.getElementById('uq-next').addEventListener('click', () => { r.idx += 1; _unitQ(); });
+  after.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+// 테스트·진단용 읽기 전용 창 (test-v72.js · 브라우저 스모크)
+window.__paideiaUnits = { run: () => unitRun, progress: () => _ensureUnitState(), renderGrammar: () => renderGrammar() };
+
+function _unitFinish(){
+  const r = unitRun;
+  const total = r.items.length;
+  const pct = Math.round(r.right / total * 100);
+  const xp = r.right * 10;
+  if(xp > 0) addXP(xp, `문법 연습 ${r.right}/${total}`);
+  let unlocked = false;
+  if(!r.review && !r.retry){
+    const store = _ensureUnitState();
+    const rec = store[r.n] || (store[r.n] = {});
+    const keys = r.key === 'all' ? ['forms','tr','comp'] : [r.key];
+    for(const k of keys){
+      const its = r.items.filter(x => x.type === k);
+      if(!its.length) continue;
+      const right = its.length - r.wrong.filter(x => x.type === k).length;
+      const p = Math.round(right / its.length * 100);
+      const cur = rec[k] || (rec[k] = {best:0, tries:0});
+      cur.tries += 1; cur.last = p; cur.at = Date.now();
+      if(p > cur.best) cur.best = p;
+    }
+    if(!rec.done && unitProgressOf(r.n).sets.every(s => s.best >= UNIT_PASS)){
+      rec.done = Date.now();
+      unlocked = true;
+      addXP(50, `${r.n}과 유닛 완료`);
+      const u = _unitByN(r.n);
+      (u.topics || []).forEach(id => { if(!S.topicsStudied.includes(id)) S.topicsStudied.push(id); });
+    }
+  }
+  saveState();
+  const back = r.review ? `setTab('grammar')` : `renderUnit(${r.n})`;
+  view.innerHTML = `
+    <div class="u-nav"><button class="btn btn-sm btn-o" onclick="${back}">← ${r.review ? '유닛 목록' : r.n + '과'}</button></div>
+    <div class="card warm fade-in" style="margin-top:10px">
+      <div class="u-qtag" style="margin:0 0 6px">${_unitRunTitle()}</div>
+      <div style="font-family:var(--font-display);font-size:40px;color:var(--aegean);line-height:1">${pct}%</div>
+      <div style="font-size:14px;margin:8px 0 2px">정답 <b>${r.right}</b> / ${total} · XP +${xp}${unlocked ? ' · 유닛 완료 +50' : ''}</div>
+      ${unlocked ? `<div class="u-note" style="margin-top:10px">✓ ${r.n}과 유닛을 마쳤습니다. 이 과의 문법 주제가 모두 학습 완료로 표시됩니다.</div>` : ''}
+      <div class="btn-row" style="margin-top:14px">
+        ${r.wrong.length ? `<button class="btn btn-sm btn-g" id="uf-retry">틀린 ${r.wrong.length}문제 다시</button>` : ''}
+        <button class="btn btn-sm" id="uf-again">처음부터 다시</button>
+        <button class="btn btn-sm btn-o" onclick="${back}">${r.review ? '목록으로' : '유닛으로'}</button>
+      </div>
+    </div>`;
+  const retry = document.getElementById('uf-retry');
+  if(retry) retry.addEventListener('click', () => {
+    unitRun = Object.assign({}, r, {items:_shuf(r.wrong), idx:0, right:0, wrong:[], retry:true, answered:false});
+    _unitQ();
+  });
+  document.getElementById('uf-again').addEventListener('click', () => {
+    if(r.review) startUnitReview(r.range[0], r.range[1]); else startUnitSet(r.n, r.key);
+  });
 }
 // ===== 악센트 학습 화면 =====
 const ACCENT_TYPES = [
@@ -11524,88 +12070,78 @@ function renderSearch(initialQuery){
 }
 
 // ===== 문법 토픽 상세 화면 =====
+// v47: paradigm 두 형식 호환 — (a) 구식 (cols + sections[].rows=2D), (b) 신식 (rows=[{form,info}]).
+// v72: 표 머리글 정렬 — cols 가 행 머리 열까지 포함하면(cols.length === 행 길이) 빈 칸을 덧붙이지 않는다.
+//      (이전에는 1~34번 토픽의 머리글이 한 칸씩 밀려 보였다.) 한국어만 든 칸은 그리스어 서체를 쓰지 않는다.
+const _GRK_CH = /[Ͱ-Ͽἀ-῿]/;
+function _renderParadigm(p){
+  if(!p) return '';
+  if(p.rows && Array.isArray(p.rows) && p.rows.length && typeof p.rows[0] === 'object' && 'form' in p.rows[0]){
+    let html = '<table class="paradigm"><caption>' + (p.caption || '') + '</caption><tbody>';
+    for(const row of p.rows){
+      html += '<tr><td class="grk" style="font-weight:600;color:var(--terracotta-d);white-space:nowrap;padding-right:10px">' +
+              (row.form || '') + '</td><td style="line-height:1.55">' + (row.info || '') + '</td></tr>';
+    }
+    return html + '</tbody></table>';
+  }
+  if(p.cols && p.sections){
+    const firstRow = (p.sections.find(s => s.rows && s.rows.length) || {rows:[[]]}).rows[0] || [];
+    const labelInCols = p.cols.length === firstRow.length;
+    const width = labelInCols ? p.cols.length : p.cols.length + 1;
+    let html = '<table class="paradigm"><caption>' + (p.caption || '') + '</caption>';
+    html += '<thead><tr>' + (labelInCols ? '' : '<th></th>') + p.cols.map(c => '<th>' + c + '</th>').join('') + '</tr></thead><tbody>';
+    for(const sec of p.sections){
+      if(sec.label && p.sections.length > 1) html += '<tr class="section-row"><td colspan="' + width + '">' + sec.label + '</td></tr>';
+      for(const row of sec.rows){
+        html += '<tr><td class="lbl">' + row[0] + '</td>' + row.slice(1).map(c =>
+          '<td' + (_GRK_CH.test(c || '') ? ' class="grk"' : '') + '>' + (c || '—') + '</td>').join('') + '</tr>';
+      }
+    }
+    return html + '</tbody></table>';
+  }
+  return '';
+}
+// v47: expl — 구식은 HTML 그대로, 신식은 마크다운 일부 (\n\n 단락, ** 굵게, * 기울임).
+// v72: 그리스어 구간을 .grk 로 감싸 그리스어 서체로 보이게 한다.
+function _formatExpl(s){
+  if(!s) return '';
+  if(s.includes('<')) return s;
+  let out = s
+    .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+    .replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<i>$1</i>')
+    .replace(/([Ͱ-Ͽἀ-῿][Ͱ-Ͽἀ-῿̀-ͯ᾽’ ,.·;()\-…]*[Ͱ-Ͽἀ-῿᾽’])/g, '<span class="grk">$1</span>');
+  const paras = out.split(/\n\n+/);
+  return paras.map(p => '<p style="margin:0 0 10px 0">' + p.replace(/\n/g, '<br>') + '</p>').join('');
+}
+function topicBodyHtml(t, wrap){
+  const card = html => wrap ? `<div class="card">${html}</div>` : `<div class="u-tbl">${html}</div>`;
+  const tableHtml = _renderParadigm(t.paradigm);
+  const tableAltHtml = _renderParadigm(t.paradigmAlt);
+  const extra = (Array.isArray(t.extraParadigms) ? t.extraParadigms : []).map(p => {
+    const h = _renderParadigm(p); return h ? card(h) : '';
+  }).join('');
+  const note = t.note ? `<div class="hint">📜 ${t.note}</div>` : '';
+  return (wrap ? `<div class="card"><div style="line-height:1.75;font-size:14.5px">${_formatExpl(t.expl)}</div></div>`
+               : `<div class="u-expl">${_formatExpl(t.expl)}</div>`)
+    + (tableHtml ? card(tableHtml + note) : (note ? card(note) : ''))
+    + (tableAltHtml ? card(tableAltHtml) : '')
+    + extra;
+}
 function renderTopic(id){
   const t = TOPICS.find(x=>x.id===id);
   if(!t) return;
-
-  // v47: paradigm 두 형식 호환 — (a) 구식 (cols + sections[].rows=2D), (b) 신식 (rows=[{form,info}]).
-  // paradigmAlt 도 같은 양 형식 지원. 신식은 v44 이후 추가된 심화 토픽들에 사용.
-  function _renderParadigm(p){
-    if(!p) return '';
-    if(p.rows && Array.isArray(p.rows) && p.rows.length && typeof p.rows[0] === 'object' && 'form' in p.rows[0]){
-      // 신식 — form/info 2열 단순 표
-      let html = '<table class="paradigm"><caption>' + (p.caption || '') + '</caption><tbody>';
-      for(const row of p.rows){
-        html += '<tr><td class="grk" style="font-weight:600;color:var(--terracotta-d);white-space:nowrap;padding-right:10px">' +
-                (row.form || '') + '</td><td style="line-height:1.55">' + (row.info || '') + '</td></tr>';
-      }
-      html += '</tbody></table>';
-      return html;
-    }
-    if(p.cols && p.sections){
-      // 구식 — 다열 cols + sections[].rows = 2D
-      let html = '<table class="paradigm"><caption>' + (p.caption || '') + '</caption>';
-      html += '<thead><tr><th></th>' + p.cols.map(c=>'<th>'+c+'</th>').join('') + '</tr></thead><tbody>';
-      for(const sec of p.sections){
-        if(sec.label && p.sections.length>1) html += '<tr class="section-row"><td colspan="'+(p.cols.length+1)+'">'+sec.label+'</td></tr>';
-        for(const row of sec.rows){
-          html += '<tr><td class="lbl">'+row[0]+'</td>' + row.slice(1).map(c=>'<td class="grk">'+(c||'—')+'</td>').join('') + '</tr>';
-        }
-      }
-      html += '</tbody></table>';
-      return html;
-    }
-    return '';   // 알 수 없는 형식
-  }
-
-  // v47: expl 본문에 줄바꿈/마크다운 일부 처리 — 신식 토픽은 backtick template 으로 작성되어
-  // 본격적인 multi-paragraph 해설. \n\n → 단락, ** → <b>, * → <i>.
-  function _formatExpl(s){
-    if(!s) return '';
-    if(s.includes('<')) return s;   // 이미 HTML 포함 (구식 토픽) — 그대로
-    // 마크다운 like
-    let out = s
-      .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
-      .replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<i>$1</i>');
-    // 단락 분할
-    const paras = out.split(/\n\n+/);
-    return paras.map(p => '<p style="margin:0 0 10px 0">' + p.replace(/\n/g, '<br>') + '</p>').join('');
-  }
-
-  const tableHtml    = _renderParadigm(t.paradigm);
-  const tableAltHtml = _renderParadigm(t.paradigmAlt);
-  // v47: 추가 패러다임 표 배열 — μι-동사 같은 큰 토픽에서 mid/pass, 부정과거 등을 분리 표시
-  const extraTablesHtml = (Array.isArray(t.extraParadigms) ? t.extraParadigms : [])
-    .map(p => {
-      const html = _renderParadigm(p);
-      return html ? `<div class="card">${html}</div>` : '';
-    }).join('');
-
+  const back = typeof window._topicReturn === 'function' ? window._topicReturn : null;
   view.innerHTML = `
-    <button class="btn btn-sm btn-o" onclick="setTab('grammar')">← 목록</button>
+    <button class="btn btn-sm btn-o" id="topic-back">← ${back ? '유닛' : '목록'}</button>
     <h2 class="view-title fade-in" style="margin-top:10px">${t.title}</h2>
-    <div class="view-sub">${t.lesson<500?`교재 ${t.lesson}과`:'심화'} · ${t.desc}</div>
-
-    <div class="card">
-      <div style="line-height:1.75;font-size:14.5px">${_formatExpl(t.expl)}</div>
-    </div>
-
-    ${tableHtml ? `<div class="card">
-      ${tableHtml}
-      ${t.note?`<div class="hint">📜 ${t.note}</div>`:''}
-    </div>` : ''}
-
-    ${tableAltHtml ? `<div class="card">
-      ${tableAltHtml}
-    </div>` : ''}
-
-    ${extraTablesHtml}
-
+    <div class="view-sub">${t.lesson < 99 ? `교재 ${t.lesson}과` : '심화'}${t.ref ? ` · §${t.ref}` : ''} · ${t.desc}</div>
+    ${topicBodyHtml(t, true)}
     <div class="btn-row" style="margin:12px 0">
       ${t.items && t.items.length>=2 ? `<button class="btn" onclick="startGrammarDrill('${t.id}')">형태 식별 드릴 →</button>` : ''}
       <button class="btn btn-o" onclick="markTopicStudied('${t.id}')">${S.topicsStudied.includes(t.id)?'✓ 학습 완료':'학습 완료로 표시'}</button>
     </div>
   `;
+  document.getElementById('topic-back').addEventListener('click', () => back ? back() : setTab('grammar'));
 }
 window.renderTopic = renderTopic;
 function markTopicStudied(id){
@@ -11640,7 +12176,7 @@ function nextGrammarQ(){
   const distractors = randPick(s.topic.items.filter(x=>x.info!==item.info), 3);
   const opts = [...distractors, item].sort(()=>Math.random()-.5);
   view.innerHTML = `
-    <button class="btn btn-sm btn-o" onclick="setTab('grammar')">← 종료</button>
+    <button class="btn btn-sm btn-o" onclick="renderTopic('${s.topic.id}')">← 종료</button>
     <h2 class="view-title fade-in" style="margin-top:10px">${s.topic.title}</h2>
     <div class="view-sub">형태 식별 — ${s.idx+1}/${s.total}</div>
 
@@ -11686,7 +12222,7 @@ function finishGrammar(){
       <div style="font-size:15px;margin:6px 0">정답 <b>${s.right}/${s.total}</b> · 획득 XP: <b>${xpGain}</b></div>
       <div class="btn-row" style="margin-top:12px">
         <button class="btn btn-sm" onclick="startGrammarDrill('${s.topic.id}')">한 번 더</button>
-        <button class="btn btn-sm btn-o" onclick="setTab('grammar')">목록으로</button>
+        <button class="btn btn-sm btn-o" onclick="(window._topicReturn||(()=>setTab('grammar')))()">${window._topicReturn?'유닛으로':'목록으로'}</button>
       </div>
     </div>
   `;
