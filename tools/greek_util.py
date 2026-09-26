@@ -144,8 +144,10 @@ def greek_words(text):
     # 괄호 표기 (ν), (ς) 는 지운다: παιδεύουσι(ν) → παιδεύουσι
     s = re.sub(r'\((ν|ς|σ)\)', '', s)
     words = []
-    for w, _ in tokenize(re.sub(r'[/·|+→←=~…,]', ' ', s)):
-        w = w.strip('-')
+    s = re.sub(r'[/·|+→←=~…,]', ' ', s)
+    # 어미(-σι) · 어간(δο-) 표기는 낱말이 아니다 — 문장부호를 떼기 전에 거른다
+    s = ' '.join(t for t in s.split() if not (t.startswith('-') or t.rstrip(')').endswith('-')))
+    for w, _ in tokenize(s):
         if w and is_greek(w) and not re.search('[A-Za-z가-힣0-9]', w):
             words.append(w)
     return words
