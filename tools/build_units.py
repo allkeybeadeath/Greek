@@ -646,7 +646,9 @@ class Checker:
         def rank(a):
             hd = norm_lemma(a.get('hdwd'))
             has = hd in self.voc.ko or hd in GLOSSARY or hd in GLOSSARY_OVERRIDE
-            return (0 if hd in self.voc.unit else 1, 0 if has else 1, 0 if G.strip_all(hd)[:3] == head3 else 1)
+            d = a.get('dial') or ''
+            std = 0 if (not d or 'Attic' in d) else 1   # 방언 표지뿐인 분석(μαρτύρησις 'epic')은 뒤로
+            return (0 if hd in self.voc.unit else 1, 0 if has else 1, std, 0 if G.strip_all(hd)[:3] == head3 else 1)
         if known:
             known.sort(key=rank)
             return True, known, '', False
