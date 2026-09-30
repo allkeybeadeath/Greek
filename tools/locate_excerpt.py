@@ -26,6 +26,7 @@ SKIP = {'note', 'bibl', 'head', 'label', 'ref', 'del', 'orig', 'sic', 'speaker'}
 
 def norm(s):
     """비교용: 발음 구별 부호 · 문장부호 제거, 소문자, 종성 시그마 통일"""
+    s = re.sub("[ʼ’'᾽ʹ῾]", '', s)   # 모음 탈락 부호는 지운다 (δʼ ↔ δ᾽)
     s = unicodedata.normalize('NFD', s)
     s = ''.join(c for c in s if not unicodedata.combining(c))
     s = s.lower().replace('ς', 'σ')

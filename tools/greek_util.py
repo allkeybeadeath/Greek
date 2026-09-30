@@ -202,8 +202,9 @@ def check_sentence_accents(sentence):
                     errs.append(f'{w}: 이 자리의 전접어는 악센트를 잃어야 함 (host {prev_w})')
             continue
 
-        # 후접어 (ὁ, ἐν, οὐ …)
-        if nfc(w).lower() in PROCLITICS or base.lower() in PROCLITICS:
+        # 후접어 (ὁ, ἐν, οὐ …) — 악센트가 있는 ὅ · ἥ · οἵ · αἵ 는 관계대명사라 일반 낱말로 본다
+        rel = marks and base.lower() in {nfc(x) for x in ('ὁ', 'ἡ', 'οἱ', 'αἱ')}
+        if not rel and (nfc(w).lower() in PROCLITICS or base.lower() in PROCLITICS):
             if not joined and base.lower() in {'ου', 'ουκ', 'ουχ'} and not marks:
                 errs.append(f'{w}: 절 끝의 οὐ 는 악센트를 얻어 οὔ')
             if nxt_enclitic:
