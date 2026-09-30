@@ -417,6 +417,8 @@ def feature_unit(a):
     hd = norm_lemma(a.get('hdwd'))
     if f.get('num') == 'du' and hd != 'δύο':
         return 99   # 쌍수는 다루지 않는다 (δύο 는 형태상 쌍수라 예외)
+    if hd in ('ἆρα', 'ἄρα'):
+        return 1    # Morpheus 는 의문 불변사 ἆρα 를 3변화 명사로 적는다
     u = 1
     if pofs == 'noun':
         u = {'2nd': 3, '1st': 3, '3rd': 6}.get(a.get('decl'), 3)  # 1변화 -η 는 3과(3.13), 나머지 유형은 어휘가 4과
@@ -601,6 +603,9 @@ class Checker:
                 return False, [], f'@a 지정과 맞는 분석 없음 (Morpheus: ' + '; '.join(sorted({
                     f'{a.get("hdwd")} {label_of(feats(a), "verb" if is_verbal(a) else "adj")}' for a in an}))[:200] + ')', False
             an = an2
+        # 악센트가 있는 ἅ · ἥ · ὅ · οἵ · αἵ 는 관사가 아니다 (관사 주격은 악센트 없는 후접어)
+        if G.accent_marks(tok) and G.strip_all(tok) in ('ο', 'η', 'οι', 'αι', 'α'):
+            an = [a for a in an if a.get('pofs') != 'article'] or an
         known, newer, why = [], [], []
         for a in an:
             a = dict(a, _form=G.query_form(tok))
@@ -624,9 +629,19 @@ class Checker:
                 known.append(a)
             else:
                 newer.append(a)
+        # 표제어 고르기: 교재 어휘표에 있는 낱말 → 뜻풀이가 있는 낱말 → 형태와 머리글자가 같은 낱말 순
+        # (ἡμέρα 를 ἥμερος 보다, πάλαι 를 πάλη 보다, πρῶτον 을 πρότερος 보다)
+        head3 = G.strip_all(tok)[:3]
+
+        def rank(a):
+            hd = norm_lemma(a.get('hdwd'))
+            has = hd in self.voc.ko or hd in GLOSSARY or hd in GLOSSARY_OVERRIDE
+            return (0 if hd in self.voc.unit else 1, 0 if has else 1, 0 if G.strip_all(hd)[:3] == head3 else 1)
         if known:
+            known.sort(key=rank)
             return True, known, '', False
         if newer:
+            newer.sort(key=rank)
             return True, newer, '', True
         return False, [], '; '.join(sorted(set(why)))[:300], False
 
@@ -661,6 +676,80 @@ class Checker:
         if lemma == 'ἔρχομαι':
             disp, ko = 'ἔρχομαι (ἦλθον)', self.voc.ko.get('ἦλθον', '가다, 오다')
         return [G.nfc(tok), disp, ko, ' / '.join(labels[:3])]
+
+
+# ── 문맥 분석 좁히기 (v73) ──────────────────────────────────────────────────
+# 원전 문장의 낱말 풀이에 '복수 대격 / 단수 속격' 같은 겹친 분석이 뜨지 않도록,
+# 전치사의 격 지배와 관사-명사 일치로 분석을 좁힌다. 좁힌 결과가 비면 그대로 둔다.
+PREP_CASES = {'ἐκ': {'gen'}, 'ἐξ': {'gen'}, 'ἀπό': {'gen'}, 'πρό': {'gen'}, 'ἀντί': {'gen'}, 'ἄνευ': {'gen'},
+              'ἐν': {'dat'}, 'σύν': {'dat'}, 'ξύν': {'dat'}, 'εἰς': {'acc'}, 'ἐς': {'acc'}}
+
+
+def _cng(a):
+    f = feats(a)
+    return f.get('case'), f.get('num'), f.get('gend')
+
+
+def _agree(a, keys):
+    c, nm, g = _cng(a)
+    for kc, kn, kg in keys:
+        if c == kc and nm == kn and (not g or not kg or g == kg or (len(g) > 1 and kg in g) or (len(kg) > 1 and g in kg)):
+            return True
+    return False
+
+
+def disambiguate(ents):
+    """ents: [[tok, 분석 목록, 새 낱말, @a 지정]] — 분석 목록을 제자리에서 좁힌다."""
+    def nominal(a):
+        return (a.get('pofs') or '') in ('noun', 'adjective', 'pronoun', 'article', 'verb participle') \
+            or (is_verbal(a) and a.get('mood') == 'participle')
+    # 1) 전치사 + (관사) + 명사: 격 지배
+    for i, (tok, good, _, _) in enumerate(ents):
+        base = G.nfc(G.strip_accents(tok)).rstrip(G.ELISION_MARKS)
+        cases = None
+        for p, cs in PREP_CASES.items():
+            if G.strip_accents(p) == base or (tok[-1:] in G.ELISION_MARKS and G.strip_accents(p)[:-1] == base):
+                cases = cs
+        if not cases or not all((a.get('pofs') or '') == 'preposition' for a in good):
+            continue
+        for j in range(i + 1, min(len(ents), i + 4)):
+            gj = ents[j][1]
+            if not any(nominal(a) for a in gj):
+                break
+            keep = [a for a in gj if feats(a).get('case') in cases]
+            if keep and not ents[j][3]:
+                ents[j][1] = keep
+            if any((a.get('pofs') or '') == 'noun' for a in keep or gj):
+                break
+    # 2) 관사 + (형용사 …) + 명사: 격 · 수 · 성 일치
+    for i, (tok, good, _, _) in enumerate(ents):
+        if not good or not all((a.get('pofs') or '') == 'article' for a in good):
+            continue
+        span = []
+        for j in range(i + 1, min(len(ents), i + 5)):
+            gj = ents[j][1]
+            if not any(nominal(a) for a in gj) or all((a.get('pofs') or '') == 'article' for a in gj):
+                # 후치사(δέ · γάρ …)는 건너뛴다
+                if G.is_postpositive(ents[j][0]):
+                    continue
+                break
+            span.append(j)
+            if any((a.get('pofs') or '') == 'noun' for a in gj):
+                break
+        if not span:
+            continue
+        keys = {_cng(a) for a in good}
+        for j in span:
+            keys2 = {k for k in keys if any(_agree(a, {k}) for a in ents[j][1])}
+            if keys2:
+                keys = keys2
+        ents[i][1] = [a for a in good if _cng(a) in keys] or good
+        for j in span:
+            if ents[j][3]:
+                continue
+            keep = [a for a in ents[j][1] if _agree(a, keys)]
+            if keep:
+                ents[j][1] = keep
 
 
 def merge_labels(labels):
@@ -1043,11 +1132,15 @@ def build(args):
         def words_auth(text, meta, w, need_gloss=True):
             """원전 문장 낱말 검증 → 풀이 행 [형태, 표제, 뜻, 분석, 새 낱말 1/0]"""
             rows = []
+            ents = []
             for tok, _ in G.tokenize(text):
                 ok_, good, why, new = ck.allowed_auth(tok, n, pick_of(meta, tok, w))
                 if not ok_:
                     err(w, f'{tok}: {why}  «{text}»')
                     continue
+                ents.append([tok, good, new, bool(pick_of(meta, tok, w))])
+            disambiguate(ents)
+            for tok, good, new, _ in ents:
                 row = ck.gloss(tok, good)
                 lemma_n = norm_lemma(good[0].get('hdwd'))
                 over = meta['gl'].get(G.nfc(tok)) or meta['gl'].get(lemma_n) or meta['gl'].get(row[1])
@@ -1103,6 +1196,8 @@ def build(args):
             first_fixed = [i for i, c in enumerate(raw_chunks) if c.startswith('^')]
             last_fixed = [i for i, c in enumerate(raw_chunks) if c.startswith('$')]
             chunks = [c.lstrip('^$').strip() for c in raw_chunks]
+            # 조각 끝 낱말은 인용형 — 원전에서 옮길 때 남은 둔음은 예음으로 (앱이 이어 붙일 때 다시 둔음으로 바꾼다)
+            chunks = [' '.join(c.split()[:-1] + [G.grave_to_acute(c.split()[-1])]) for c in chunks]
             dis = [c.strip() for c in parts[2].split(' / ') if c.strip()]
             note = parts[3] if len(parts) > 3 else ''
             end = ';' if ko.rstrip().endswith('?') else '.'

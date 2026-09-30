@@ -65,6 +65,9 @@ def flatten(path):
             mile.pop('section', None)
         if tag == 'milestone' and el.get('unit') in ('section', 'verse', 'chapter', 'para', 'card'):
             mile[el.get('unit')] = el.get('n') or ''
+        if tag == 'l' and el.get('n'):
+            # 운문: 행 번호 (비극 · 희극)
+            mile['section'] = el.get('n')
         if el.text and tag not in ('milestone', 'pb', 'lb'):
             out.append((cite(), el.text))
         for ch in el:
