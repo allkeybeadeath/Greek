@@ -661,6 +661,10 @@ class Checker:
         lemma0 = norm_lemma(good[0].get('hdwd')) if good else None
         if any(not dialectal(a) for a in good if norm_lemma(a.get('hdwd')) == lemma0):
             good = [a for a in good if not (dialectal(a) and norm_lemma(a.get('hdwd')) == lemma0)]
+        # -ης 이름의 축약 복수 분석은 뺀다 (Σωκράτης '복수 대격' — τριήρεις 식 축약형을 이름에도 붙인다)
+        if tok[:1].isupper() and any(a.get('num') == 'singular' for a in good if norm_lemma(a.get('hdwd')) == lemma0):
+            good = [a for a in good if not (norm_lemma(a.get('hdwd')) == lemma0 and a.get('num') == 'plural'
+                                            and 'contr' in (a.get('morph') or '') and a.get('pofs') == 'noun')]
         for a in good:
             hd = norm_lemma(a.get('hdwd'))
             if lemma is None:
@@ -677,7 +681,8 @@ class Checker:
         # 성별만 다른 분석(남/중성 속격 등)은 합친다
         labels = merge_labels(labels)
         # 능동 분석을 앞에 (γιγνώσκει: 능동 3인칭 단수가 중·수동 2인칭 단수보다 흔하다)
-        labels.sort(key=lambda lab: 0 if '능동' in lab else 1)
+        # 정동사를 분사 앞에 (ἄγουσι(ν): 직설 3인칭 복수가 분사 복수 여격보다 흔하다 — 분사면 관사 일치로 이미 좁혀진다)
+        labels.sort(key=lambda lab: (0 if '능동' in lab else 1, 1 if '분사' in lab else 0))
         if lemma not in self.voc.disp and lemma and lemma.endswith('ω') and (lemma[:-1] + 'ομαι') in self.voc.disp:
             lemma = lemma[:-1] + 'ομαι'   # 탈형 동사는 -ομαι 표제어로 보인다
         for a in good:

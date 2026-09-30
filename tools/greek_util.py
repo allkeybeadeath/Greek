@@ -185,8 +185,17 @@ def check_sentence_accents(sentence):
                 continue
             hmarks = accent_marks(prev_w)
             h_elided = prev_w[-1] in ELISION_MARKS
+            if h_elided:
+                # 어말이 생략된 낱말 뒤의 전접어는 제 악센트를 지닌다 (ταῦτ᾽ ἐστί, ποῦ ποτ᾽ ἐστέ — Smyth §187)
+                if not marks:
+                    errs.append(f'{w}: 생략된 낱말({prev_w}) 뒤 전접어는 악센트를 유지')
+                elif marks[-1][1] == 'grave' and not joined:
+                    errs.append(f'{w}: 문장부호 앞 둔음')
+                elif marks[-1][1] == 'acute' and marks[-1][0] == 1 and joined and not nxt_enclitic:
+                    errs.append(f'{w}: 뒤에 낱말이 이어지므로 둔음이어야 함')
+                continue
             # host 가 paroxytone(예음 1개, penult) 이고 전접어가 2음절이면 전접어는 ultima 악센트 유지
-            if (not h_elided and len(hmarks) == 1 and hmarks[0] == (2, 'acute')
+            if (len(hmarks) == 1 and hmarks[0] == (2, 'acute')
                     and n_syllables(w) >= 2):
                 if not marks:
                     errs.append(f'{w}: paroxytone({prev_w}) 뒤 2음절 전접어는 악센트를 유지')

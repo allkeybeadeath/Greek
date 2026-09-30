@@ -764,6 +764,17 @@
 "voice": "active"
 }
 ],
+"Κύρῳ": [
+{
+"case": "dative",
+"decl": "2nd",
+"gend": "masculine",
+"hdwd": "Κῦρος",
+"num": "singular",
+"pofs": "noun",
+"stemtype": "os_ou"
+}
+],
 "Κῦρε": [
 {
 "case": "vocative",
@@ -920,6 +931,17 @@
 "num": "singular",
 "pofs": "noun",
 "stemtype": "hs_eos"
+}
+],
+"Λακεδαίμονα": [
+{
+"case": "accusative",
+"decl": "3rd",
+"gend": "feminine",
+"hdwd": "Λακεδαίμων",
+"num": "singular",
+"pofs": "noun",
+"stemtype": "wn_onos"
 }
 ],
 "Λακεδαιμονίων": [
@@ -11231,6 +11253,50 @@
 "stemtype": "is_ews"
 }
 ],
+"διακονεῖ": [
+{
+"derivtype": "ew_denom",
+"dial": "Attic epic Doric Ionic",
+"hdwd": "διακονέω",
+"mood": "indicative",
+"morph": "contr",
+"num": "singular",
+"pers": "2nd",
+"pofs": "verb",
+"stemtype": "ew_pr",
+"tense": "present",
+"voice": "mediopassive"
+},
+{
+"derivtype": "ew_denom",
+"dial": "Attic epic Doric Ionic",
+"hdwd": "διακονέω",
+"mood": "indicative",
+"morph": "contr",
+"num": "singular",
+"pers": "3rd",
+"pofs": "verb",
+"stemtype": "ew_pr",
+"tense": "present",
+"voice": "active"
+}
+],
+"διακονῶν": [
+{
+"case": "nominative",
+"derivtype": "ew_denom",
+"dial": "Attic epic Doric",
+"gend": "masculine",
+"hdwd": "διακονέω",
+"mood": "participle",
+"morph": "contr",
+"num": "singular",
+"pofs": "verb participle",
+"stemtype": "ew_pr",
+"tense": "present",
+"voice": "active"
+}
+],
 "διακοσίους": [
 {
 "case": "accusative",
@@ -15443,6 +15509,19 @@
 }
 ],
 "εἰμί": [
+{
+"hdwd": "εἰμί",
+"mood": "indicative",
+"morph": "enclitic",
+"num": "singular",
+"pers": "1st",
+"pofs": "verb",
+"stemtype": "irreg_mi",
+"tense": "present",
+"voice": "active"
+}
+],
+"εἰμι": [
 {
 "hdwd": "εἰμί",
 "mood": "indicative",
@@ -20213,6 +20292,14 @@
 "stemtype": "particle"
 }
 ],
+"καίτοι": [
+{
+"hdwd": "καίτοι",
+"morph": "indeclform",
+"pofs": "particle",
+"stemtype": "particle"
+}
+],
 "καθαροί": [
 {
 "case": "nominative",
@@ -20746,6 +20833,64 @@
 "num": "singular",
 "pofs": "adjective",
 "stemtype": "os_h_on"
+}
+],
+"καλλίων": [
+{
+"case": "genitive",
+"decl": "3rd",
+"dial": "Doric",
+"gend": "neuter",
+"hdwd": "κάλλος",
+"num": "plural",
+"pofs": "noun",
+"stemtype": "hs_eos"
+},
+{
+"derivtype": "ow_denom",
+"dial": "Doric Aeolic",
+"hdwd": "καλλιόω",
+"mood": "indicative",
+"morph": "contr unaugmented poetic",
+"num": "plural",
+"pers": "3rd",
+"pofs": "verb",
+"stemtype": "ow_pr",
+"tense": "imperfect",
+"voice": "active"
+},
+{
+"derivtype": "ow_denom",
+"dial": "Doric Aeolic",
+"hdwd": "καλλιόω",
+"mood": "indicative",
+"morph": "contr unaugmented poetic",
+"num": "singular",
+"pers": "1st",
+"pofs": "verb",
+"stemtype": "ow_pr",
+"tense": "imperfect",
+"voice": "active"
+},
+{
+"case": "nominative",
+"comp": "comparative",
+"decl": "3rd",
+"gend": "masculine",
+"hdwd": "καλός",
+"num": "singular",
+"pofs": "adjective",
+"stemtype": "wn_on_comp"
+},
+{
+"case": "nominative",
+"comp": "comparative",
+"decl": "3rd",
+"gend": "feminine",
+"hdwd": "καλός",
+"num": "singular",
+"pofs": "adjective",
+"stemtype": "wn_on_comp"
 }
 ],
 "καλοί": [
@@ -21417,6 +21562,17 @@
 "voice": "mediopassive"
 }
 ],
+"κινδύνων": [
+{
+"case": "genitive",
+"decl": "2nd",
+"gend": "masculine",
+"hdwd": "κίνδυνος",
+"num": "plural",
+"pofs": "noun",
+"stemtype": "os_ou"
+}
+],
 "κλέος": [
 {
 "case": "nominative",
@@ -21701,6 +21857,19 @@
 "pofs": "verb participle",
 "stemtype": "aor1",
 "tense": "aorist",
+"voice": "active"
+}
+],
+"κομπάζεις": [
+{
+"derivtype": "azw",
+"hdwd": "κομπάζω",
+"mood": "indicative",
+"num": "singular",
+"pers": "2nd",
+"pofs": "verb",
+"stemtype": "w_stem",
+"tense": "present",
 "voice": "active"
 }
 ],
@@ -23653,6 +23822,19 @@
 "voice": "active"
 }
 ],
+"λαβεῖν": [
+{
+"derivtype": "anw",
+"dial": "Attic epic Doric",
+"hdwd": "λαμβάνω",
+"mood": "infinitive",
+"morph": "contr",
+"pofs": "verb",
+"stemtype": "aor2",
+"tense": "aorist",
+"voice": "active"
+}
+],
 "λαβουσῶν": [
 {
 "case": "genitive",
@@ -24944,6 +25126,36 @@
 "pofs": "verb participle",
 "stemtype": "aor2",
 "tense": "aorist",
+"voice": "active"
+}
+],
+"λογοποιοῦντες": [
+{
+"case": "nominative",
+"derivtype": "ew_denom",
+"dial": "Attic epic Doric",
+"gend": "masculine",
+"hdwd": "λογοποιέω",
+"mood": "participle",
+"morph": "contr",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "ew_pr",
+"tense": "present",
+"voice": "active"
+},
+{
+"case": "vocative",
+"derivtype": "ew_denom",
+"dial": "Attic epic Doric",
+"gend": "masculine",
+"hdwd": "λογοποιέω",
+"mood": "participle",
+"morph": "contr",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "ew_pr",
+"tense": "present",
 "voice": "active"
 }
 ],
@@ -29601,6 +29813,26 @@
 "stemtype": "os_h_on"
 }
 ],
+"μέσῳ": [
+{
+"case": "dative",
+"decl": "1st & 2nd",
+"gend": "masculine",
+"hdwd": "μέσος",
+"num": "singular",
+"pofs": "adjective",
+"stemtype": "os_h_on"
+},
+{
+"case": "dative",
+"decl": "1st & 2nd",
+"gend": "neuter",
+"hdwd": "μέσος",
+"num": "singular",
+"pofs": "adjective",
+"stemtype": "os_h_on"
+}
+],
 "μέτρον": [
 {
 "case": "nominative",
@@ -30754,6 +30986,19 @@
 "stemtype": "os_h_on"
 }
 ],
+"μεθέξετε": [
+{
+"derivtype": "reg_conj",
+"hdwd": "μετέχω",
+"mood": "indicative",
+"num": "plural",
+"pers": "2nd",
+"pofs": "verb",
+"stemtype": "reg_fut",
+"tense": "future",
+"voice": "active"
+}
+],
 "μεν": [],
 "μενετοί": [
 {
@@ -30949,6 +31194,19 @@
 "morph": "indeclform",
 "pofs": "preposition",
 "stemtype": "prep"
+}
+],
+"μετέχειν": [
+{
+"derivtype": "reg_conj",
+"dial": "Attic epic",
+"hdwd": "μετέχω",
+"mood": "infinitive",
+"morph": "contr",
+"pofs": "verb",
+"stemtype": "w_stem",
+"tense": "present",
+"voice": "active"
 }
 ],
 "μετοχή": [
@@ -33569,6 +33827,56 @@
 "voice": "active"
 }
 ],
+"νομίζοντα": [
+{
+"case": "nominative",
+"derivtype": "izw",
+"gend": "neuter",
+"hdwd": "νομίζω",
+"mood": "participle",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "w_stem",
+"tense": "present",
+"voice": "active"
+},
+{
+"case": "vocative",
+"derivtype": "izw",
+"gend": "neuter",
+"hdwd": "νομίζω",
+"mood": "participle",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "w_stem",
+"tense": "present",
+"voice": "active"
+},
+{
+"case": "accusative",
+"derivtype": "izw",
+"gend": "neuter",
+"hdwd": "νομίζω",
+"mood": "participle",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "w_stem",
+"tense": "present",
+"voice": "active"
+},
+{
+"case": "accusative",
+"derivtype": "izw",
+"gend": "masculine",
+"hdwd": "νομίζω",
+"mood": "participle",
+"num": "singular",
+"pofs": "verb participle",
+"stemtype": "w_stem",
+"tense": "present",
+"voice": "active"
+}
+],
 "νομίζουσι": [
 {
 "case": "dative",
@@ -33671,6 +33979,20 @@
 "num": "singular",
 "pers": "1st",
 "pofs": "verb",
+"stemtype": "w_stem",
+"tense": "present",
+"voice": "active"
+}
+],
+"νομίζων": [
+{
+"case": "nominative",
+"derivtype": "izw",
+"gend": "masculine",
+"hdwd": "νομίζω",
+"mood": "participle",
+"num": "singular",
+"pofs": "verb participle",
 "stemtype": "w_stem",
 "tense": "present",
 "voice": "active"
@@ -44720,6 +45042,225 @@
 "voice": "middle"
 }
 ],
+"ποτ᾽": [
+{
+"dial": "Aeolic",
+"hdwd": "ποτέ",
+"morph": "enclitic indeclform",
+"pofs": "particle",
+"stemtype": "particle"
+},
+{
+"hdwd": "ποτέ",
+"morph": "enclitic indeclform",
+"pofs": "particle",
+"stemtype": "particle"
+},
+{
+"case": "nominative",
+"decl": "1st",
+"gend": "feminine",
+"hdwd": "ποτή",
+"num": "dual",
+"pofs": "noun",
+"stemtype": "h_hs"
+},
+{
+"case": "vocative",
+"decl": "1st",
+"gend": "feminine",
+"hdwd": "ποτή",
+"num": "dual",
+"pofs": "noun",
+"stemtype": "h_hs"
+},
+{
+"case": "accusative",
+"decl": "1st",
+"gend": "feminine",
+"hdwd": "ποτή",
+"num": "dual",
+"pofs": "noun",
+"stemtype": "h_hs"
+},
+{
+"case": "nominative",
+"decl": "1st",
+"dial": "Doric Aeolic",
+"gend": "feminine",
+"hdwd": "ποτή",
+"num": "singular",
+"pofs": "noun",
+"stemtype": "h_hs"
+},
+{
+"case": "vocative",
+"decl": "1st",
+"dial": "Doric Aeolic",
+"gend": "feminine",
+"hdwd": "ποτή",
+"num": "singular",
+"pofs": "noun",
+"stemtype": "h_hs"
+},
+{
+"case": "nominative",
+"decl": "1st",
+"gend": "feminine",
+"hdwd": "ποτή",
+"morph": "poetic",
+"num": "plural",
+"pofs": "noun",
+"stemtype": "h_hs"
+},
+{
+"case": "vocative",
+"decl": "1st",
+"gend": "feminine",
+"hdwd": "ποτή",
+"morph": "poetic",
+"num": "plural",
+"pofs": "noun",
+"stemtype": "h_hs"
+},
+{
+"case": "nominative",
+"decl": "2nd",
+"gend": "neuter",
+"hdwd": "ποτόν",
+"num": "plural",
+"pofs": "noun",
+"stemtype": "os_ou"
+},
+{
+"case": "vocative",
+"decl": "2nd",
+"gend": "neuter",
+"hdwd": "ποτόν",
+"num": "plural",
+"pofs": "noun",
+"stemtype": "os_ou"
+},
+{
+"case": "accusative",
+"decl": "2nd",
+"gend": "neuter",
+"hdwd": "ποτόν",
+"num": "plural",
+"pofs": "noun",
+"stemtype": "os_ou"
+},
+{
+"case": "nominative",
+"decl": "1st & 2nd",
+"gend": "neuter",
+"hdwd": "ποτός",
+"num": "plural",
+"pofs": "adjective",
+"stemtype": "os_h_on"
+},
+{
+"case": "vocative",
+"decl": "1st & 2nd",
+"gend": "neuter",
+"hdwd": "ποτός",
+"num": "plural",
+"pofs": "adjective",
+"stemtype": "os_h_on"
+},
+{
+"case": "accusative",
+"decl": "1st & 2nd",
+"gend": "neuter",
+"hdwd": "ποτός",
+"num": "plural",
+"pofs": "adjective",
+"stemtype": "os_h_on"
+},
+{
+"case": "nominative",
+"decl": "1st & 2nd",
+"gend": "feminine",
+"hdwd": "ποτός",
+"num": "dual",
+"pofs": "adjective",
+"stemtype": "os_h_on"
+},
+{
+"case": "vocative",
+"decl": "1st & 2nd",
+"gend": "feminine",
+"hdwd": "ποτός",
+"num": "dual",
+"pofs": "adjective",
+"stemtype": "os_h_on"
+},
+{
+"case": "accusative",
+"decl": "1st & 2nd",
+"gend": "feminine",
+"hdwd": "ποτός",
+"num": "dual",
+"pofs": "adjective",
+"stemtype": "os_h_on"
+},
+{
+"case": "nominative",
+"decl": "1st & 2nd",
+"dial": "Doric Aeolic",
+"gend": "feminine",
+"hdwd": "ποτός",
+"num": "singular",
+"pofs": "adjective",
+"stemtype": "os_h_on"
+},
+{
+"case": "vocative",
+"decl": "1st & 2nd",
+"dial": "Doric Aeolic",
+"gend": "feminine",
+"hdwd": "ποτός",
+"num": "singular",
+"pofs": "adjective",
+"stemtype": "os_h_on"
+},
+{
+"case": "vocative",
+"decl": "1st & 2nd",
+"gend": "masculine",
+"hdwd": "ποτός",
+"num": "singular",
+"pofs": "adjective",
+"stemtype": "os_h_on"
+},
+{
+"case": "nominative",
+"decl": "1st & 2nd",
+"gend": "feminine",
+"hdwd": "ποτός",
+"morph": "poetic",
+"num": "plural",
+"pofs": "adjective",
+"stemtype": "os_h_on"
+},
+{
+"case": "vocative",
+"decl": "1st & 2nd",
+"gend": "feminine",
+"hdwd": "ποτός",
+"morph": "poetic",
+"num": "plural",
+"pofs": "adjective",
+"stemtype": "os_h_on"
+},
+{
+"dial": "epic Doric",
+"hdwd": "πρός",
+"morph": "indeclform",
+"pofs": "preposition",
+"stemtype": "prep"
+}
+],
 "που": [
 {
 "hdwd": "πού",
@@ -45179,6 +45720,20 @@
 "pofs": "verb",
 "stemtype": "ew_pr",
 "tense": "imperfect",
+"voice": "active"
+}
+],
+"προσεκύνησαν": [
+{
+"derivtype": "e_stem",
+"hdwd": "προσκυνέω",
+"mood": "indicative",
+"morph": "n_infix",
+"num": "plural",
+"pers": "3rd",
+"pofs": "verb",
+"stemtype": "aor1",
+"tense": "aorist",
 "voice": "active"
 }
 ],
@@ -49522,6 +50077,75 @@
 "voice": "active"
 }
 ],
+"συλλαβόντες": [
+{
+"case": "nominative",
+"derivtype": "anw",
+"gend": "masculine",
+"hdwd": "συλλαμβάνω",
+"mood": "participle",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "aor2",
+"tense": "aorist",
+"voice": "active"
+},
+{
+"case": "vocative",
+"derivtype": "anw",
+"gend": "masculine",
+"hdwd": "συλλαμβάνω",
+"mood": "participle",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "aor2",
+"tense": "aorist",
+"voice": "active"
+}
+],
+"συλλαμβάνουσι": [
+{
+"case": "dative",
+"derivtype": "anw",
+"dial": "Attic epic Doric Ionic",
+"gend": "masculine",
+"hdwd": "συλλαμβάνω",
+"mood": "participle",
+"morph": "n_infix",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "w_stem",
+"tense": "present",
+"voice": "active"
+},
+{
+"case": "dative",
+"derivtype": "anw",
+"dial": "Attic epic Doric Ionic",
+"gend": "neuter",
+"hdwd": "συλλαμβάνω",
+"mood": "participle",
+"morph": "n_infix",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "w_stem",
+"tense": "present",
+"voice": "active"
+},
+{
+"derivtype": "anw",
+"dial": "Attic epic Doric Ionic",
+"hdwd": "συλλαμβάνω",
+"mood": "indicative",
+"morph": "n_infix",
+"num": "plural",
+"pers": "3rd",
+"pofs": "verb",
+"stemtype": "w_stem",
+"tense": "present",
+"voice": "active"
+}
+],
 "συμ": [],
 "συμβασιλεύσομεν": [
 {
@@ -50701,6 +51325,35 @@
 "stemtype": "perf_act",
 "tense": "pluperfect",
 "voice": "active"
+}
+],
+"τέκνα": [
+{
+"case": "nominative",
+"decl": "2nd",
+"gend": "neuter",
+"hdwd": "τέκνον",
+"num": "plural",
+"pofs": "noun",
+"stemtype": "os_ou"
+},
+{
+"case": "vocative",
+"decl": "2nd",
+"gend": "neuter",
+"hdwd": "τέκνον",
+"num": "plural",
+"pofs": "noun",
+"stemtype": "os_ou"
+},
+{
+"case": "accusative",
+"decl": "2nd",
+"gend": "neuter",
+"hdwd": "τέκνον",
+"num": "plural",
+"pofs": "noun",
+"stemtype": "os_ou"
 }
 ],
 "τέκνων": [
@@ -56688,6 +57341,20 @@
 "stemtype": "os_ou"
 }
 ],
+"φάσκων": [
+{
+"case": "nominative",
+"derivtype": "a_stem",
+"gend": "masculine",
+"hdwd": "φάσκω",
+"mood": "participle",
+"num": "singular",
+"pofs": "verb participle",
+"stemtype": "w_stem",
+"tense": "present",
+"voice": "active"
+}
+],
 "φέρει": [
 {
 "hdwd": "φέρω",
@@ -59171,6 +59838,34 @@
 "voice": "active"
 }
 ],
+"φρονεῖ": [
+{
+"derivtype": "ew_denom",
+"dial": "Attic epic Doric Ionic",
+"hdwd": "φρονέω",
+"mood": "indicative",
+"morph": "contr",
+"num": "singular",
+"pers": "2nd",
+"pofs": "verb",
+"stemtype": "ew_pr",
+"tense": "present",
+"voice": "mediopassive"
+},
+{
+"derivtype": "ew_denom",
+"dial": "Attic epic Doric Ionic",
+"hdwd": "φρονέω",
+"mood": "indicative",
+"morph": "contr",
+"num": "singular",
+"pers": "3rd",
+"pofs": "verb",
+"stemtype": "ew_pr",
+"tense": "present",
+"voice": "active"
+}
+],
 "φρονεῖς": [
 {
 "derivtype": "ew_denom",
@@ -60223,6 +60918,15 @@
 "gend": "masculine",
 "hdwd": "χαλεπός",
 "num": "singular",
+"pofs": "adjective",
+"stemtype": "os_h_on"
+}
+],
+"χαλεπῶς": [
+{
+"decl": "1st & 2nd",
+"gend": "adverbial",
+"hdwd": "χαλεπός",
 "pofs": "adjective",
 "stemtype": "os_h_on"
 }
@@ -64514,6 +65218,20 @@
 "voice": "active"
 }
 ],
+"ἀκούοντας": [
+{
+"case": "accusative",
+"derivtype": "reg_conj",
+"gend": "masculine",
+"hdwd": "ἀκούω",
+"mood": "participle",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "w_stem",
+"tense": "present",
+"voice": "active"
+}
+],
 "ἀκούουσιν": [
 {
 "case": "dative",
@@ -66052,6 +66770,28 @@
 "voice": "active"
 }
 ],
+"ἀνοητότατοι": [
+{
+"case": "nominative",
+"comp": "superlative",
+"decl": "1st & 2nd",
+"gend": "masculine",
+"hdwd": "ἀνόητος",
+"num": "plural",
+"pofs": "adjective",
+"stemtype": "os_on"
+},
+{
+"case": "vocative",
+"comp": "superlative",
+"decl": "1st & 2nd",
+"gend": "masculine",
+"hdwd": "ἀνόητος",
+"num": "plural",
+"pofs": "adjective",
+"stemtype": "os_on"
+}
+],
 "ἀντάλλαγμα": [
 {
 "case": "nominative",
@@ -66789,6 +67529,32 @@
 "voice": "active"
 }
 ],
+"ἀποκτείνοντες": [
+{
+"case": "nominative",
+"derivtype": "einw",
+"gend": "masculine",
+"hdwd": "ἀποκτείνω",
+"mood": "participle",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "w_stem",
+"tense": "present",
+"voice": "active"
+},
+{
+"case": "vocative",
+"derivtype": "einw",
+"gend": "masculine",
+"hdwd": "ἀποκτείνω",
+"mood": "participle",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "w_stem",
+"tense": "present",
+"voice": "active"
+}
+],
 "ἀποκτείνουσιν": [
 {
 "derivtype": "einw",
@@ -66842,6 +67608,36 @@
 "pofs": "verb",
 "stemtype": "w_stem",
 "tense": "present",
+"voice": "active"
+}
+],
+"ἀποκτενοῦντες": [
+{
+"case": "nominative",
+"derivtype": "einw",
+"dial": "Attic epic Doric",
+"gend": "masculine",
+"hdwd": "ἀποκτείνω",
+"mood": "participle",
+"morph": "contr",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "ew_fut",
+"tense": "future",
+"voice": "active"
+},
+{
+"case": "vocative",
+"derivtype": "einw",
+"dial": "Attic epic Doric",
+"gend": "masculine",
+"hdwd": "ἀποκτείνω",
+"mood": "participle",
+"morph": "contr",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "ew_fut",
+"tense": "future",
 "voice": "active"
 }
 ],
@@ -69049,6 +69845,14 @@
 }
 ],
 "ἄνθρωπου": [],
+"ἄντικρυς": [
+{
+"hdwd": "ἄντικρυς",
+"morph": "indeclform",
+"pofs": "adverb",
+"stemtype": "adverb"
+}
+],
 "ἄξει": [
 {
 "derivtype": "numi",
@@ -75204,6 +76008,279 @@
 "voice": "active"
 }
 ],
+"ἐξαπατᾷ": [
+{
+"derivtype": "aw_denom",
+"hdwd": "ἐξαπατάω",
+"mood": "subjunctive",
+"morph": "contr",
+"num": "singular",
+"pers": "2nd",
+"pofs": "verb",
+"stemtype": "aw_pr",
+"tense": "present",
+"voice": "mediopassive"
+},
+{
+"derivtype": "aw_denom",
+"dial": "epic",
+"hdwd": "ἐξαπατάω",
+"mood": "indicative",
+"morph": "contr",
+"num": "singular",
+"pers": "2nd",
+"pofs": "verb",
+"stemtype": "aw_pr",
+"tense": "present",
+"voice": "mediopassive"
+},
+{
+"derivtype": "aw_denom",
+"hdwd": "ἐξαπατάω",
+"mood": "subjunctive",
+"morph": "contr",
+"num": "singular",
+"pers": "3rd",
+"pofs": "verb",
+"stemtype": "aw_pr",
+"tense": "present",
+"voice": "active"
+},
+{
+"derivtype": "aw_denom",
+"dial": "epic",
+"hdwd": "ἐξαπατάω",
+"mood": "indicative",
+"morph": "contr",
+"num": "singular",
+"pers": "3rd",
+"pofs": "verb",
+"stemtype": "aw_pr",
+"tense": "present",
+"voice": "active"
+},
+{
+"derivtype": "aw_denom",
+"hdwd": "ἐξαπατάω",
+"mood": "subjunctive",
+"morph": "contr",
+"num": "singular",
+"pers": "2nd",
+"pofs": "verb",
+"stemtype": "aw_pr",
+"tense": "present",
+"voice": "mediopassive"
+},
+{
+"derivtype": "aw_denom",
+"dial": "epic Doric Aeolic",
+"hdwd": "ἐξαπατάω",
+"mood": "indicative",
+"morph": "contr",
+"num": "singular",
+"pers": "2nd",
+"pofs": "verb",
+"stemtype": "aw_pr",
+"tense": "present",
+"voice": "mediopassive"
+},
+{
+"derivtype": "aw_denom",
+"hdwd": "ἐξαπατάω",
+"mood": "subjunctive",
+"morph": "contr",
+"num": "singular",
+"pers": "3rd",
+"pofs": "verb",
+"stemtype": "aw_pr",
+"tense": "present",
+"voice": "active"
+},
+{
+"derivtype": "aw_denom",
+"dial": "epic Doric Aeolic",
+"hdwd": "ἐξαπατάω",
+"mood": "indicative",
+"morph": "contr",
+"num": "singular",
+"pers": "3rd",
+"pofs": "verb",
+"stemtype": "aw_pr",
+"tense": "present",
+"voice": "active"
+}
+],
+"ἐξαπατῶν": [
+{
+"case": "genitive",
+"decl": "1st",
+"gend": "feminine",
+"hdwd": "ἐξαπάτη",
+"num": "plural",
+"pofs": "noun",
+"stemtype": "h_hs"
+},
+{
+"case": "vocative",
+"derivtype": "aw_denom",
+"gend": "masculine",
+"hdwd": "ἐξαπατάω",
+"mood": "participle",
+"morph": "contr",
+"num": "singular",
+"pofs": "verb participle",
+"stemtype": "aw_pr",
+"tense": "present",
+"voice": "active"
+},
+{
+"case": "nominative",
+"derivtype": "aw_denom",
+"gend": "neuter",
+"hdwd": "ἐξαπατάω",
+"mood": "participle",
+"morph": "contr",
+"num": "singular",
+"pofs": "verb participle",
+"stemtype": "aw_pr",
+"tense": "present",
+"voice": "active"
+},
+{
+"case": "vocative",
+"derivtype": "aw_denom",
+"gend": "neuter",
+"hdwd": "ἐξαπατάω",
+"mood": "participle",
+"morph": "contr",
+"num": "singular",
+"pofs": "verb participle",
+"stemtype": "aw_pr",
+"tense": "present",
+"voice": "active"
+},
+{
+"case": "accusative",
+"derivtype": "aw_denom",
+"gend": "neuter",
+"hdwd": "ἐξαπατάω",
+"mood": "participle",
+"morph": "contr",
+"num": "singular",
+"pofs": "verb participle",
+"stemtype": "aw_pr",
+"tense": "present",
+"voice": "active"
+},
+{
+"case": "nominative",
+"derivtype": "aw_denom",
+"dial": "Attic epic Ionic",
+"gend": "masculine",
+"hdwd": "ἐξαπατάω",
+"mood": "participle",
+"morph": "contr",
+"num": "singular",
+"pofs": "verb participle",
+"stemtype": "aw_pr",
+"tense": "present",
+"voice": "active"
+},
+{
+"case": "nominative",
+"derivtype": "aw_denom",
+"dial": "Attic epic Doric Ionic",
+"gend": "masculine",
+"hdwd": "ἐξαπατάω",
+"mood": "participle",
+"morph": "contr",
+"num": "singular",
+"pofs": "verb participle",
+"stemtype": "ew_pr",
+"tense": "present",
+"voice": "active"
+},
+{
+"case": "nominative",
+"derivtype": "ew_denom",
+"dial": "Attic epic Doric Ionic",
+"gend": "masculine",
+"hdwd": "ἐξαπατάω",
+"mood": "participle",
+"morph": "contr",
+"num": "singular",
+"pofs": "verb participle",
+"stemtype": "ew_pr",
+"tense": "present",
+"voice": "active"
+},
+{
+"case": "vocative",
+"derivtype": "aw_denom",
+"gend": "masculine",
+"hdwd": "ἐξαπατάω",
+"mood": "participle",
+"morph": "contr",
+"num": "singular",
+"pofs": "verb participle",
+"stemtype": "aw_pr",
+"tense": "present",
+"voice": "active"
+},
+{
+"case": "nominative",
+"derivtype": "aw_denom",
+"gend": "neuter",
+"hdwd": "ἐξαπατάω",
+"mood": "participle",
+"morph": "contr",
+"num": "singular",
+"pofs": "verb participle",
+"stemtype": "aw_pr",
+"tense": "present",
+"voice": "active"
+},
+{
+"case": "vocative",
+"derivtype": "aw_denom",
+"gend": "neuter",
+"hdwd": "ἐξαπατάω",
+"mood": "participle",
+"morph": "contr",
+"num": "singular",
+"pofs": "verb participle",
+"stemtype": "aw_pr",
+"tense": "present",
+"voice": "active"
+},
+{
+"case": "accusative",
+"derivtype": "aw_denom",
+"gend": "neuter",
+"hdwd": "ἐξαπατάω",
+"mood": "participle",
+"morph": "contr",
+"num": "singular",
+"pofs": "verb participle",
+"stemtype": "aw_pr",
+"tense": "present",
+"voice": "active"
+},
+{
+"case": "nominative",
+"derivtype": "aw_denom",
+"dial": "Attic epic Ionic",
+"gend": "masculine",
+"hdwd": "ἐξαπατάω",
+"mood": "participle",
+"morph": "contr",
+"num": "singular",
+"pofs": "verb participle",
+"stemtype": "aw_pr",
+"tense": "present",
+"voice": "active"
+}
+],
 "ἐξελέξαντο": [
 {
 "derivtype": "reg_conj",
@@ -77351,6 +78428,62 @@
 "voice": "active"
 }
 ],
+"ἐροῦντες": [
+{
+"case": "nominative",
+"derivtype": "ew_denom",
+"dial": "Attic epic Doric",
+"gend": "masculine",
+"hdwd": "ἐρέω",
+"mood": "participle",
+"morph": "contr",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "ew_pr",
+"tense": "present",
+"voice": "active"
+},
+{
+"case": "vocative",
+"derivtype": "ew_denom",
+"dial": "Attic epic Doric",
+"gend": "masculine",
+"hdwd": "ἐρέω",
+"mood": "participle",
+"morph": "contr",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "ew_pr",
+"tense": "present",
+"voice": "active"
+},
+{
+"case": "nominative",
+"dial": "Attic epic Doric",
+"gend": "masculine",
+"hdwd": "ἐρῶ",
+"mood": "participle",
+"morph": "contr",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "ew_fut",
+"tense": "future",
+"voice": "active"
+},
+{
+"case": "vocative",
+"dial": "Attic epic Doric",
+"gend": "masculine",
+"hdwd": "ἐρῶ",
+"mood": "participle",
+"morph": "contr",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "ew_fut",
+"tense": "future",
+"voice": "active"
+}
+],
 "ἐρωτηματική": [
 {
 "case": "nominative",
@@ -77606,6 +78739,32 @@
 "pofs": "verb",
 "stemtype": "aor1",
 "tense": "aorist",
+"voice": "active"
+}
+],
+"ἐσιώπων": [
+{
+"derivtype": "aw_denom",
+"hdwd": "σιωπάω",
+"mood": "indicative",
+"morph": "contr",
+"num": "plural",
+"pers": "3rd",
+"pofs": "verb",
+"stemtype": "aw_pr",
+"tense": "imperfect",
+"voice": "active"
+},
+{
+"derivtype": "aw_denom",
+"hdwd": "σιωπάω",
+"mood": "indicative",
+"morph": "contr",
+"num": "singular",
+"pers": "1st",
+"pofs": "verb",
+"stemtype": "aw_pr",
+"tense": "imperfect",
 "voice": "active"
 }
 ],
@@ -86299,6 +87458,30 @@
 "voice": "active"
 }
 ],
+"ἰδόντες": [
+{
+"case": "nominative",
+"gend": "masculine",
+"hdwd": "εἶδον",
+"mood": "participle",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "aor2",
+"tense": "aorist",
+"voice": "active"
+},
+{
+"case": "vocative",
+"gend": "masculine",
+"hdwd": "εἶδον",
+"mood": "participle",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "aor2",
+"tense": "aorist",
+"voice": "active"
+}
+],
 "ἰοῦσα": [
 {
 "case": "nominative",
@@ -89216,6 +90399,86 @@
 "stemtype": "hs_ou"
 }
 ],
+"Ἱπποκράτης": [
+{
+"case": "genitive",
+"decl": "1st",
+"dial": "Attic epic Ionic",
+"gend": "feminine",
+"hdwd": "Ἱπποκράτη",
+"num": "singular",
+"pofs": "noun",
+"stemtype": "h_hs"
+},
+{
+"case": "accusative",
+"decl": "3rd",
+"dial": "Attic epic Doric",
+"gend": "masculine",
+"hdwd": "Ἱπποκράτης",
+"morph": "contr",
+"num": "plural",
+"pofs": "noun",
+"stemtype": "hs_eos"
+},
+{
+"case": "nominative",
+"decl": "3rd",
+"dial": "Doric Aeolic",
+"gend": "masculine",
+"hdwd": "Ἱπποκράτης",
+"morph": "contr",
+"num": "plural",
+"pofs": "noun",
+"stemtype": "hs_eos"
+},
+{
+"case": "vocative",
+"decl": "3rd",
+"dial": "Doric Aeolic",
+"gend": "masculine",
+"hdwd": "Ἱπποκράτης",
+"morph": "contr",
+"num": "plural",
+"pofs": "noun",
+"stemtype": "hs_eos"
+},
+{
+"case": "nominative",
+"decl": "3rd",
+"gend": "masculine",
+"hdwd": "Ἱπποκράτης",
+"num": "singular",
+"pofs": "noun",
+"stemtype": "hs_eos"
+},
+{
+"derivtype": "ew_denom",
+"dial": "Doric Aeolic",
+"hdwd": "ἱπποκρατέω",
+"mood": "indicative",
+"morph": "contr",
+"num": "singular",
+"pers": "2nd",
+"pofs": "verb",
+"stemtype": "ew_pr",
+"tense": "imperfect",
+"voice": "active"
+},
+{
+"derivtype": "ew_denom",
+"dial": "Doric Aeolic",
+"hdwd": "ἱπποκρατέω",
+"mood": "indicative",
+"morph": "contr unaugmented poetic",
+"num": "singular",
+"pers": "2nd",
+"pofs": "verb",
+"stemtype": "ew_pr",
+"tense": "imperfect",
+"voice": "active"
+}
+],
 "Ἵστημι": [
 {
 "hdwd": "ἵστημι",
@@ -89892,6 +91155,36 @@
 "num": "singular",
 "pers": "2nd",
 "pofs": "verb",
+"stemtype": "aw_pr",
+"tense": "present",
+"voice": "active"
+}
+],
+"ὁρῶντες": [
+{
+"case": "nominative",
+"derivtype": "a_stem",
+"dial": "epic",
+"gend": "masculine",
+"hdwd": "ὁράω",
+"mood": "participle",
+"morph": "contr",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "aw_pr",
+"tense": "present",
+"voice": "active"
+},
+{
+"case": "vocative",
+"derivtype": "a_stem",
+"dial": "epic",
+"gend": "masculine",
+"hdwd": "ὁράω",
+"mood": "participle",
+"morph": "contr",
+"num": "plural",
+"pofs": "verb participle",
 "stemtype": "aw_pr",
 "tense": "present",
 "voice": "active"
@@ -91108,6 +92401,32 @@
 {
 "derivtype": "euw",
 "hdwd": "ὑποπτεύω",
+"mood": "indicative",
+"num": "singular",
+"pers": "1st",
+"pofs": "verb",
+"stemtype": "w_stem",
+"tense": "imperfect",
+"voice": "active"
+}
+],
+"ὑπῆρχον": [
+{
+"derivtype": "reg_conj",
+"dial": "Attic epic Ionic",
+"hdwd": "ὑπάρχω",
+"mood": "indicative",
+"num": "plural",
+"pers": "3rd",
+"pofs": "verb",
+"stemtype": "w_stem",
+"tense": "imperfect",
+"voice": "active"
+},
+{
+"derivtype": "reg_conj",
+"dial": "Attic epic Ionic",
+"hdwd": "ὑπάρχω",
 "mood": "indicative",
 "num": "singular",
 "pers": "1st",
