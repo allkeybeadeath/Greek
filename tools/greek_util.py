@@ -248,7 +248,7 @@ def check_sentence_accents(sentence):
                 errs.append(f'{w}: 악센트가 {len(marks)}개')
             else:
                 pos, kind = marks[0]
-                if pos == 1 and kind == 'acute' and joined and nfc(w) not in NEVER_GRAVE:
+                if pos == 1 and kind == 'acute' and joined and nfc(w).lower() not in NEVER_GRAVE:
                     errs.append(f'{w}: 뒤에 낱말이 이어지므로 둔음이어야 함')
     return errs
 
@@ -262,7 +262,7 @@ def is_postpositive(w):
 
 def to_grave(word):
     """어말 예음(oxytone)을 둔음으로. 조건이 안 맞으면 그대로."""
-    if nfc(word) in NEVER_GRAVE or word[-1:] in PUNCT:
+    if nfc(word).lower() in NEVER_GRAVE or word[-1:] in PUNCT:
         return word
     marks = accent_marks(word)
     if marks != [(1, 'acute')]:
