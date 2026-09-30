@@ -165,6 +165,8 @@ def check_sentence_accents(sentence):
       3) 악센트 개수: 일반 낱말은 악센트 1개 (전접어 앞 2개 허용). 후접어는 0개.
     """
     errs = []
+    # 'ὅ τι' (ὅστις 의 중성을 띄어 쓴 꼴)은 한 낱말 ὅτι 처럼 본다 — 뒤의 전접어(τις …)는 paroxytone 뒤 규칙
+    sentence = re.sub(nfc('ὅ τι(?=[\\s,.;·])'), nfc('ὅτι'), nfc(sentence))
     toks = tokenize(sentence)
     for i, (w, p) in enumerate(toks):
         marks = accent_marks(w)
