@@ -92,6 +92,9 @@ ENCLITICS = {strip_accents(nfc(w)) for w in _ENCLITIC_BASE.split()}
 
 # 악센트가 없는 후접어(proclitic) — 문중에서 악센트 없이 쓰임
 PROCLITICS = {nfc(w) for w in 'ὁ ἡ οἱ αἱ ἐν εἰς ἐς ἐκ ἐξ οὐ οὐκ οὐχ εἰ ὡς'.split()}
+NEGATIONS = {'ου', 'ουκ', 'ουχ'}                       # strip_all 기준
+# οὐκ 뒤의 εἰμί (οὐκ εἰμί · οὐκ ἐσμέν · οὐκ εἰσίν) — 편집본 대부분이 제 악센트를 둔다. οὔκ ἐσμεν 꼴도 허용
+EIMI_AFTER_NEG = {'ειμι', 'εσμεν', 'εστε', 'εισι', 'εισιν'}
 
 # 둔음 규칙에서 예외: 의문사 τίς/τί 는 둔음이 되지 않는다
 NEVER_GRAVE = {nfc('τίς'), nfc('τί')}
@@ -188,6 +191,13 @@ def check_sentence_accents(sentence):
                 continue
             hmarks = accent_marks(prev_w)
             h_elided = prev_w[-1] in ELISION_MARKS
+            if strip_all(prev_w) in NEGATIONS and not hmarks and marks and strip_all(w) in EIMI_AFTER_NEG:
+                # οὐκ ἐσμὲν ὑπὸ νόμον — 편집본 관행대로 제 악센트를 지닌 꼴 (둔음 규칙은 일반 낱말과 같다)
+                if marks[-1][1] == 'grave' and not joined:
+                    errs.append(f'{w}: 문장부호 앞 둔음')
+                elif marks[-1][1] == 'acute' and marks[-1][0] == 1 and joined and not nxt_enclitic:
+                    errs.append(f'{w}: 뒤에 낱말이 이어지므로 둔음이어야 함')
+                continue
             if h_elided:
                 # 어말이 생략된 낱말 뒤의 전접어는 제 악센트를 지닌다 (ταῦτ᾽ ἐστί, ποῦ ποτ᾽ ἐστέ — Smyth §187)
                 if not marks:
@@ -219,13 +229,18 @@ def check_sentence_accents(sentence):
 
         # 후접어 (ὁ, ἐν, οὐ …) — 악센트가 있는 ὅ · ἥ · οἵ · αἵ 는 관계대명사라 일반 낱말로 본다
         rel = marks and base.lower() in {nfc(x) for x in ('ὁ', 'ἡ', 'οἱ', 'αἱ')}
-        if not rel and (nfc(w).lower() in PROCLITICS or base.lower() in PROCLITICS):
-            if not joined and base.lower() in {'ου', 'ουκ', 'ουχ'} and not marks:
+        circ = any(k == 'circ' for _, k in marks)      # εἶ (εἰμί 2인칭) 는 후접어 εἰ 가 아니다
+        if not rel and not circ and (nfc(w).lower() in PROCLITICS or base.lower() in PROCLITICS):
+            neg = strip_all(w) in NEGATIONS
+            if not joined and neg and not marks:
                 errs.append(f'{w}: 절 끝의 οὐ 는 악센트를 얻어 οὔ')
             if nxt_enclitic:
-                # εἴ τις, οὔ φημι — 후접어가 예음을 얻는다
-                if not marks:
+                # εἴ τις, οὔ φημι — 후접어가 예음을 얻는다. 단 οὐκ ἐσμὲν 처럼 뒤 εἰμί 가 제 악센트를 지니면 그대로
+                ortho = neg and strip_all(nxt) in EIMI_AFTER_NEG and bool(accent_marks(nxt))
+                if not marks and not ortho:
                     errs.append(f'{w}: 전접어 앞 후접어에 예음이 필요')
+                elif marks and ortho:
+                    errs.append(f'{w}: 뒤의 εἰμί 가 악센트를 지니면 οὐκ 은 악센트 없이')
             elif marks and not (not joined):
                 errs.append(f'{w}: 후접어에 악센트가 있음')
             continue
