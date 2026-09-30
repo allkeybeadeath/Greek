@@ -601,9 +601,10 @@ class Checker:
         if not an:
             return False, [], 'Morpheus 분석 없음 (악센트·철자 확인 — 고유명사는 manual_forms.tsv)', False
         if pick:
-            lemma_p, combos = pick
+            lemma_p, combos, adv = pick
             an2 = [a for a in an if (not lemma_p or norm_lemma(a.get('hdwd')) == norm_lemma(lemma_p))
-                   and (not combos or any(feats_match(c, feats(a)) for c in combos))]
+                   and (not combos or any(feats_match(c, feats(a)) for c in combos))
+                   and (not adv or a.get('pofs') == 'adverb' or a.get('gend') == 'adverbial')]
             if not an2:
                 return False, [], f'@a 지정과 맞는 분석 없음 (Morpheus: ' + '; '.join(sorted({
                     f'{a.get("hdwd")} {label_of(feats(a), "verb" if is_verbal(a) else "adj")}' for a in an}))[:200] + ')', False
@@ -1140,12 +1141,16 @@ def build(args):
             code = (meta or {}).get('a', {}).get(G.nfc(tok))
             if not code:
                 return None
+            # 'adv' = 부사 분석만 (εὐθύς '곧바로' ↔ 형용사 '곧은')
+            words = code.split()
+            adv = 'adv' in words
+            code = ' '.join(x for x in words if x != 'adv')
             try:
                 lemma_p, combos, _, slots = parse_code(code)
             except ValueError as e:
                 err(w, f'@a {tok}: {e}')
                 return None
-            return lemma_p, (combos if slots else None)
+            return lemma_p, (combos if slots else None), adv
 
         def words_auth(text, meta, w, need_gloss=True):
             """원전 문장 낱말 검증 → 풀이 행 [형태, 표제, 뜻, 분석, 새 낱말 1/0]"""

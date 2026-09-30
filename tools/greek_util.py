@@ -105,6 +105,9 @@ def is_enclitic_form(tok):
     marks = accent_marks(tok)
     if marks and n_syllables(tok) == 1:
         # 악센트 있는 단음절은 전접어가 아니다: 관사 τοῦ, 의문사 τίς/τί/ποῦ/πῶς, 강조형 σοῦ/σοί/σέ
+        # 단 μέ · μοί · μοῦ 는 강조형이 ἐμέ · ἐμοί · ἐμοῦ 라, 예음이 있어도 뒤 전접어에게서 받은 것 (ὁ παραδούς μέ σοι)
+        if strip_accents(tok) in {'με', 'μοι', 'μου'} and marks == [(1, 'acute')]:
+            return True
         return False
     return all(pos == 1 for pos, _ in marks)
 
@@ -209,7 +212,8 @@ def check_sentence_accents(sentence):
                 # 전접어 연속 (εἴ τίς τινα) — 사람이 확인
                 errs.append(f'{w}: 전접어 연속 — 수동 확인 필요')
             else:
-                if marks:
+                # 전접어가 이어지면 앞 전접어는 뒤 전접어의 악센트를 받아 예음을 얻을 수 있다 (ὁ παραδούς μέ σοι — Smyth §185)
+                if marks and not (nxt_enclitic and len(marks) == 1 and marks[0][1] == 'acute'):
                     errs.append(f'{w}: 이 자리의 전접어는 악센트를 잃어야 함 (host {prev_w})')
             continue
 
