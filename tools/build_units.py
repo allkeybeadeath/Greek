@@ -136,6 +136,10 @@ def feats(a):
         f['pers'] = M_PERS.get(a['pers'], a['pers'])
     if a.get('comp'):
         f['deg'] = {'comparative': 'comp', 'superlative': 'sup'}.get(a['comp'], a['comp'])
+    elif 'irreg_superl' in (a.get('morph') or ''):
+        f['deg'] = 'sup'    # ἥδιστα · κάλλιστος — Morpheus 는 불규칙 비교급 · 최상급을 morph 로만 적는다
+    elif 'irreg_comp' in (a.get('morph') or ''):
+        f['deg'] = 'comp'
     return f
 
 
@@ -649,6 +653,14 @@ class Checker:
     def gloss(self, tok, good):
         """낱말 풀이 [form, 표제, 한국어, 분석]"""
         labels, lemma = [], None
+        # 도리스 · 아이올리스 방언 분석은 같은 표제어의 표준 분석이 있으면 풀이에서 뺀다
+        # (ἦν '3인칭 복수', δικαίως '복수 대격', πλήρης '복수 주격')
+        def dialectal(a):
+            d = a.get('dial') or ''
+            return ('Doric' in d or 'Aeolic' in d) and 'Attic' not in d
+        lemma0 = norm_lemma(good[0].get('hdwd')) if good else None
+        if any(not dialectal(a) for a in good if norm_lemma(a.get('hdwd')) == lemma0):
+            good = [a for a in good if not (dialectal(a) and norm_lemma(a.get('hdwd')) == lemma0)]
         for a in good:
             hd = norm_lemma(a.get('hdwd'))
             if lemma is None:
