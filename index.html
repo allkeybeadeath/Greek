@@ -500,6 +500,13 @@ textarea.input{font-family:var(--font-ko);font-size:14px;line-height:1.5;min-hei
 .u-gloss>summary{cursor:pointer;font-size:12px;color:var(--aegean);padding:6px 0}
 .u-gloss td{font-size:13px;vertical-align:top}
 .u-gloss .p{font-size:11px;color:var(--ink-soft);margin-top:2px}
+.u-gloss td .nw{font-size:10px;color:var(--aegean);letter-spacing:.04em;margin-left:4px}
+/* v73 원전 발췌: 출처 · 답하기 전에 보는 뜻풀이 */
+.u-src{font-size:12px;color:var(--ink-soft);margin:-4px 0 10px;letter-spacing:.02em}
+.u-new{font-size:12.5px;line-height:1.7;color:var(--ink-mid);border-left:2px solid var(--aegean);padding:2px 0 2px 10px;margin:0 0 12px;text-align:left}
+.u-new .k{font-size:11px;color:var(--aegean);letter-spacing:.06em;margin-right:6px}
+.u-new .grk{font-size:14px;color:var(--ink)}
+.u-new .lem{font-size:12px;color:var(--ink-soft)}
 
 /* 미니 링크 */
 .minlink{color:var(--terracotta-d);text-decoration:none;font-size:12px;border-bottom:1px dotted var(--terracotta-d);font-weight:500}
@@ -8664,7 +8671,7 @@ function renderUnit(n){
           <span class="u-best">${s.tries ? `최고 ${s.best}%` : '풀기 →'}</span>
         </button>`; }).join('')}
       <div class="btn-row" style="margin:12px 0 4px"><button class="btn btn-g" onclick="startUnitSet(${n},'all')">전체 풀기 (${pr.total}문항) →</button></div>
-      <div class="hint">문제는 교재 문장을 옮긴 것이 아니라 ${n}과까지 나온 어휘·문법만으로 새로 지은 것입니다. 교재의 연습문제는 책에서 함께 풀어 보세요.</div>
+      <div class="hint">해석 · 작문 문장은 크세노폰 · 플라톤 · 뤼시아스 · 이솝 · 신약 같은 고대 원전에서 ${n}과까지 배운 문법에 맞는 것만 골라 발췌했습니다. 문항마다 출처를 달았고, 아직 배우지 않은 낱말은 뜻풀이를 먼저 보여 줍니다. 교재의 연습문제는 책에서 함께 풀어 보세요.</div>
     ` : `<div class="hint">이 유닛은 도구(악센트 학습)와 초보자 과정의 알파벳 과제로 연습합니다.</div>`}
   `;
   _unitCurriculumBar(n);
@@ -8796,6 +8803,8 @@ function _unitQTr(it){
   const box = document.getElementById('uq');
   box.innerHTML = `
     <div class="u-sent grk">${escapeHtml(d.g)} ${_unitSpeakBtn(d.g)}</div>
+    ${_unitSrcHtml(d.s)}
+    ${_unitNewWordsHtml(d.gl)}
     <div class="quiz-sub">알맞은 해석은?</div>
     <div class="options">${opts.map(o => `<button class="opt" data-v="${_escAttr(o)}">${escapeHtml(o)}</button>`).join('')}</div>`;
   _bindSay(box);
@@ -8816,6 +8825,8 @@ function _unitQComp(it){
     const used = new Set(placed.map(p => p.id));
     box.innerHTML = `
       <div class="quiz-prompt ko">${escapeHtml(d.k)}</div>
+      ${_unitSrcHtml(d.s)}
+      ${_unitNewWordsHtml(d.gl)}
       <div class="quiz-sub">조각을 눌러 그리스어 문장을 만드세요 · 필요 없는 조각도 섞여 있습니다</div>
       <div class="u-line grk" aria-live="polite">${placed.length
         ? placed.map((p, i) => `<button class="u-chunk on" data-pi="${i}">${escapeHtml(p.t)}</button>`).join('')
@@ -8875,9 +8886,26 @@ function _compHint(d, got){
 function _unitExplain(note, gl){
   const g = Array.isArray(gl) && gl.length ? `
     <details class="u-gloss"><summary>낱말 풀이</summary>
-      <table class="paradigm"><tbody>${gl.map(r => `<tr><td class="grk">${escapeHtml(r[0])}</td><td><span class="grk">${escapeHtml(r[1])}</span>${r[2] ? ` · ${escapeHtml(r[2])}` : ''}${r[3] ? `<div class="p">${escapeHtml(r[3])}</div>` : ''}</td></tr>`).join('')}</tbody></table>
+      <table class="paradigm"><tbody>${gl.map(r => `<tr><td class="grk">${escapeHtml(r[0])}</td><td><span class="grk">${escapeHtml(r[1])}</span>${r[2] ? ` · ${escapeHtml(r[2])}` : ''}${r[4] ? '<span class="nw">새 낱말</span>' : ''}${r[3] ? `<div class="p">${escapeHtml(r[3])}</div>` : ''}</td></tr>`).join('')}</tbody></table>
     </details>` : '';
   return (note ? `<div class="u-note">📜 ${escapeHtml(note)}</div>` : '') + g;
+}
+
+// v73: 문장은 고대 원전에서 발췌 — 출처와, 아직 배우지 않은 낱말의 뜻풀이를 답하기 전에 보여 준다.
+// gl 행: [형태, 표제어, 뜻, 분석, 새 낱말 1/0]
+function _unitSrcHtml(s){
+  return s ? `<div class="u-src">— ${escapeHtml(s)}</div>` : '';
+}
+function _unitNewWordsHtml(gl){
+  const seen = new Set();
+  const items = [];
+  for(const r of (gl || [])){
+    if(!r[4] || seen.has(r[1])) continue;
+    seen.add(r[1]);
+    const lem = r[1] && r[1] !== r[0] ? ` <span class="lem">(${escapeHtml(r[1])})</span>` : '';
+    items.push(`<span class="grk">${escapeHtml(r[0])}</span>${lem} ${escapeHtml(r[2] || '')}`);
+  }
+  return items.length ? `<div class="u-new"><span class="k">뜻풀이</span>${items.join(' · ')}</div>` : '';
 }
 
 function _markOpts(box, btn, answer){

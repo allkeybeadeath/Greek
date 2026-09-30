@@ -58,6 +58,32 @@ import morpheus  # noqa: E402
 SRC_DIR = os.path.join(ROOT, 'units-src')
 OUT_PATH = os.path.join(ROOT, 'data-units.js')
 MANUAL_PATH = os.path.join(HERE, 'manual_forms.tsv')
+GLOSS_PATH = os.path.join(SRC_DIR, 'glossary.tsv')
+
+# v73: 교재 어휘표 밖 낱말의 뜻풀이 (표제어 \t 한국어) — 원전 발췌 문항이 쓴다
+GLOSSARY = {}
+GLOSSARY_OVERRIDE = {}   # '!' 줄 — 어휘표의 뜻보다 우선
+
+
+def load_glossary():
+    GLOSSARY.clear()
+    GLOSSARY_OVERRIDE.clear()
+    if not os.path.exists(GLOSS_PATH):
+        return
+    for ln, line in enumerate(open(GLOSS_PATH, encoding='utf-8'), 1):
+        line = line.rstrip('\n')
+        if not line.strip() or line.startswith('#'):
+            continue
+        if '\t' not in line:
+            raise SyntaxError(f'{GLOSS_PATH}:{ln}: 탭으로 나눈 «표제어\\t뜻» 이어야 함: {line!r}')
+        lemma, ko = line.split('\t', 1)
+        target = GLOSSARY
+        if lemma.startswith('!'):
+            lemma, target = lemma[1:], GLOSSARY_OVERRIDE
+        key = norm_lemma(lemma.strip())
+        if key in target:
+            raise SyntaxError(f'{GLOSS_PATH}:{ln}: 표제어 중복 {key}')
+        target[key] = ko.strip()
 
 # ── 한국어 라벨 ─────────────────────────────────────────────────────────────
 KO = {
@@ -229,8 +255,11 @@ process.stdout.write(JSON.stringify({tw:grab('TEXTBOOK_W'), topics:grab('TOPICS'
 def norm_lemma(s):
     s = G.nfc(re.sub(r'[#0-9]+.*$', '', s or '')).strip()
     s = s.replace('σσ', 'ττ')
+    # Morpheus 는 일부 표제어를 곁쓰기 이오타로 적는다 (ζώιον, σώιζω, θνήισκω) → 하기 이오타
+    for a_, b_ in (('ώι', 'ῴ'), ('ῶι', 'ῷ'), ('ήι', 'ῄ'), ('ῆι', 'ῇ'), ('ᾶι', 'ᾷ')):
+        s = s.replace(a_, b_)
     s = {'γίνομαι': 'γίγνομαι', 'γινώσκω': 'γιγνώσκω', 'σαυτοῦ': 'σεαυτοῦ', 'νεανίης': 'νεανίας', 'νόος': 'νοῦς', 'δέω': 'δεῖ', 'ἔξεστι': 'ἔξεστιν', 'χρύσεος': 'χρυσοῦς', 'ἀργύρεος': 'ἀργυροῦς',
-         'ταὐτός': 'αὐτός', 'φάος': 'φῶς',
+         'ταὐτός': 'αὐτός', 'φάος': 'φῶς', 'ζῴον': 'ζῷον',
          'οἴομαι': 'οἴομαι', 'οἶμαι': 'οἴομαι', 'πρότερον': 'πρότερος',
          'ἑτοῖμος': 'ἕτοιμος', 'μυρίος': 'μύριοι', 'σύν-λέγω': 'συλλέγω',
          'μέλω': 'μέλει',
@@ -259,6 +288,17 @@ GRAMMAR_WORDS = {
     'ἅπαξ': (37, '한 번'), 'τρίς': (37, '세 번'),
     'ὅταν': (22, '~할 때마다 (+접속법)'), 'ἐπειδάν': (22, '~한 뒤에 (+접속법)'),
     'βαίνω': (38, '가다, 걷다'), 'δύω': (38, '들어가다, 잠기다'),
+    # v73: 원전 발췌에 자주 나오는 종속접속사 — 교재 어휘표에는 없지만 절의 문법이라 과를 정해 둔다
+    'ὅτε': (13, '~할 때'), 'ἡνίκα': (13, '~할 때'), 'ἕως': (26, '~할 때까지, ~하는 동안'),
+    'ἔστε': (26, '~할 때까지'), 'ὁπότε': (26, '~할 때 (언제든)'), 'ἤν': (22, '만일 ~하면 (= ἐάν)'),
+}
+
+# v73 원전 발췌: 뜻풀이를 달면 뒤 과의 낱말도 쓸 수 있다. 다만 문법을 이루는 기능어
+# (관사 · 대명사 · 종속접속사 · εἰμί · ἄν · 수사)는 뜻풀이로 앞당기지 않는다.
+STRICT_GATE = set(GRAMMAR_WORDS) | {
+    'ὁ', 'ὅς', 'οὗτος', 'ὅδε', 'ἐκεῖνος', 'τίς', 'τις', 'ὅστις', 'αὐτός', 'ἕκαστος', 'ἕτερος',
+    'οὐδείς', 'τοιοῦτος', 'τοσοῦτος', 'ὅσος', 'οἷος', 'ὅτι', 'ὡς', 'εἰ', 'ἵνα', 'ὅπως', 'ὥστε',
+    'ἐπεί', 'ἐπειδή', 'πρίν', 'μέχρι', 'καίπερ', 'εἰμί', 'μή', 'δύο', 'ὦ',
 }
 
 # 고유명사 — 해당 곡용을 배운 뒤부터
@@ -545,6 +585,51 @@ class Checker:
             return True, good, ''
         return False, [], '; '.join(sorted(set(why)))[:300]
 
+    def allowed_auth(self, tok, unit, pick=None):
+        """원전 발췌용 게이트 (v73) → (ok, 허용 분석, 이유, 새 낱말 여부).
+
+        문법(형태 · 기능어)은 그 과까지로 엄격히 막고, 어휘는 뜻풀이를 달면 뒤 과 · 교재 밖 낱말도 허용한다.
+        pick: '@a' 줄로 고른 분석 코드 (lemma, combos) — 형태가 여러 분석을 가질 때 문맥에 맞는 것만 남긴다."""
+        an = self.analyses(tok)
+        if not an:
+            return False, [], 'Morpheus 분석 없음 (악센트·철자 확인 — 고유명사는 manual_forms.tsv)', False
+        if pick:
+            lemma_p, combos = pick
+            an2 = [a for a in an if (not lemma_p or norm_lemma(a.get('hdwd')) == norm_lemma(lemma_p))
+                   and (not combos or any(feats_match(c, feats(a)) for c in combos))]
+            if not an2:
+                return False, [], f'@a 지정과 맞는 분석 없음 (Morpheus: ' + '; '.join(sorted({
+                    f'{a.get("hdwd")} {label_of(feats(a), "verb" if is_verbal(a) else "adj")}' for a in an}))[:200] + ')', False
+            an = an2
+        known, newer, why = [], [], []
+        for a in an:
+            a = dict(a, _form=G.query_form(tok))
+            if not attic_ok(a) and not a.get('manual'):
+                why.append('방언형')
+                continue
+            hd = norm_lemma(a.get('hdwd'))
+            lu = lemma_unit(a, self.voc)
+            fu = feature_unit(a)
+            if hd in STRICT_GATE:
+                need = max(lu or 99, fu)
+                if need > unit:
+                    why.append(f'{a.get("hdwd")} {label_of(feats(a), "verb" if is_verbal(a) else "adj")} → {need}과 (기능어)')
+                    continue
+                known.append(a)
+                continue
+            if fu > unit:
+                why.append(f'{a.get("hdwd")} {label_of(feats(a), "verb" if is_verbal(a) else "adj")} → 문법 {fu}과')
+                continue
+            if lu is not None and lu <= unit:
+                known.append(a)
+            else:
+                newer.append(a)
+        if known:
+            return True, known, '', False
+        if newer:
+            return True, newer, '', True
+        return False, [], '; '.join(sorted(set(why)))[:300], False
+
     def gloss(self, tok, good):
         """낱말 풀이 [form, 표제, 한국어, 분석]"""
         labels, lemma = [], None
@@ -571,8 +656,8 @@ class Checker:
             hd = norm_lemma(a.get('hdwd'))
             if hd in SUPPLETIVE_COMP and lemma == hd:
                 lemma = SUPPLETIVE_COMP[hd]   # ἀμείνων → ἀγαθός
-        disp = self.voc.disp.get(lemma, lemma)
-        ko = self.voc.ko.get(lemma, '')
+        disp = lemma if lemma in GLOSSARY_OVERRIDE else self.voc.disp.get(lemma, lemma)
+        ko = GLOSSARY_OVERRIDE.get(lemma) or self.voc.ko.get(lemma, '') or GLOSSARY.get(lemma, '')
         if lemma == 'ἔρχομαι':
             disp, ko = 'ἔρχομαι (ἦλθον)', self.voc.ko.get('ἦλθον', '가다, 오다')
         return [G.nfc(tok), disp, ko, ' / '.join(labels[:3])]
@@ -664,6 +749,27 @@ def parse_file(path):
         if section in ('items', 'forms'):
             cur[section].append((ln_no, line.strip()))
             continue
+        if section in ('tr', 'comp') and line.strip().startswith('@'):
+            # 앞 문항에 붙는 메타 줄 (v73): @src 출처 · @gl 낱말 = 뜻 ; … · @a 형태 = [@표제어] 분석코드
+            if not cur[section]:
+                raise SyntaxError(f'{path}:{ln_no}: 문항 앞의 @ 줄')
+            key = (section, len(cur[section]) - 1)
+            meta = cur.setdefault('meta', {}).setdefault(key, {'src': '', 'gl': {}, 'a': {}, 'ln': ln_no})
+            m2 = re.match(r'^@(src|gl|a)\s+(.*)$', line.strip())
+            if not m2:
+                raise SyntaxError(f'{path}:{ln_no}: 알 수 없는 @ 줄: {line!r}')
+            k2, v2 = m2.group(1), m2.group(2).strip()
+            if k2 == 'src':
+                meta['src'] = v2
+            else:
+                for part in v2.split(';'):
+                    if not part.strip():
+                        continue
+                    if '=' not in part:
+                        raise SyntaxError(f'{path}:{ln_no}: @{k2} 는 «낱말 = 값» 형식: {part!r}')
+                    w_, val = [x.strip() for x in part.split('=', 1)]
+                    meta[k2][G.nfc(w_)] = val
+            continue
         if section in ('tr', 'comp', 'allow'):
             cur[section].append((ln_no, line.strip()))
             continue
@@ -711,6 +817,7 @@ def variant_codes(code):
 
 
 def build(args):
+    load_glossary()
     data = load_textbook()
     voc = Vocab(data['tw'])
     old_topics = {t['id']: t for t in data['topics']}
@@ -832,6 +939,7 @@ def build(args):
 
     # ── 유닛 ──
     out_units = []
+    legacy = []    # 출처(@src) 없는 옛 방식 문항 — v73 부터는 모두 원전 발췌여야 한다
     seen_n = set()
     for u in sorted(units, key=lambda x: int(x['id'])):
         n = int(u['id'])
@@ -919,9 +1027,41 @@ def build(args):
                 err(w, f'형태 {form}: 오답 후보 부족')
             forms.append({'f': G.nfc(form), 'a': answer, 'o': picked})
 
+        metas = u.get('meta', {})
+
+        def pick_of(meta, tok, w):
+            code = (meta or {}).get('a', {}).get(G.nfc(tok))
+            if not code:
+                return None
+            try:
+                lemma_p, combos, _, slots = parse_code(code)
+            except ValueError as e:
+                err(w, f'@a {tok}: {e}')
+                return None
+            return lemma_p, (combos if slots else None)
+
+        def words_auth(text, meta, w, need_gloss=True):
+            """원전 문장 낱말 검증 → 풀이 행 [형태, 표제, 뜻, 분석, 새 낱말 1/0]"""
+            rows = []
+            for tok, _ in G.tokenize(text):
+                ok_, good, why, new = ck.allowed_auth(tok, n, pick_of(meta, tok, w))
+                if not ok_:
+                    err(w, f'{tok}: {why}  «{text}»')
+                    continue
+                row = ck.gloss(tok, good)
+                lemma_n = norm_lemma(good[0].get('hdwd'))
+                over = meta['gl'].get(G.nfc(tok)) or meta['gl'].get(lemma_n) or meta['gl'].get(row[1])
+                if over:
+                    row[2] = over
+                if new and need_gloss and not row[2]:
+                    err(w, f'뜻풀이 없음: {row[1]} ({tok}) — units-src/glossary.tsv 나 @gl 에 적을 것')
+                rows.append(row + [1 if new else 0])
+            return rows
+
         trs = []
-        for ln, line in u['tr']:
+        for idx, (ln, line) in enumerate(u['tr']):
             w = f"{u['file']}:{ln}"
+            meta = metas.get(('tr', idx))
             parts = [x.strip() for x in line.split('|')]
             if len(parts) < 4:
                 err(w, '해석 문항 필드 부족 (그리스어 | 한국어 | 오답1 | 오답2 [| 주석])')
@@ -931,19 +1071,28 @@ def build(args):
             for e in G.check_sentence_accents(grc):
                 err(w, f'악센트: {e}  «{grc}»')
             gl = []
-            for tok, _ in G.tokenize(grc):
-                ok_, good, why = ck.allowed(tok, n)
-                if not ok_:
-                    err(w, f'{tok}: {why}  «{grc}»')
-                else:
-                    gl.append(ck.gloss(tok, good))
+            if meta and meta['src']:
+                gl = words_auth(grc, meta, w)
+            else:
+                legacy.append(w)
+                for tok, _ in G.tokenize(grc):
+                    ok_, good, why = ck.allowed(tok, n)
+                    if not ok_:
+                        err(w, f'{tok}: {why}  «{grc}»')
+                    else:
+                        gl.append(ck.gloss(tok, good))
             if len({ko, w1, w2}) < 3:
                 err(w, '해석 선택지 중복')
-            trs.append({'g': G.nfc(grc), 'k': ko, 'w': [w1, w2], 'n': note, 'gl': gl})
+            item = {'g': G.nfc(grc), 'k': ko, 'w': [w1, w2], 'n': note, 'gl': gl}
+            if meta and meta['src']:
+                item['s'] = meta['src']
+            trs.append(item)
 
         comps = []
-        for ln, line in u['comp']:
+        for idx, (ln, line) in enumerate(u['comp']):
             w = f"{u['file']}:{ln}"
+            meta = metas.get(('comp', idx))
+            auth = bool(meta and meta['src'])
             parts = [x.strip() for x in line.split('|')]
             if len(parts) < 3:
                 err(w, '작문 문항 필드 부족 (한국어 | 조각 / 조각 | 오답조각 / … [| 주석])')
@@ -962,12 +1111,16 @@ def build(args):
             for e in G.check_sentence_accents(full):
                 err(w, f'악센트: {e}  «{full}»')
             gl = []
-            for tok, _ in G.tokenize(full):
-                ok_, good, why = ck.allowed(tok, n)
-                if not ok_:
-                    err(w, f'{tok}: {why}  «{full}»')
-                else:
-                    gl.append(ck.gloss(tok, good))
+            if auth:
+                gl = words_auth(full, meta, w)
+            else:
+                legacy.append(w)
+                for tok, _ in G.tokenize(full):
+                    ok_, good, why = ck.allowed(tok, n)
+                    if not ok_:
+                        err(w, f'{tok}: {why}  «{full}»')
+                    else:
+                        gl.append(ck.gloss(tok, good))
             for c in chunks + dis:
                 first = c.split()[0]
                 if G.is_enclitic_form(first) or G.is_postpositive(first):
@@ -977,7 +1130,10 @@ def build(args):
                     err(w, f'조각 악센트: {e}  «{c}»')
             for d in dis:
                 for tok, _ in G.tokenize(d):
-                    ok_, _, why = ck.allowed(tok, n)
+                    if auth:
+                        ok_, _, why, _ = ck.allowed_auth(tok, n)
+                    else:
+                        ok_, _, why = ck.allowed(tok, n)
                     if not ok_:
                         err(w, f'오답 조각 {tok}: {why}')
                 if d in chunks:
@@ -985,6 +1141,8 @@ def build(args):
             # 어순: 후치사(δέ, γάρ …)를 품은 조각은 맨 앞. 둘 이상이면 모범 어순 그대로
             post = [i for i, c in enumerate(chunks) if any(G.is_postpositive(x) for x in c.split()[1:])]
             item = {'k': ko, 'c': chunks, 'x': dis, 'e': end, 'n': note, 'gl': gl}
+            if auth:
+                item['s'] = meta['src']
             firsts = sorted(set(post) | set(first_fixed))
             if len(firsts) > 1 or '순서' in note:
                 item['seq'] = 1
@@ -1009,6 +1167,22 @@ def build(args):
     morpheus.save()
     for x in warns:
         print('경고', x)
+    if legacy:
+        msg = f'출처(@src) 없는 해석 · 작문 문항 {len(legacy)}개 — 원전 발췌로 바꿀 것 (예: {legacy[0]})'
+        if args.allow_legacy:
+            print('경고', msg)
+        else:
+            errors.append(msg)
+    if args.review:
+        for u in out_units:
+            if u['n'] not in args.review:
+                continue
+            for kind in ('tr', 'comp'):
+                for it in u[kind]:
+                    print(f"\n[{u['n']}과 {kind}] {it.get('g') or ' '.join(it['c'])}  — {it.get('s', '')}")
+                    print('   ', it['k'])
+                    for r in it['gl']:
+                        print(f"      {'＊' if len(r) > 4 and r[4] else ' '} {r[0]:<14} {r[1]:<14} {r[2][:28]:<28} {r[3]}")
     if errors:
         print(f'\n오류 {len(errors)}건')
         for e in errors:
@@ -1018,6 +1192,7 @@ def build(args):
         'units': len(out_units), 'topics_new': len(out_topics),
         'forms': sum(len(u['forms']) for u in out_units), 'tr': sum(len(u['tr']) for u in out_units),
         'comp': sum(len(u['comp']) for u in out_units),
+        'sourced': sum(1 for u in out_units for k in ('tr', 'comp') for it in u[k] if it.get('s')),
     }
     print('검증 통과', json.dumps(stats, ensure_ascii=False))
     if args.check or args.only:
@@ -1031,7 +1206,8 @@ def write_js(topics, units, stats):
     head = f"""/* data-units.js — 문법 유닛 (Chase & Phillips, A New Introduction to Greek 1~40과 진도)
    생성: tools/build_units.py ← units-src/u*.txt   ※ 직접 고치지 말고 원본을 고친 뒤 다시 빌드
    유닛 {stats['units']} · 신규 문법 토픽 {stats['topics_new']} · 형태 {stats['forms']} · 해석 {stats['tr']} · 작문 {stats['comp']}
-   연습문제는 모두 새로 지은 것이다 (교재 문장 복제 없음). 그리스어는 Morpheus(Perseids)로 형태·악센트를 검증했다. */
+   해석 · 작문 문장은 고대 저자의 원전에서 발췌했다 (문항마다 출처 's'). 교재 문장 복제 없음.
+   그리스어는 Morpheus(Perseids)로 형태 · 악센트를 검증했고, 문법은 그 과까지로 제한했다 (뒤 과 낱말은 뜻풀이). */
 """
     body = ('const UNIT_TOPICS = ' + json.dumps(topics, ensure_ascii=False, separators=(',', ':')) + ';\n'
             + 'const GRAMMAR_UNITS = ' + json.dumps(units, ensure_ascii=False, separators=(',', ':')) + ';\n'
@@ -1050,4 +1226,6 @@ if __name__ == '__main__':
     ap.add_argument('--check', action='store_true')
     ap.add_argument('--offline', action='store_true')
     ap.add_argument('--only', type=int, nargs='*')
+    ap.add_argument('--allow-legacy', action='store_true', help='출처 없는 옛 문항을 경고로만 (작업 중)')
+    ap.add_argument('--review', type=int, nargs='*', help='이 유닛들의 낱말 풀이를 출력 (표제어 선택 검토용)')
     sys.exit(build(ap.parse_args()))
