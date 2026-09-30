@@ -510,7 +510,8 @@ def attic_ok(a):
     (ἡμέραι, ποιητοῦ, φύλαξι) 판정 근거로 쓰지 않는다 — 방언은 사람이 쓰는 단계에서 관리."""
     # 'poetic' 도 믿을 수 없다 (아티카 산문의 λάβοιεν · μάθοιμεν 에 붙는다) — 'unaugmented'(증음 없는 호메로스식 직설법)만 뺀다
     morph = a.get('morph') or ''
-    return 'unaugmented' not in morph
+    # 'short_subj' 는 호메로스식 짧은 연결모음 접속법 (ποιήσετε 를 부정과거 접속법으로 보는 것) — 아티카에서는 미래
+    return 'unaugmented' not in morph and 'short_subj' not in morph
 
 
 class Manual:
@@ -665,6 +666,10 @@ class Checker:
         lemma0 = norm_lemma(good[0].get('hdwd')) if good else None
         if any(not dialectal(a) for a in good if norm_lemma(a.get('hdwd')) == lemma0):
             good = [a for a in good if not (dialectal(a) and norm_lemma(a.get('hdwd')) == lemma0)]
+        # -ως 부사 분석이 있으면 같은 표제어의 복수 대격(도리스식 -ως) 분석은 뺀다 (ῥᾳδίως, δικαίως)
+        if G.strip_all(tok).endswith('ωσ') and any(a.get('gend') == 'adverbial' for a in good if norm_lemma(a.get('hdwd')) == lemma0):
+            good = [a for a in good if not (norm_lemma(a.get('hdwd')) == lemma0 and a.get('case') == 'accusative'
+                                            and a.get('num') == 'plural')]
         # -ης 이름의 축약 복수 분석은 뺀다 (Σωκράτης '복수 대격' — τριήρεις 식 축약형을 이름에도 붙인다)
         if tok[:1].isupper() and any(a.get('num') == 'singular' for a in good if norm_lemma(a.get('hdwd')) == lemma0):
             good = [a for a in good if not (norm_lemma(a.get('hdwd')) == lemma0 and a.get('num') == 'plural'
@@ -680,6 +685,8 @@ class Checker:
             if a.get('pofs') in ('adverb', 'conjunction', 'particle', 'preposition', 'article') and not f:
                 continue
             lab = label_of(f, kind) if f else ''
+            if a.get('gend') == 'adverbial':
+                lab = '부사'    # καλῶς · ῥᾳδίως — 형용사 표제어의 부사형
             if lab and lab not in labels:
                 labels.append(lab)
         # 성별만 다른 분석(남/중성 속격 등)은 합친다
