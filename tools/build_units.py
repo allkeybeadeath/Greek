@@ -254,7 +254,8 @@ process.stdout.write(JSON.stringify({tw:grab('TEXTBOOK_W'), topics:grab('TOPICS'
 
 def norm_lemma(s):
     s = G.nfc(re.sub(r'[#0-9]+.*$', '', s or '')).strip()
-    s = s.replace('σσ', 'ττ')
+    if not s[:1].isupper():
+        s = s.replace('σσ', 'ττ')   # 아티카 철자로 통일 (고유명사 Τισσαφέρνης 는 그대로)
     # Morpheus 는 일부 표제어를 곁쓰기 이오타로 적는다 (ζώιον, σώιζω, θνήισκω) → 하기 이오타
     for a_, b_ in (('ώι', 'ῴ'), ('ῶι', 'ῷ'), ('ήι', 'ῄ'), ('ῆι', 'ῇ'), ('ᾶι', 'ᾷ')):
         s = s.replace(a_, b_)
