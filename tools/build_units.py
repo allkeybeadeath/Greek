@@ -612,6 +612,9 @@ class Checker:
         # 악센트가 있는 ἅ · ἥ · ὅ · οἵ · αἵ 는 관사가 아니다 (관사 주격은 악센트 없는 후접어)
         if G.accent_marks(tok) and G.strip_all(tok) in ('ο', 'η', 'οι', 'αι', 'α'):
             an = [a for a in an if a.get('pofs') != 'article'] or an
+        # 끝음절이 아닌 자리에 악센트가 있으면 전접 불변어일 수 없다 (πότε '언제?' ≠ ποτε '언젠가', τίνα '누구를?' ≠ τινα)
+        if any(pos > 1 for pos, _ in G.accent_marks(tok)):
+            an = [a for a in an if not ('enclitic' in (a.get('morph') or '') and 'indeclform' in (a.get('morph') or ''))] or an
         known, newer, why = [], [], []
         for a in an:
             a = dict(a, _form=G.query_form(tok))
