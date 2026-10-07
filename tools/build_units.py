@@ -257,7 +257,7 @@ process.stdout.write(JSON.stringify({tw:grab('TEXTBOOK_W'), topics:grab('TOPICS'
 
 
 # 형태가 겹칠 때 뒤로 미룰 표제어 → 앞세울 표제어 (θεῶν 은 거의 늘 θεός 의 복수 속격)
-DISPREFER = {'θεά': 'θεός'}
+DISPREFER = {'θεά': 'θεός', 'πλέω': 'πλείων', 'πλέως': 'πλείων'}   # πλείω: 서사시의 πλέω 1인칭이 아니라 πλείων
 
 
 def norm_lemma(s):
