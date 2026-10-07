@@ -4768,7 +4768,7 @@ function imageURL(imgId, width){
 
 // 앱 버전 — sw.js CACHE_VERSION과 동기화 유지. 홈 화면 푸터에 표시되어
 // 사용자가 자신이 어느 버전을 사용 중인지 확인 가능 (캐시 갱신 진단용).
-const APP_VERSION = 'v72';
+const APP_VERSION = 'v73';
 window.__paideiaVersion = APP_VERSION;
 
 // ─── 그리스어 lang 속성 자동 부여 (v32) ──────────────────────────────────────
@@ -8418,7 +8418,8 @@ window.setTab = setTab;
 // ─── 문법 탭 (v72 · 교재 유닛) ───────────────────────────────────────────────
 // Chase & Phillips, *A New Introduction to Greek* 1~40과의 진도를 따라 문법을 유닛으로 묶는다.
 // 데이터: data-units.js 의 GRAMMAR_UNITS · UNIT_TOPICS (tools/build_units.py 가 units-src/*.txt 로부터 생성).
-// 연습문제는 모두 새로 지은 것이다 — 교재 문장은 옮기지 않았다 (저작권 갱신 RE440155).
+// 형태 문항은 새로 지었고, 해석 · 작문 문장은 v73 부터 고대 원전 발췌다 (문항마다 출처 's').
+// 교재 문장은 옮기지 않았다 (저작권 갱신 RE440155).
 let grammarFilter = { cat:'all', view:'units' };
 const UNIT_PARTS = [
   {from:1,  to:2,  grk:'Γράμματα',              ko:'문자와 악센트'},
