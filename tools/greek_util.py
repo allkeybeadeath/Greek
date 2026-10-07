@@ -100,9 +100,14 @@ EIMI_AFTER_NEG = {'ειμι', 'εσμεν', 'εστε', 'εισι', 'εισιν'
 NEVER_GRAVE = {nfc('τίς'), nfc('τί')}
 
 
+ELIDED_ENCLITICS = {'γ', 'τ', 'θ', 'μ', 'σ'}            # strip_all 기준, 생략 부호 앞 한 글자
+
+
 def is_enclitic_form(tok):
     """토큰이 전접어로 쓰였는가. 전접어 어형이라도 penult 에 악센트가 있으면
     (ἔστι, ἔστιν — 존재·강조의 orthotone) 전접어가 아니다."""
+    if tok and tok[-1] in ELISION_MARKS and strip_all(tok[:-1]) in ELIDED_ENCLITICS:
+        return True                                   # γ᾽ (γε) · τ᾽ θ᾽ (τε) · μ᾽ (με) · σ᾽ (σε): σοί γ᾽ ἄν, εἶτά μ᾽ ἐρωτᾷς
     if strip_accents(tok) not in ENCLITICS:
         return False
     marks = accent_marks(tok)
