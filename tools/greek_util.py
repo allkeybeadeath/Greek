@@ -101,6 +101,7 @@ NEVER_GRAVE = {nfc('τίς'), nfc('τί')}
 
 
 ELIDED_ENCLITICS = {'γ', 'τ', 'θ', 'μ', 'σ'}            # strip_all 기준, 생략 부호 앞 한 글자
+ELIDED_ESTI = {'εστ', 'εσθ'}                            # ἐστ᾽ · ἐσθ᾽ — 악센트 없는 ἐστί 의 생략형
 
 
 def is_enclitic_form(tok):
@@ -108,6 +109,8 @@ def is_enclitic_form(tok):
     (ἔστι, ἔστιν — 존재·강조의 orthotone) 전접어가 아니다."""
     if tok and tok[-1] in ELISION_MARKS and strip_all(tok[:-1]) in ELIDED_ENCLITICS:
         return True                                   # γ᾽ (γε) · τ᾽ θ᾽ (τε) · μ᾽ (με) · σ᾽ (σε): σοί γ᾽ ἄν, εἶτά μ᾽ ἐρωτᾷς
+    if tok and tok[-1] in ELISION_MARKS and strip_all(tok[:-1]) in ELIDED_ESTI and not accent_marks(tok[:-1]):
+        return True                                   # ἀνδρός ἐσθ᾽ ἑνός (악센트 있는 ἔστ᾽ · ἔσθ᾽ 는 orthotone)
     if strip_accents(tok) not in ENCLITICS:
         return False
     marks = accent_marks(tok)
