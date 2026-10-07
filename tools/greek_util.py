@@ -249,6 +249,10 @@ def check_sentence_accents(sentence):
                     errs.append(f'{w}: 전접어 앞 후접어에 예음이 필요')
                 elif marks and ortho:
                     errs.append(f'{w}: 뒤의 εἰμί 가 악센트를 지니면 οὐκ 은 악센트 없이')
+            elif marks and joined and neg and strip_all(nxt) in NEGATIONS:
+                # ναὶ ναί, οὒ οὔ — '아니오' 라는 낱말로 쓴 οὐ (바로 뒤에 οὐ 가 또 온다): 악센트를 지니고, 뒤에 낱말이 오니 둔음
+                if marks[-1][1] != 'grave':
+                    errs.append(f'{w}: 뒤에 낱말이 이어지므로 둔음이어야 함')
             elif marks and not (not joined):
                 errs.append(f'{w}: 후접어에 악센트가 있음')
             continue
