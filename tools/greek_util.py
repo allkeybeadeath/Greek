@@ -86,7 +86,7 @@ _ENCLITIC_BASE = """
 τις τι τινός τινί τινά τινές τινῶν τισί τισίν τινάς του τῳ
 μου μοι με σου σοι σε
 που ποθι ποθεν ποτε πως πῃ ποι
-γε τε τοι νυν περ
+γε τε τοι νυν νυ περ
 """
 ENCLITICS = {strip_accents(nfc(w)) for w in _ENCLITIC_BASE.split()}
 
@@ -102,6 +102,7 @@ NEVER_GRAVE = {nfc('τίς'), nfc('τί')}
 
 ELIDED_ENCLITICS = {'γ', 'τ', 'θ', 'μ', 'σ'}            # strip_all 기준, 생략 부호 앞 한 글자
 ELIDED_ESTI = {'εστ', 'εσθ'}                            # ἐστ᾽ · ἐσθ᾽ — 악센트 없는 ἐστί 의 생략형
+ELIDED_POTE = {'ποτ', 'ποθ'}                            # ποτ᾽ · ποθ᾽ — 악센트 없는 ποτε 의 생략형 (πότ᾽ 은 의문사)
 
 
 def is_enclitic_form(tok):
@@ -109,7 +110,7 @@ def is_enclitic_form(tok):
     (ἔστι, ἔστιν — 존재·강조의 orthotone) 전접어가 아니다."""
     if tok and tok[-1] in ELISION_MARKS and strip_all(tok[:-1]) in ELIDED_ENCLITICS:
         return True                                   # γ᾽ (γε) · τ᾽ θ᾽ (τε) · μ᾽ (με) · σ᾽ (σε): σοί γ᾽ ἄν, εἶτά μ᾽ ἐρωτᾷς
-    if tok and tok[-1] in ELISION_MARKS and strip_all(tok[:-1]) in ELIDED_ESTI and not accent_marks(tok[:-1]):
+    if tok and tok[-1] in ELISION_MARKS and strip_all(tok[:-1]) in ELIDED_ESTI | ELIDED_POTE and not accent_marks(tok[:-1]):
         return True                                   # ἀνδρός ἐσθ᾽ ἑνός (악센트 있는 ἔστ᾽ · ἔσθ᾽ 는 orthotone)
     if strip_accents(tok) not in ENCLITICS:
         return False
@@ -117,7 +118,8 @@ def is_enclitic_form(tok):
     if marks and n_syllables(tok) == 1:
         # 악센트 있는 단음절은 전접어가 아니다: 관사 τοῦ, 의문사 τίς/τί/ποῦ/πῶς, 강조형 σοῦ/σοί/σέ
         # 단 μέ · μοί · μοῦ 는 강조형이 ἐμέ · ἐμοί · ἐμοῦ 라, 예음이 있어도 뒤 전접어에게서 받은 것 (ὁ παραδούς μέ σοι)
-        if strip_accents(tok) in {'με', 'μοι', 'μου'} and marks == [(1, 'acute')]:
+        # 서사시의 νυ 도 같다 — 악센트 있는 꼴이 따로 없으니 νύ 는 뒤 전접어에게서 받은 것 (αἵ νύ ποθ᾽)
+        if strip_accents(tok) in {'με', 'μοι', 'μου', 'νυ'} and marks == [(1, 'acute')]:
             return True
         return False
     return all(pos == 1 for pos, _ in marks)

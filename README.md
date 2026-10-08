@@ -6,12 +6,30 @@
 
 ```
 index.html               # 본체 — 어휘 · 문법 토픽 139 · 초보자 60일 과정 · 원문 읽기 · 배틀 …
-data-units.js            # v72 문법 유닛 40 (Chase & Phillips 1~40과 진도, 새로 지은 연습문제 1,214문항)
+data-units.js            # 문법 유닛 40 (Chase & Phillips 1~40과 진도) — 연습문제 1,355문항, 해석 · 작문은 원전 발췌 (v73)
 units-src/ · tools/      # 유닛 원본과 빌드·검증 도구 (python3 tools/build_units.py)
 manifest.json            # PWA 메타데이터
-sw.js                    # 서비스 워커 (오프라인 캐싱, CACHE_VERSION='v76')
+sw.js                    # 서비스 워커 (오프라인 캐싱, CACHE_VERSION='v77')
 icon.svg / icon-192.png / icon-512.png / apple-touch-icon.png
 ```
+
+## v73 — 원전 발췌 연습문제
+
+3~40과의 해석 · 작문 문항이 모두 **고대 원전에서 발췌한 문장**이 되었습니다 (해석 643 · 작문 232).
+크세노폰 · 플라톤 · 신약 · 데모스테네스 · 뤼시아스 · 호메로스 · 헤시오도스 · 헤로도토스 · 비극 · 희극 · 히포크라테스 등 22명 · 93편,
+**신약 27권과 읽기 서재의 모든 작품**에서 한 문장 이상 실었습니다. 문항마다 출처가 붙고, 그 과까지 배운 문법만 쓰는 문장만 골랐으며,
+아직 배우지 않은 낱말은 답하기 전에 뜻풀이를 보여 줍니다. 교재 문장은 여전히 싣지 않습니다. 자세한 내용은 `CHANGELOG_v73.md`.
+
+유닛 고치기 · 문장 찾기:
+
+```bash
+python3 tools/build_units.py                     # 검증 + data-units.js 생성 (출처 없는 해석 · 작문 문항은 오류)
+GREEK_CORPORA=~/corpora python3 tools/find_excerpts.py --lesson 12 --upto -n 40   # 트리뱅크에서 12과 후보
+GREEK_CORPORA=~/corpora python3 tools/locate_excerpt.py --work tlg0031.tlg011 "πάντα ἰσχύω"   # 편집본 대조 · 절 번호
+```
+
+`units-src/uNN.txt` 의 문항 아래 `@src 저자, 『작품』 위치` (필수) · `@gl 형태 = 뜻` · `@a 형태 = [@표제어] 분석` ,
+표제어 뜻풀이는 `units-src/glossary.tsv`. 원문 출처: Perseus canonical-greekLit · First1KGreek (CC BY-SA 4.0).
 
 ## v72 — 교재 유닛 문법
 

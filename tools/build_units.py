@@ -257,6 +257,7 @@ process.stdout.write(JSON.stringify({tw:grab('TEXTBOOK_W'), topics:grab('TOPICS'
 
 
 # 형태가 겹칠 때 뒤로 미룰 표제어 → 앞세울 표제어 (θεῶν 은 거의 늘 θεός 의 복수 속격)
+WORD_POSTPOSITIVES = {'τε', 'γε', 'τοι'}   # 절이 아니라 낱말에 붙는 후치사 — 작문 조각 어순 고정에서 뺀다
 DISPREFER = {'θεά': 'θεός', 'πλέω': 'πλείων', 'πλέως': 'πλείων'}   # πλείω: 서사시의 πλέω 1인칭이 아니라 πλείων
 
 
@@ -1277,7 +1278,9 @@ def build(args):
                 if d in chunks:
                     err(w, f'오답 조각이 정답 조각과 같음: {d}')
             # 어순: 후치사(δέ, γάρ …)를 품은 조각은 맨 앞. 둘 이상이면 모범 어순 그대로
-            post = [i for i, c in enumerate(chunks) if any(G.is_postpositive(x) for x in c.split()[1:])]
+            # τε · γε · τοι 는 낱말에 붙는 후치사라 조각의 자리를 정하지 않는다 (ἄρχειν τε καὶ ἄρχεσθαι 는 문장 끝에도 온다)
+            post = [i for i, c in enumerate(chunks)
+                    if any(G.is_postpositive(x) and G.strip_accents(G.nfc(x)) not in WORD_POSTPOSITIVES for x in c.split()[1:])]
             item = {'k': ko, 'c': chunks, 'x': dis, 'e': end, 'n': note, 'gl': gl}
             if auth:
                 item['s'] = meta['src']

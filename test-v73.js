@@ -88,7 +88,8 @@ const sourced = U.flatMap(u => [...u.tr, ...u.comp].map(x => ({u: u.n, x})));
 const noSrc = sourced.filter(r => typeof r.x.s !== 'string' || !r.x.s.trim());
 assert(noSrc.length === 0, `3~40과 해석 · 작문 문항 모두 출처 's' (${sourced.length}문항, 없는 것 ${noSrc.length})`);
 const AUTHORS = ['크세노폰', '위(僞)크세노폰', '플라톤', '뤼시아스', '데모스테네스', '아이스키네스', '안티폰', '안도키데스',
-  '투퀴디데스', '아리스토텔레스', '아이스퀼로스', '소포클레스', '플루타르코스', '디오게네스 라에르티오스', '신약'];
+  '투퀴디데스', '아리스토텔레스', '아이스퀼로스', '소포클레스', '플루타르코스', '디오게네스 라에르티오스', '신약',
+  '호메로스', '헤시오도스', '헤로도토스', '에우리피데스', '아리스토파네스', '히포크라테스'];
 const SRC_RE = new RegExp(`^(${AUTHORS.map(a => a.replace(/[()]/g, '\\$&')).join('|')}), 『[^』]+』 \\S.*$|^이솝 우화 \\((Halm|Chambry) \\d+\\) 「[^」]+」( \\(일부\\))?$`);
 const badSrc = sourced.filter(r => !SRC_RE.test(r.x.s || '')).map(r => `${r.u}:${r.x.s}`);
 assert(badSrc.length === 0, `출처 형식 '저자, 『작품』 위치' 또는 '이솝 우화 (판 번호) 「제목」' ${badSrc.slice(0, 3).join(' | ')}`);
@@ -104,6 +105,30 @@ sourced.forEach(r => {
 });
 assert(Object.keys(byAuthor).length >= 12, `저자 ${Object.keys(byAuthor).length}명 — ${Object.entries(byAuthor).sort((a, b) => b[1] - a[1]).map(([a, n]) => a + ' ' + n).join(' · ')}`);
 assert(works.size >= 60, `작품 ${works.size}편에서 발췌`);
+// 빠진 저작 없이 — 신약 27권과 읽기 서재(WORK_GROUPS)의 모든 작품에서 한 문장 이상
+const srcs = sourced.map(r => r.x.s);
+const NT_BOOKS = ['마태복음', '마가복음', '누가복음', '요한복음', '사도행전', '로마서', '고린도전서', '고린도후서', '갈라디아서',
+  '에베소서', '빌립보서', '골로새서', '데살로니가전서', '데살로니가후서', '디모데전서', '디모데후서', '디도서', '빌레몬서',
+  '히브리서', '야고보서', '베드로전서', '베드로후서', '요한1서', '요한2서', '요한3서', '유다서', '요한계시록'];
+const ntMissing = NT_BOOKS.filter(b => !srcs.some(s => s.startsWith(`신약, 『${b}』 `)));
+assert(ntMissing.length === 0, `신약 27권 모두에서 발췌 (빠진 책: ${ntMissing.join(' · ') || '없음'})`);
+const LIB = {
+  'homer-iliad': '호메로스, 『일리아스』', 'homer-odyssey': '호메로스, 『오뒷세이아』',
+  'hesiod-theogony': '헤시오도스, 『신통기』', 'hesiod-wd': '헤시오도스, 『일과 날』',
+  'aeschylus-persians': '아이스퀼로스, 『페르시아인들』', 'sophocles-antigone': '소포클레스, 『안티고네』',
+  'sophocles-oedipus': '소포클레스, 『오이디푸스 왕』', 'euripides-medea': '에우리피데스, 『메데이아』',
+  'aristophanes-clouds': '아리스토파네스, 『구름』', 'plato-euthyphro': '플라톤, 『에우튀프론』',
+  'plato-apology': '플라톤, 『소크라테스의 변론』', 'plato-crito': '플라톤, 『크리톤』', 'plato-phaedo': '플라톤, 『파이돈』',
+  'herodotus-1': '헤로도토스, 『역사』 1.', 'thucydides-1': '투퀴디데스, 『펠로폰네소스 전쟁사』 1.',
+  'xenophon-anabasis-1': '크세노폰, 『아나바시스』 1.', 'plutarch-themistocles': '플루타르코스, 『테미스토클레스 전』',
+  'hippocrates-epidemics': '히포크라테스, 『유행병』', 'hippocrates-aphorisms': '히포크라테스, 『잠언』',
+  'hippocrates-oath': '히포크라테스, 『선서』'};
+const wg = html.slice(html.indexOf('const WORK_GROUPS = ['), html.indexOf('function _resolveWork'));
+const libIds = [...new Set([...wg.matchAll(/works:\[([^\]]*)\]/g)].flatMap(m => [...m[1].matchAll(/'([a-z0-9-]+)'/g)].map(x => x[1])))]
+  .filter(id => !id.startsWith('nt-'));
+const libKey = id => Object.keys(LIB).find(k => id === k || id.startsWith(k + '-'));
+const libMissing = libIds.filter(id => !libKey(id) || !srcs.some(s => s.startsWith(LIB[libKey(id)])));
+assert(libIds.length >= 20 && libMissing.length === 0, `읽기 서재 작품 ${libIds.length}개 모두 발췌가 있음 (빠진 것: ${libMissing.join(' · ') || '없음'})`);
 const maxShare = Math.max(...Object.values(byAuthor)) / sourced.length;
 assert(maxShare < 0.4, `한 저자가 40% 를 넘지 않음 (최대 ${(maxShare * 100).toFixed(1)}%)`);
 const seenG = {};
@@ -140,6 +165,11 @@ assert(badHead.length === 0, `작문 조각이 후치사 · 전접어로 시작�
 const graveEnd = U.flatMap(u => u.comp.flatMap(c => [...c.c, ...c.x].filter(ch => /̀$/.test(ch.normalize('NFD').split(' ').pop()))));
 assert(graveEnd.length === 0, `조각 끝 낱말은 둔음이 아니라 예음으로 적는다 ${graveEnd.slice(0, 4).join(' ')}`);
 const strict = U.flatMap(u => u.comp).filter(c => c.seq).length;
+// 모범 답안(c 의 순서)이 자기 어순 제약을 만족해야 한다 — 맨 앞 고정 fx 는 0, 맨 뒤 고정 lx 는 마지막 (v73: τε 조각이 fx 3 이 되어 정답이 오답 처리되던 버그)
+const selfBad = U.flatMap(u => u.comp.filter(c => (c.fx !== undefined && c.fx !== 0) || (c.lx !== undefined && c.lx !== c.c.length - 1)).map(c => `${u.n}:${c.c.join('/')}`));
+assert(selfBad.length === 0, `작문 모범 답안이 자기 어순 제약(fx · lx)을 만족 ${selfBad.slice(0, 3).join(' | ')}`);
+assert(/WORD_POSTPOSITIVES = \{'τε', 'γε', 'τοι'\}/.test(fs.readFileSync(path.join(__dirname, 'tools/build_units.py'), 'utf8')),
+  '빌드: τε · γε · τοι 는 작문 조각 자리를 고정하지 않는다 (WORD_POSTPOSITIVES)');
 assert(strict >= 10, `순서를 고정한 작문 (후치사 조각 둘 이상 · '순서' 주석) ${strict}문항`);
 
 console.log('\n=== §5. 커리큘럼 · 기존 TOPICS (회귀) ===');
