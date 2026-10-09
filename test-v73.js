@@ -112,6 +112,11 @@ const NT_BOOKS = ['마태복음', '마가복음', '누가복음', '요한복음'
   '히브리서', '야고보서', '베드로전서', '베드로후서', '요한1서', '요한2서', '요한3서', '유다서', '요한계시록'];
 const ntMissing = NT_BOOKS.filter(b => !srcs.some(s => s.startsWith(`신약, 『${b}』 `)));
 assert(ntMissing.length === 0, `신약 27권 모두에서 발췌 (빠진 책: ${ntMissing.join(' · ') || '없음'})`);
+// 장 단위로도 빠짐없이 — 신약 260장 모두 (책별 장 수, 표준 장 구분)
+const NT_CH = [28, 16, 24, 21, 28, 16, 16, 13, 6, 6, 4, 4, 5, 3, 6, 4, 3, 1, 13, 5, 5, 3, 5, 1, 1, 1, 22];
+const chHave = new Set(srcs.map(s => /^신약, 『([^』]+)』 (\d+):/.exec(s)).filter(Boolean).map(m => `${m[1]} ${m[2]}`));
+const chMissing = NT_BOOKS.flatMap((b, i) => Array.from({length: NT_CH[i]}, (_, k) => `${b} ${k + 1}`)).filter(c => !chHave.has(c));
+assert(NT_CH.reduce((a, b) => a + b, 0) === 260 && chMissing.length === 0, `신약 260장 모두에서 발췌 (빠진 장: ${chMissing.slice(0, 8).join(' · ') || '없음'})`);
 const LIB = {
   'homer-iliad': '호메로스, 『일리아스』', 'homer-odyssey': '호메로스, 『오뒷세이아』',
   'hesiod-theogony': '헤시오도스, 『신통기』', 'hesiod-wd': '헤시오도스, 『일과 날』',
