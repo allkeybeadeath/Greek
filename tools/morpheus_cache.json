@@ -475866,6 +475866,56 @@
 "voice": "middle"
 }
 ],
+"ἐξομολογήσομαι": [
+{
+"derivtype": "ew_denom",
+"dial": "epic",
+"hdwd": "ἐξομολογέομαι",
+"mood": "subjunctive",
+"morph": "short_subj",
+"num": "singular",
+"pers": "1st",
+"pofs": "verb",
+"stemtype": "aor1",
+"tense": "aorist",
+"voice": "mediopassive"
+},
+{
+"derivtype": "ew_denom",
+"hdwd": "ἐξομολογέομαι",
+"mood": "indicative",
+"num": "singular",
+"pers": "1st",
+"pofs": "verb",
+"stemtype": "reg_fut",
+"tense": "future",
+"voice": "mediopassive"
+},
+{
+"derivtype": "ew_denom",
+"dial": "epic",
+"hdwd": "ἐξομολογέομαι",
+"mood": "subjunctive",
+"morph": "short_subj",
+"num": "singular",
+"pers": "1st",
+"pofs": "verb",
+"stemtype": "aor1",
+"tense": "aorist",
+"voice": "middle"
+},
+{
+"derivtype": "ew_denom",
+"hdwd": "ἐξομολογέομαι",
+"mood": "indicative",
+"num": "singular",
+"pers": "1st",
+"pofs": "verb",
+"stemtype": "reg_fut",
+"tense": "future",
+"voice": "middle"
+}
+],
 "ἐξομολογεῖσθε": [
 {
 "derivtype": "ew_denom",
