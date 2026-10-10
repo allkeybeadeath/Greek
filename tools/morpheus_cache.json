@@ -574580,6 +574580,20 @@
 "stemtype": "relative"
 }
 ],
+"ᾜδει": [
+{
+"dial": "Attic epic",
+"hdwd": "οἶδα",
+"mood": "indicative",
+"morph": "contr",
+"num": "singular",
+"pers": "3rd",
+"pofs": "verb",
+"stemtype": "perf_act",
+"tense": "pluperfect",
+"voice": "active"
+}
+],
 "ᾠδήν": [
 {
 "case": "accusative",
