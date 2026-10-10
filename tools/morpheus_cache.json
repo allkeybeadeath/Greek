@@ -11813,6 +11813,49 @@
 }
 ],
 "Λαλούν": [],
+"Λαλούντων": [
+{
+"case": "genitive",
+"derivtype": "ew_denom",
+"dial": "Attic epic Doric",
+"gend": "masculine",
+"hdwd": "λαλέω",
+"mood": "participle",
+"morph": "contr",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "ew_pr",
+"tense": "present",
+"voice": "active"
+},
+{
+"case": "genitive",
+"derivtype": "ew_denom",
+"dial": "Attic epic Doric",
+"gend": "neuter",
+"hdwd": "λαλέω",
+"mood": "participle",
+"morph": "contr",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "ew_pr",
+"tense": "present",
+"voice": "active"
+},
+{
+"derivtype": "ew_denom",
+"dial": "Attic epic Doric",
+"hdwd": "λαλέω",
+"mood": "imperative",
+"morph": "contr",
+"num": "plural",
+"pers": "3rd",
+"pofs": "verb",
+"stemtype": "ew_pr",
+"tense": "present",
+"voice": "active"
+}
+],
 "Λαοδικέων": [
 {
 "case": "genitive",
@@ -361762,6 +361805,17 @@
 "stemtype": "os_ou"
 }
 ],
+"ψαλμῷ": [
+{
+"case": "dative",
+"decl": "2nd",
+"gend": "masculine",
+"hdwd": "ψαλμός",
+"num": "singular",
+"pofs": "noun",
+"stemtype": "os_ou"
+}
+],
 "ψαλῶ": [
 {
 "derivtype": "allw",
@@ -452945,6 +452999,20 @@
 "case": "dative",
 "derivtype": "reg_conj",
 "gend": "neuter",
+"hdwd": "ἐκλέγω",
+"mood": "participle",
+"num": "plural",
+"pofs": "verb participle",
+"stemtype": "aor1",
+"tense": "aorist",
+"voice": "middle"
+}
+],
+"ἐκλεξαμένους": [
+{
+"case": "accusative",
+"derivtype": "reg_conj",
+"gend": "masculine",
 "hdwd": "ἐκλέγω",
 "mood": "participle",
 "num": "plural",
