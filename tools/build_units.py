@@ -58,7 +58,9 @@ import morpheus  # noqa: E402
 SRC_DIR = os.path.join(ROOT, 'units-src')
 OUT_PATH = os.path.join(ROOT, 'data-units.js')
 MANUAL_PATH = os.path.join(HERE, 'manual_forms.tsv')
+MANUAL_NT_PATH = os.path.join(HERE, 'manual_forms_nt.tsv')   # 신약 전권: PROIEL 분석에서 만든 형태 (tools/nt_units.py)
 GLOSS_PATH = os.path.join(SRC_DIR, 'glossary.tsv')
+GLOSS_NT_PATH = os.path.join(SRC_DIR, 'nt', 'glossary.tsv')   # 신약 전권의 낱말 (v73)
 
 # v73: 교재 어휘표 밖 낱말의 뜻풀이 (표제어 \t 한국어) — 원전 발췌 문항이 쓴다
 GLOSSARY = {}
@@ -68,8 +70,12 @@ GLOSSARY_OVERRIDE = {}   # '!' 줄 — 어휘표의 뜻보다 우선
 def load_glossary():
     GLOSSARY.clear()
     GLOSSARY_OVERRIDE.clear()
-    if not os.path.exists(GLOSS_PATH):
-        return
+    for path in (GLOSS_PATH, GLOSS_NT_PATH):
+        if os.path.exists(path):
+            _load_glossary_file(path)
+
+
+def _load_glossary_file(GLOSS_PATH):
     for ln, line in enumerate(open(GLOSS_PATH, encoding='utf-8'), 1):
         line = line.rstrip('\n')
         if not line.strip() or line.startswith('#'):
@@ -523,8 +529,11 @@ class Manual:
     """Morpheus 가 모르는 형태 — 사람이 확인한 것만 (tools/manual_forms.tsv)."""
     def __init__(self):
         self.rows = {}
-        if os.path.exists(MANUAL_PATH):
-            for line in open(MANUAL_PATH, encoding='utf-8'):
+        for path in (MANUAL_PATH, MANUAL_NT_PATH):
+            if not os.path.exists(path):
+                continue
+            nt = path == MANUAL_NT_PATH
+            for line in open(path, encoding='utf-8'):
                 line = line.rstrip('\n')
                 if not line or line.startswith('#'):
                     continue
@@ -532,6 +541,8 @@ class Manual:
                 lemma_, combos, kind, _ = parse_code(code)
                 for c in combos:
                     a = {'hdwd': lemma, 'manual': True}
+                    if nt:
+                        a['nt'] = True      # 신약 문맥 분석 (PROIEL) — 형태 문항의 오답 판정에는 쓰지 않는다
                     inv = {'tense': {v: k for k, v in M_TENSE.items()}, 'mood': {v: k for k, v in M_MOOD.items()},
                            'voice': {v: k for k, v in M_VOICE.items()}, 'num': {v: k for k, v in M_NUM.items()},
                            'case': {v: k for k, v in M_CASE.items()}, 'gend': {v: k for k, v in M_GEND.items()},
@@ -624,7 +635,8 @@ class Checker:
         known, newer, why = [], [], []
         for a in an:
             a = dict(a, _form=G.query_form(tok))
-            if not attic_ok(a) and not a.get('manual'):
+            # @a 로 문맥 분석을 고른 경우는 그 분석을 믿는다 — 코이네의 증음 없는 꼴(εὑρέθη · διηκόνουν)을 Morpheus 가 '호메로스식' 으로만 분석하는 일이 잦다
+            if not attic_ok(a) and not a.get('manual') and not pick:
                 why.append('방언형')
                 continue
             hd = norm_lemma(a.get('hdwd'))
@@ -884,12 +896,14 @@ def parse_file(path):
                 raise SyntaxError(f'{path}:{ln_no}: 문항 앞의 @ 줄')
             key = (section, len(cur[section]) - 1)
             meta = cur.setdefault('meta', {}).setdefault(key, {'src': '', 'gl': {}, 'a': {}, 'ln': ln_no})
-            m2 = re.match(r'^@(src|gl|a)\s+(.*)$', line.strip())
+            m2 = re.match(r'^@(src|gl|a|acc)\s+(.*)$', line.strip())
             if not m2:
                 raise SyntaxError(f'{path}:{ln_no}: 알 수 없는 @ 줄: {line!r}')
             k2, v2 = m2.group(1), m2.group(2).strip()
             if k2 == 'src':
                 meta['src'] = v2
+            elif k2 == 'acc':
+                meta['acc'] = v2      # 편집본 악센트가 맞지만 검사기가 판단하지 못하는 경우 (사유를 적는다)
             else:
                 for part in v2.split(';'):
                     if not part.strip():
@@ -945,6 +959,23 @@ def variant_codes(code):
     return cands
 
 
+def merge_units(units, extra):
+    """신약 전권 원본(units-src/nt/NN.txt)의 '=== unit N' 블록을 같은 번호 유닛의 해석 문항 뒤에 붙인다.
+    문항의 위치 표시는 '파일:줄' 문자열로 바꿔 오류 메시지가 원래 파일을 가리키게 한다."""
+    by = {u['id']: u for u in units}
+    for b in extra:
+        if b['kind'] != 'unit' or b['id'] not in by:
+            raise SyntaxError(f"{b['file']}:{b['line']}: 신약 원본에는 기존 유닛 번호의 '=== unit N' 블록만")
+        u = by[b['id']]
+        off = len(u['tr'])
+        u['tr'] += [(f"nt/{b['file']}:{ln}", line) for ln, line in b['tr']]
+        for (sec, i), m in b.get('meta', {}).items():
+            if sec != 'tr':
+                raise SyntaxError(f"{b['file']}: 신약 원본에는 해석(tr) 문항만")
+            u.setdefault('meta', {})[('tr', i + off)] = m
+    return units
+
+
 def build(args):
     load_glossary()
     data = load_textbook()
@@ -957,7 +988,8 @@ def build(args):
     for p in files:
         blocks += parse_file(p)
     topics = [b for b in blocks if b['kind'] == 'topic']
-    units = [b for b in blocks if b['kind'] == 'unit']
+    units = merge_units([b for b in blocks if b['kind'] == 'unit'],
+                        [b for p in sorted(glob.glob(os.path.join(SRC_DIR, 'nt', '*.txt'))) for b in parse_file(p)])
     if args.only:
         units = [u for u in units if int(u['id']) in args.only]
 
@@ -1044,7 +1076,7 @@ def build(args):
             except ValueError as e:
                 err(f"{t['file']}:{ln}", str(e))
                 continue
-            an = [a for a in ck.analyses(form) if attic_ok(a) or a.get('manual')]
+            an = [a for a in ck.analyses(form) if (attic_ok(a) or a.get('manual')) and not a.get('nt')]
             for c, (lemma, combos, kind, _) in zip(codes, parsed):
                 if not any(feats_match(cb, feats(a)) for cb in combos for a in an):
                     err(f"{t['file']}:{ln}", f'항목 분석 불일치: {form} = {c}  (Morpheus: '
@@ -1125,7 +1157,7 @@ def build(args):
                 err(w, str(e))
                 continue
             ok_, good, why = ck.allowed(form, n)
-            an = [a for a in ck.analyses(form) if attic_ok(a) or a.get('manual')]
+            an = [a for a in ck.analyses(form) if (attic_ok(a) or a.get('manual')) and not a.get('nt')]
             if not ok_:
                 err(w, f'형태 {form}: {why}')
                 continue
@@ -1197,7 +1229,7 @@ def build(args):
 
         trs = []
         for idx, (ln, line) in enumerate(u['tr']):
-            w = f"{u['file']}:{ln}"
+            w = ln if isinstance(ln, str) else f"{u['file']}:{ln}"
             meta = metas.get(('tr', idx))
             parts = [x.strip() for x in line.split('|')]
             if len(parts) < 4:
@@ -1205,7 +1237,7 @@ def build(args):
                 continue
             grc, ko, w1, w2 = parts[:4]
             note = parts[4] if len(parts) > 4 else ''
-            for e in G.check_sentence_accents(grc):
+            for e in ([] if (meta and meta.get('acc')) else G.check_sentence_accents(grc)):
                 err(w, f'악센트: {e}  «{grc}»')
             gl = []
             if meta and meta['src']:

@@ -8437,6 +8437,25 @@ const UNIT_SETS = [
   {key:'comp',  grk:'Γ', ko:'작문',      desc:'조각을 골라 한국어 문장을 그리스어로 옮긴다'},
 ];
 const UNIT_PASS = 70;   // 세 묶음 모두 최고 점수 70% 이상이면 유닛 완료
+const UNIT_SET_MAX = 20; // v73: 신약 전권이 들어가 과마다 해석 문항이 수백 개 — 한 번에 20문항씩, 아직 못 맞힌 것부터
+function _unitHash(d){
+  const t = (d && (d.g || d.k || d.f)) || '';
+  let h = 2166136261;
+  for(let i = 0; i < t.length; i++){ h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return (h >>> 0).toString(36);
+}
+function _unitRightSet(n, key){
+  if(!S.unitRight || typeof S.unitRight !== 'object') S.unitRight = {};
+  const rec = S.unitRight[n] || (S.unitRight[n] = {});
+  return rec[key] || (rec[key] = []);
+}
+function _unitPick(n, key, items){
+  if(items.length <= UNIT_SET_MAX) return _shuf(items);
+  const done = new Set(_unitRightSet(n, key));
+  const fresh = _shuf(items.filter(it => !done.has(_unitHash(it.d))));
+  const old = _shuf(items.filter(it => done.has(_unitHash(it.d))));
+  return fresh.concat(old).slice(0, UNIT_SET_MAX);
+}
 
 function _unitsReady(){ return typeof GRAMMAR_UNITS !== 'undefined' && Array.isArray(GRAMMAR_UNITS) && GRAMMAR_UNITS.length > 0; }
 function _unitByN(n){ return _unitsReady() ? GRAMMAR_UNITS.find(u => u.n === n) : null; }
@@ -8668,11 +8687,11 @@ function renderUnit(n){
       ${pr.sets.map(s => { const d = UNIT_SETS.find(x => x.key === s.key); return `
         <button class="u-set" onclick="startUnitSet(${n},'${s.key}')">
           <span class="grk">${d.grk}</span>
-          <span class="u-body"><span class="u-title">${d.ko} · ${s.total}문항</span><span class="u-meta">${d.desc}</span></span>
+          <span class="u-body"><span class="u-title">${d.ko} · ${s.total}문항${s.total > UNIT_SET_MAX ? ` <span class="u-meta">(한 번에 ${UNIT_SET_MAX}문항 · 맞힌 ${_unitRightSet(n, s.key).length})</span>` : ''}</span><span class="u-meta">${d.desc}</span></span>
           <span class="u-best">${s.tries ? `최고 ${s.best}%` : '풀기 →'}</span>
         </button>`; }).join('')}
-      <div class="btn-row" style="margin:12px 0 4px"><button class="btn btn-g" onclick="startUnitSet(${n},'all')">전체 풀기 (${pr.total}문항) →</button></div>
-      <div class="hint">해석 · 작문 문장은 크세노폰 · 플라톤 · 뤼시아스 · 이솝 · 신약 같은 고대 원전에서 ${n}과까지 배운 문법에 맞는 것만 골라 발췌했습니다. 문항마다 출처를 달았고, 아직 배우지 않은 낱말은 뜻풀이를 먼저 보여 줍니다. 교재의 연습문제는 책에서 함께 풀어 보세요.</div>
+      <div class="btn-row" style="margin:12px 0 4px"><button class="btn btn-g" onclick="startUnitSet(${n},'all')">전체 풀기 (${pr.sets.reduce((a, s) => a + Math.min(s.total, s.key === 'tr' ? UNIT_SET_MAX : s.total), 0)}문항) →</button></div>
+      <div class="hint">해석 · 작문 문장은 크세노폰 · 플라톤 · 뤼시아스 · 이솝 · 신약 같은 고대 원전에서 ${n}과까지 배운 문법에 맞는 것만 골라 발췌했습니다. 신약은 27권 모든 절을 실었고, 절마다 그 문법을 다 배운 과에 들어 있습니다. 문항마다 출처를 달았고, 아직 배우지 않은 낱말은 뜻풀이를 먼저 보여 줍니다. 교재의 연습문제는 책에서 함께 풀어 보세요.</div>
     ` : `<div class="hint">이 유닛은 도구(악센트 학습)와 초보자 과정의 알파벳 과제로 연습합니다.</div>`}
   `;
   _unitCurriculumBar(n);
@@ -8719,8 +8738,8 @@ function startUnitSet(n, key){
   const u = _unitByN(n);
   if(!u) return;
   let items = key === 'all'
-    ? [].concat(_unitItems(u, 'forms'), _unitItems(u, 'tr'), _unitItems(u, 'comp'))
-    : _shuf(_unitItems(u, key));
+    ? [].concat(_unitItems(u, 'forms'), _unitPick(n, 'tr', _unitItems(u, 'tr')), _unitItems(u, 'comp'))
+    : _unitPick(n, key, _unitItems(u, key));
   if(!items.length){ toast('이 묶음에는 문제가 없습니다.'); return; }
   unitRun = {n, key, items, idx:0, right:0, wrong:[], review:false, answered:false};
   _unitQ();
@@ -8923,7 +8942,10 @@ function _unitAnswer(ok, headHtml, extraHtml){
   if(r.answered) return;
   r.answered = true;
   const it = r.items[r.idx];
-  if(ok){ r.right += 1; S.grammarCorrectCount = (S.grammarCorrectCount || 0) + 1; }
+  if(ok){
+    r.right += 1; S.grammarCorrectCount = (S.grammarCorrectCount || 0) + 1;
+    if(it.n){ const rs = _unitRightSet(it.n, it.type), h = _unitHash(it.d); if(!rs.includes(h)) rs.push(h); }
+  }
   else r.wrong.push(it);
   const after = document.getElementById('uq-after');
   after.innerHTML = `

@@ -93,7 +93,7 @@ const AUTHORS = ['크세노폰', '위(僞)크세노폰', '플라톤', '뤼시아
 const SRC_RE = new RegExp(`^(${AUTHORS.map(a => a.replace(/[()]/g, '\\$&')).join('|')}), 『[^』]+』 \\S.*$|^이솝 우화 \\((Halm|Chambry) \\d+\\) 「[^」]+」( \\(일부\\))?$`);
 const badSrc = sourced.filter(r => !SRC_RE.test(r.x.s || '')).map(r => `${r.u}:${r.x.s}`);
 assert(badSrc.length === 0, `출처 형식 '저자, 『작품』 위치' 또는 '이솝 우화 (판 번호) 「제목」' ${badSrc.slice(0, 3).join(' | ')}`);
-const ntBad = sourced.filter(r => /^신약, /.test(r.x.s) && !/^신약, 『[^』]+』 \d+:\d+(–\d+)?( \(일부\))?$/.test(r.x.s)).map(r => r.x.s);
+const ntBad = sourced.filter(r => /^신약, /.test(r.x.s) && !/^신약, 『[^』]+』 \d+:\d+[ab]?(–\d+)?( \(일부\))?$/.test(r.x.s)).map(r => r.x.s);
 assert(ntBad.length === 0, `신약 출처는 '장:절' ${ntBad.slice(0, 3).join(' | ')}`);
 const byAuthor = {};
 const works = new Set();
@@ -134,8 +134,7 @@ const libIds = [...new Set([...wg.matchAll(/works:\[([^\]]*)\]/g)].flatMap(m => 
 const libKey = id => Object.keys(LIB).find(k => id === k || id.startsWith(k + '-'));
 const libMissing = libIds.filter(id => !libKey(id) || !srcs.some(s => s.startsWith(LIB[libKey(id)])));
 assert(libIds.length >= 20 && libMissing.length === 0, `읽기 서재 작품 ${libIds.length}개 모두 발췌가 있음 (빠진 것: ${libMissing.join(' · ') || '없음'})`);
-const maxShare = Math.max(...Object.values(byAuthor)) / sourced.length;
-assert(maxShare < 0.4, `한 저자가 40% 를 넘지 않음 (최대 ${(maxShare * 100).toFixed(1)}%)`);
+// 한 저자 비율 상한은 두지 않는다 — 신약은 전권(모든 절)을 싣기 때문에 해석 문항 대부분이 신약이다
 const seenG = {};
 const dupTr = [];
 U.forEach(u => u.tr.forEach(t => { if(seenG[t.g]) dupTr.push(`${seenG[t.g]}/${u.n}`); seenG[t.g] = u.n; }));
