@@ -254,10 +254,10 @@ def auto_wrong(items):
         ko['w1'], ko['w2'] = picked
 
 
-def existing_texts():
+def existing_texts(paths=None):
     """기존 유닛 원본(units-src/u*.txt)의 해석 문항 그리스어 — 같은 절이 이미 있으면 건너뛴다"""
     seen = set()
-    for p in glob.glob(os.path.join(ROOT, 'units-src', 'u*.txt')):
+    for p in paths if paths is not None else glob.glob(os.path.join(ROOT, 'units-src', 'u*.txt')):
         sec = None
         for line in open(p, encoding='utf-8'):
             m = re.match(r'^([a-z]+):', line)
@@ -287,10 +287,15 @@ def main():
 
     # 대상 절
     seen = existing_texts()
+    # 이번에 다시 만들지 않는 앞 책의 생성본(units-src/nt/NN.txt)도 본다 — 책 하나만 다시 만들 때 앞 책과 겹치는 절을 거르려고
+    earlier = {n: os.path.join(NT_DIR, f'{n:02d}.txt') for n in range(1, 28) if n not in kos}
+    earlier = {n: p for n, p in earlier.items() if os.path.exists(p)}
     items = []
     for v in V:
         if v['b'] not in kos:
             continue
+        for n in sorted(n for n in earlier if n < v['b']):
+            seen |= existing_texts([earlier.pop(n)])
         ko = kos[v['b']].get(v['cite'])
         if not ko:
             continue
