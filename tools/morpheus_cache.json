@@ -386866,6 +386866,20 @@
 "voice": "active"
 }
 ],
+"ἀναλαβών": [
+{
+"case": "nominative",
+"derivtype": "anw",
+"gend": "masculine",
+"hdwd": "ἀναλαμβάνω",
+"mood": "participle",
+"num": "singular",
+"pofs": "verb participle",
+"stemtype": "aor2",
+"tense": "aorist",
+"voice": "active"
+}
+],
 "ἀναλαμβάνειν": [
 {
 "derivtype": "anw",
@@ -417475,6 +417489,26 @@
 }
 ],
 "ἀρχιερατικοὖ": [],
+"ἀρχιερατικοῦ": [
+{
+"case": "genitive",
+"decl": "1st & 2nd",
+"gend": "masculine",
+"hdwd": "ἀρχιερατικός",
+"num": "singular",
+"pofs": "adjective",
+"stemtype": "os_h_on"
+},
+{
+"case": "genitive",
+"decl": "1st & 2nd",
+"gend": "neuter",
+"hdwd": "ἀρχιερατικός",
+"num": "singular",
+"pofs": "adjective",
+"stemtype": "os_h_on"
+}
+],
 "ἀρχιερεύς": [
 {
 "case": "nominative",
@@ -575147,6 +575181,54 @@
 "voice": "active"
 }
 ],
+"ῥήσσει": [
+{
+"derivtype": "ss",
+"dial": "epic Ionic",
+"hdwd": "ῥήγνυμι",
+"mood": "indicative",
+"num": "singular",
+"pers": "2nd",
+"pofs": "verb",
+"stemtype": "w_stem",
+"tense": "present",
+"voice": "mediopassive"
+},
+{
+"derivtype": "ss",
+"dial": "epic Ionic",
+"hdwd": "ῥήγνυμι",
+"mood": "indicative",
+"num": "singular",
+"pers": "3rd",
+"pofs": "verb",
+"stemtype": "w_stem",
+"tense": "present",
+"voice": "active"
+},
+{
+"derivtype": "ss",
+"hdwd": "ῥήσσω",
+"mood": "indicative",
+"num": "singular",
+"pers": "2nd",
+"pofs": "verb",
+"stemtype": "w_stem",
+"tense": "present",
+"voice": "mediopassive"
+},
+{
+"derivtype": "ss",
+"hdwd": "ῥήσσω",
+"mood": "indicative",
+"num": "singular",
+"pers": "3rd",
+"pofs": "verb",
+"stemtype": "w_stem",
+"tense": "present",
+"voice": "active"
+}
+],
 "ῥήτορος": [
 {
 "case": "genitive",
@@ -575492,6 +575574,7 @@
 ],
 "ῥεδῶν": [],
 "ῥεραντισμένοι": [],
+"ῥεραντισμένον": [],
 "ῥεύσουσιν": [
 {
 "derivtype": "ev_stem",

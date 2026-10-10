@@ -319,7 +319,7 @@ def main():
         for line in open(manual_path, encoding='utf-8'):
             if line.strip() and not line.startswith('#'):
                 f, lem, code, why = (line.rstrip('\n').split('\t') + ['', '', '', ''])[:4]
-                rows[(f, code)] = (lem, why)
+                rows[(f, code, lem)] = why
     ck = B.Checker(voc)
     for it in items:
         toks = [w for w, _ in G.tokenize(it['g'])]
@@ -342,7 +342,7 @@ def main():
                 pick = (f"@{good[0]['hdwd']} " + code).strip()
             else:
                 # Morpheus 에 문맥에 맞는 분석이 없거나 표제어가 다르다 → PROIEL 분석을 수동 형태로
-                rows[(G.query_form(t), code)] = (p['lemma'], f"PROIEL {it['pkey']} ({p['pos']})")
+                rows.setdefault((G.query_form(t), code, p['lemma']), f"PROIEL {it['pkey']} ({p['pos']})")
                 pick = (f"@{p['lemma']} " + code).strip()
             if key in picks and picks[key] != pick:
                 clash.add(key)
@@ -353,7 +353,7 @@ def main():
     with open(manual_path, 'w', encoding='utf-8') as f:
         f.write('# 신약 전권 — Morpheus 에 문맥에 맞는 분석이 없는 형태 (히브리 · 아람 이름, 코이네 꼴, 표제어 오분석). PROIEL 트리뱅크의 문맥 분석에서 만든다 (tools/nt_units.py).\n')
         f.write('# 형태<TAB>표제어<TAB>분석 코드<TAB>근거\n')
-        for (form, code), (lem, why) in sorted(rows.items()):
+        for (form, code, lem), why in sorted(rows.items()):
             f.write(f'{form}\t{lem}\t{code}\t{why}\n')
     ck = B.Checker(voc)       # 수동 형태 다시 읽기
 
@@ -382,6 +382,10 @@ def main():
                 u0 = 40
             need = max(need, u0)
         it['unit'] = need
+    if unknown:
+        print(f'40과에서도 허용되지 않는 낱말 {len(unknown)}종 (빌드에서 오류로 나온다):')
+        for k, c in unknown.most_common(None if args.needs else 40):
+            print(f'  {c:4d}  {k}')
     if args.needs:
         need_gl = collections.OrderedDict()
         for it in items:
@@ -402,10 +406,6 @@ def main():
                 f.write(f'{lem}\t{c}\t{t}\t{where}\n')
         print('뜻풀이 필요 표제어', len(need_gl), '→', args.needs)
         return
-    if unknown:
-        print(f'40과에서도 허용되지 않는 낱말 {len(unknown)}종 (빌드에서 오류로 나온다):')
-        for k, c in unknown.most_common(40):
-            print(f'  {c:4d}  {k}')
 
     # 쓰기
     for n in books:
