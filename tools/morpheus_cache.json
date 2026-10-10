@@ -518236,6 +518236,58 @@
 "voice": "active"
 }
 ],
+"ἔσχηκεν": [
+{
+"derivtype": "e_stem",
+"dial": "epic Doric Aeolic",
+"hdwd": "ἔχω",
+"mood": "indicative",
+"num": "plural",
+"pers": "3rd",
+"pofs": "verb",
+"stemtype": "perf_act",
+"tense": "pluperfect",
+"voice": "active"
+},
+{
+"derivtype": "e_stem",
+"hdwd": "ἔχω",
+"mood": "indicative",
+"morph": "nu_movable",
+"num": "singular",
+"pers": "3rd",
+"pofs": "verb",
+"stemtype": "perf_act",
+"tense": "perfect",
+"voice": "active"
+},
+{
+"derivtype": "aw_denom",
+"dial": "Attic epic Doric Ionic Aeolic",
+"hdwd": "σχάω",
+"mood": "indicative",
+"morph": "redupl",
+"num": "plural",
+"pers": "3rd",
+"pofs": "verb",
+"stemtype": "perf_act",
+"tense": "pluperfect",
+"voice": "active"
+},
+{
+"derivtype": "aw_denom",
+"dial": "Attic Ionic",
+"hdwd": "σχάω",
+"mood": "indicative",
+"morph": "nu_movable redupl",
+"num": "singular",
+"pers": "3rd",
+"pofs": "verb",
+"stemtype": "perf_act",
+"tense": "perfect",
+"voice": "active"
+}
+],
 "ἔσχομεν": [
 {
 "hdwd": "ἔχω",
